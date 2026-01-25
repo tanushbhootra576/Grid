@@ -34,7 +34,10 @@ import {
   IconTrash,
   IconRefresh,
 } from "@tabler/icons-react";
-import { CollaborationStatus, CollaborationLevel } from '@/components/CollaborationStatus'; // IMPORT ADDED
+import {
+  CollaborationStatus,
+  CollaborationLevel,
+} from "@/components/CollaborationStatus"; // IMPORT ADDED
 import {
   deleteUser,
   GoogleAuthProvider,
@@ -98,7 +101,8 @@ export default function ProfilePage() {
         github: profile.socialLinks?.github || "",
         linkedin: profile.socialLinks?.linkedin || "",
         portfolio: profile.socialLinks?.portfolio || "",
-        collaborationLevel: (profile.collaborationStatus?.level ?? 1) as CollaborationLevel,
+        collaborationLevel: (profile.collaborationStatus?.level ??
+          1) as CollaborationLevel,
         collaborationVisible: profile.collaborationStatus?.visible ?? true,
       });
     } else if (user) {
@@ -141,8 +145,8 @@ export default function ProfilePage() {
           },
           collaborationStatus: {
             level: formData.collaborationLevel,
-            visible: formData.collaborationVisible
-          }
+            visible: formData.collaborationVisible,
+          },
         }),
       });
 
@@ -577,20 +581,19 @@ export default function ProfilePage() {
             onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
           />
 
-
           {/* Collaboration Status Slider */}
           <Box my="lg">
-             <CollaborationStatus 
-                  level={formData.collaborationLevel}
-                  visible={formData.collaborationVisible}
-                  onChange={(level, visible) => 
-                     setFormData(prev => ({ 
-                        ...prev, 
-                        collaborationLevel: level, 
-                        collaborationVisible: visible 
-                     }))
-                  }
-             />
+            <CollaborationStatus
+              level={formData.collaborationLevel}
+              visible={formData.collaborationVisible}
+              onChange={(level, visible) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  collaborationLevel: level,
+                  collaborationVisible: visible,
+                }))
+              }
+            />
           </Box>
 
           <TagsInput

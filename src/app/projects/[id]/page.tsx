@@ -14,7 +14,7 @@ import {
   Stack,
   ThemeIcon,
   Box,
-  ScrollArea
+  ScrollArea,
 } from "@mantine/core";
 import {
   IconBrandGithub,
@@ -22,14 +22,17 @@ import {
   IconArrowLeft,
   IconUsers,
   IconCalendar,
-  IconFileText
+  IconFileText,
 } from "@tabler/icons-react";
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown from "react-markdown";
 import { Navbar } from "@/components/Navbar";
 import dbConnect from "@/lib/db";
 import Project from "@/models/Project";
 import { SkillGapAnalyzer } from "@/components/SkillGapAnalyzer";
-import { CollaborationBadge, CollaborationLevel } from "@/components/CollaborationStatus"; // IMPORT ADDED
+import {
+  CollaborationBadge,
+  CollaborationLevel,
+} from "@/components/CollaborationStatus"; // IMPORT ADDED
 
 // Force dynamic rendering if we rely on request headers/cookies implicitly or data changes often
 export const dynamic = "force-dynamic";
@@ -39,35 +42,38 @@ interface PageProps {
 }
 
 async function getProjectReadme(repoLink?: string) {
-    if (!repoLink || !repoLink.includes('github.com')) return null;
+  if (!repoLink || !repoLink.includes("github.com")) return null;
 
-    try {
-        const urlParts = repoLink.split('github.com/');
-        if (urlParts.length <= 1) return null;
-        
-        const pathParts = urlParts[1].split('/').filter(Boolean);
-        if (pathParts.length < 2) return null;
+  try {
+    const urlParts = repoLink.split("github.com/");
+    if (urlParts.length <= 1) return null;
 
-        const owner = pathParts[0];
-        const repo = pathParts[1].replace('.git', '');
+    const pathParts = urlParts[1].split("/").filter(Boolean);
+    if (pathParts.length < 2) return null;
 
-        // Use the API to find the README (handles default branch detection)
-        // We use the raw media type to get the content directly
-        // Not using AUTH TOKEN as requested, so limited to 60 req/hr from this IP
-        const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/readme`, {
-            headers: {
-                'Accept': 'application/vnd.github.v3.raw',
-                'User-Agent': 'Project-Analyzer-App', 
-            },
-            next: { revalidate: 3600 } // Cache for 1 hour
-        });
+    const owner = pathParts[0];
+    const repo = pathParts[1].replace(".git", "");
 
-        if (!res.ok) return null;
-        return await res.text();
-    } catch (error) {
-        console.error('Failed to fetch README:', error);
-        return null;
-    }
+    // Use the API to find the README (handles default branch detection)
+    // We use the raw media type to get the content directly
+    // Not using AUTH TOKEN as requested, so limited to 60 req/hr from this IP
+    const res = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/readme`,
+      {
+        headers: {
+          Accept: "application/vnd.github.v3.raw",
+          "User-Agent": "Project-Analyzer-App",
+        },
+        next: { revalidate: 3600 }, // Cache for 1 hour
+      }
+    );
+
+    if (!res.ok) return null;
+    return await res.text();
+  } catch (error) {
+    console.error("Failed to fetch README:", error);
+    return null;
+  }
 }
 
 export default async function ProjectDetailPage({ params }: PageProps) {
@@ -77,9 +83,11 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
   let project = null;
   try {
-        project = await Project.findById(id).populate('teamMembers', 'name email firebaseUid collaborationStatus').lean();
+    project = await Project.findById(id)
+      .populate("teamMembers", "name email firebaseUid collaborationStatus")
+      .lean();
   } catch (e) {
-      console.error("Failed to fetch project", e);
+    console.error("Failed to fetch project", e);
   }
 
   if (!project) {
@@ -91,7 +99,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const createdAt = project.createdAt
     ? new Date(project.createdAt).toLocaleDateString()
     : "";
-    
+
   // Fetch readme content if available
   const readmeContent = await getProjectReadme(project.repoLink);
 
@@ -180,29 +188,31 @@ export default async function ProjectDetailPage({ params }: PageProps) {
               )}
 
               {readmeContent && (
-                  <Card withBorder radius="md" mt="xl" padding="lg">
-                      <Group mb="md">
-                          <ThemeIcon variant="light" size="lg" color="dark">
-                              <IconFileText size={20} />
-                          </ThemeIcon>
-                          <Text fw={700} size="lg">README.md</Text>
-                      </Group>
-                      
-                      <Box 
-                          style={{ 
-                              // Use a lighter gray background and code styling
-                              backgroundColor: '#f8f9fa',
-                              color: '#24292e', // Ensure text is dark to contrast with light bg
-                              padding: '1rem', 
-                              borderRadius: '8px',
-                              overflowX: 'auto'
-                           }}
-                      >
-                          <div className="markdown-body">
-                              <ReactMarkdown>{readmeContent}</ReactMarkdown>
-                          </div>
-                      </Box>
-                  </Card>
+                <Card withBorder radius="md" mt="xl" padding="lg">
+                  <Group mb="md">
+                    <ThemeIcon variant="light" size="lg" color="dark">
+                      <IconFileText size={20} />
+                    </ThemeIcon>
+                    <Text fw={700} size="lg">
+                      README.md
+                    </Text>
+                  </Group>
+
+                  <Box
+                    style={{
+                      // Use a lighter gray background and code styling
+                      backgroundColor: "#f8f9fa",
+                      color: "#24292e", // Ensure text is dark to contrast with light bg
+                      padding: "1rem",
+                      borderRadius: "8px",
+                      overflowX: "auto",
+                    }}
+                  >
+                    <div className="markdown-body">
+                      <ReactMarkdown>{readmeContent}</ReactMarkdown>
+                    </div>
+                  </Box>
+                </Card>
               )}
             </Card>
           </Stack>
@@ -224,12 +234,22 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                       <Avatar color="initials" name={member.name} />
                       <div>
                         <Group gap={6}>
-                            <Text size="sm" fw={500}>{member.name || 'Unknown User'}</Text>
-                            {member.collaborationStatus?.visible && (
-                                <CollaborationBadge level={member.collaborationStatus.level as CollaborationLevel} size="xs" />
-                            )}
+                          <Text size="sm" fw={500}>
+                            {member.name || "Unknown User"}
+                          </Text>
+                          {member.collaborationStatus?.visible && (
+                            <CollaborationBadge
+                              level={
+                                member.collaborationStatus
+                                  .level as CollaborationLevel
+                              }
+                              size="xs"
+                            />
+                          )}
                         </Group>
-                        <Text size="xs" c="dimmed">Contributor</Text>
+                        <Text size="xs" c="dimmed">
+                          Contributor
+                        </Text>
                       </div>
                     </Group>
                   ))

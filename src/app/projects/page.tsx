@@ -17,7 +17,7 @@ import {
   LoadingOverlay,
   Image,
   Avatar,
-  Tooltip
+  Tooltip,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useAuth } from "@/components/AuthProvider";
@@ -163,7 +163,11 @@ export default function ProjectsPage() {
                 padding="lg"
                 radius="md"
                 withBorder
-                style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "100%",
+                }}
               >
                 <Card.Section>
                   <img
@@ -194,51 +198,87 @@ export default function ProjectsPage() {
                   />
                 </Card.Section>
 
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <Group justify="space-between" mt="md" mb="xs" align="flex-start" wrap="nowrap">
-                      <Text fw={600} lineClamp={1} title={project.title}>{project.title}</Text>
-                      {project.isFeatured && (
-                        <Badge color="yellow" variant="light" leftSection={<IconStar size={12} />} style={{ flexShrink: 0 }}>
-                          Featured
-                        </Badge>
+                <div
+                  style={{ flex: 1, display: "flex", flexDirection: "column" }}
+                >
+                  <Group
+                    justify="space-between"
+                    mt="md"
+                    mb="xs"
+                    align="flex-start"
+                    wrap="nowrap"
+                  >
+                    <Text fw={600} lineClamp={1} title={project.title}>
+                      {project.title}
+                    </Text>
+                    {project.isFeatured && (
+                      <Badge
+                        color="yellow"
+                        variant="light"
+                        leftSection={<IconStar size={12} />}
+                        style={{ flexShrink: 0 }}
+                      >
+                        Featured
+                      </Badge>
+                    )}
+                  </Group>
+
+                  <Text size="sm" c="dimmed" lineClamp={3} mb="md">
+                    {project.description}
+                  </Text>
+
+                  <div style={{ marginTop: "auto" }}>
+                    {project.techStack?.length > 0 && (
+                      <Group gap={6} mb="sm">
+                        {project.techStack.slice(0, 3).map((tech) => (
+                          <Badge
+                            key={tech}
+                            variant="outline"
+                            size="sm"
+                            color="gray"
+                          >
+                            {tech}
+                          </Badge>
+                        ))}
+                        {project.techStack.length > 3 && (
+                          <Badge
+                            variant="transparent"
+                            c="dimmed"
+                            size="sm"
+                            pl={0}
+                          >
+                            +{project.techStack.length - 3}
+                          </Badge>
+                        )}
+                      </Group>
+                    )}
+
+                    <Group justify="space-between" align="center" mt="xs">
+                      {project.teamMembers && project.teamMembers.length > 0 ? (
+                        <Avatar.Group spacing="sm">
+                          {project.teamMembers.slice(0, 3).map((m) => (
+                            <Tooltip key={m._id} label={m.name} withArrow>
+                              <Avatar
+                                src={null}
+                                name={m.name}
+                                radius="xl"
+                                color="initials"
+                              />
+                            </Tooltip>
+                          ))}
+                          {project.teamMembers.length > 3 && (
+                            <Avatar radius="xl">
+                              +{project.teamMembers.length - 3}
+                            </Avatar>
+                          )}
+                        </Avatar.Group>
+                      ) : (
+                        <Text size="xs" c="dimmed">
+                          No members
+                        </Text>
                       )}
                     </Group>
-
-                    <Text size="sm" c="dimmed" lineClamp={3} mb="md">
-                      {project.description}
-                    </Text>
-
-                    <div style={{ marginTop: 'auto' }}>
-                        {project.techStack?.length > 0 && (
-                             <Group gap={6} mb="sm">
-                                {project.techStack.slice(0, 3).map((tech) => (
-                                    <Badge key={tech} variant="outline" size="sm" color="gray">
-                                    {tech}
-                                    </Badge>
-                                ))}
-                                {project.techStack.length > 3 && (
-                                    <Badge variant="transparent" c="dimmed" size="sm" pl={0}>+{project.techStack.length - 3}</Badge>
-                                )}
-                            </Group>
-                        )}
-                        
-                        <Group justify="space-between" align="center" mt="xs">
-                            {project.teamMembers && project.teamMembers.length > 0 ? (
-                                <Avatar.Group spacing="sm">
-                                    {project.teamMembers.slice(0, 3).map(m => (
-                                        <Tooltip key={m._id} label={m.name} withArrow>
-                                            <Avatar src={null} name={m.name} radius="xl" color="initials" />
-                                        </Tooltip>
-                                    ))}
-                                    {project.teamMembers.length > 3 && (
-                                        <Avatar radius="xl">+{project.teamMembers.length - 3}</Avatar>
-                                    )}
-                                </Avatar.Group>
-                            ) : (
-                                <Text size="xs" c="dimmed">No members</Text>
-                            )}
-                        </Group>
-                    </div>
+                  </div>
                 </div>
 
                 <Group mt="lg" grow>
@@ -251,15 +291,15 @@ export default function ProjectsPage() {
                     Details
                   </Button>
                   {project.demoLink ? (
-                      <Button
+                    <Button
                       component="a"
                       href={project.demoLink}
                       target="_blank"
                       variant="light"
                       leftSection={<IconExternalLink size={16} />}
-                     >
-                        Demo
-                     </Button>
+                    >
+                      Demo
+                    </Button>
                   ) : project.repoLink ? (
                     <Button
                       component="a"
@@ -272,23 +312,23 @@ export default function ProjectsPage() {
                     </Button>
                   ) : null}
                 </Group>
-                
+
                 {project.teamMembers && project.teamMembers.length > 0 && (
-                   <Button
-                     variant="white"
-                     color="gray"
-                     size="compact-xs"
-                     mt="sm"
-                     onClick={() => {
-                        setContactMember(project.teamMembers![0]);
-                        setContactOpened(true);
-                     }}
-                   >
-                     {project.teamMembers[0].name
-                       ? `Contact Author`
-                       : "Contact Author"}
-                   </Button>
-                 )}
+                  <Button
+                    variant="white"
+                    color="gray"
+                    size="compact-xs"
+                    mt="sm"
+                    onClick={() => {
+                      setContactMember(project.teamMembers![0]);
+                      setContactOpened(true);
+                    }}
+                  >
+                    {project.teamMembers[0].name
+                      ? `Contact Author`
+                      : "Contact Author"}
+                  </Button>
+                )}
               </Card>
             ))}
           </SimpleGrid>

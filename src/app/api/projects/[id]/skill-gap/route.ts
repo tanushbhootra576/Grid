@@ -66,11 +66,13 @@ export async function GET(
             // Fetch repo details to get pushed_at
             const headers: HeadersInit = {
               "User-Agent": "Project-Analyzer-App",
-              "Accept": "application/vnd.github.v3+json",
+              Accept: "application/vnd.github.v3+json",
             };
 
             if (process.env.GITHUB_ACCESS_TOKEN) {
-              headers["Authorization"] = `token ${process.env.GITHUB_ACCESS_TOKEN}`;
+              headers[
+                "Authorization"
+              ] = `token ${process.env.GITHUB_ACCESS_TOKEN}`;
             }
 
             // Note: Unauthenticated requests are limited to 60/hr

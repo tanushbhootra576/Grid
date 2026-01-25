@@ -1,12 +1,27 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { Navbar } from '@/components/Navbar';
-import { Container, Title, Text, Badge, Group, Card, Loader, Button, Stack, Divider, SimpleGrid } from '@mantine/core';
-import { IconMessage, IconMail, IconExternalLink } from '@tabler/icons-react';
-import { getAuthHeaders } from '@/lib/api';
-import { CollaborationStatus, CollaborationLevel } from '@/components/CollaborationStatus'; // IMPORT ADDED
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { Navbar } from "@/components/Navbar";
+import {
+  Container,
+  Title,
+  Text,
+  Badge,
+  Group,
+  Card,
+  Loader,
+  Button,
+  Stack,
+  Divider,
+  SimpleGrid,
+} from "@mantine/core";
+import { IconMessage, IconMail, IconExternalLink } from "@tabler/icons-react";
+import { getAuthHeaders } from "@/lib/api";
+import {
+  CollaborationStatus,
+  CollaborationLevel,
+} from "@/components/CollaborationStatus"; // IMPORT ADDED
 
 interface UserDetail {
   _id: string;
@@ -42,7 +57,9 @@ export default function UserProfileView() {
       if (!uid) return;
       setLoading(true);
       try {
-        const res = await fetch(`/api/users/${uid}`, { headers: getAuthHeaders() });
+        const res = await fetch(`/api/users/${uid}`, {
+          headers: getAuthHeaders(),
+        });
         const json = await res.json();
         setUser(json.user);
       } catch (e) {
@@ -61,19 +78,25 @@ export default function UserProfileView() {
         {loading && <Loader />}
         {!loading && !user && <Text c="red">User not found.</Text>}
         {!loading && user && (
-          <Card
-            shadow="lg"
-            radius="lg"
-            padding="xl"
-            withBorder
-          >
+          <Card shadow="lg" radius="lg" padding="xl" withBorder>
             <Stack gap="lg">
-              <Group justify="space-between" align="flex-start" gap="sm" wrap="wrap">
+              <Group
+                justify="space-between"
+                align="flex-start"
+                gap="sm"
+                wrap="wrap"
+              >
                 <div>
                   <Title order={1}>{user.name}</Title>
-                  <Text size="sm" c="dimmed">{user.email}</Text>
+                  <Text size="sm" c="dimmed">
+                    {user.email}
+                  </Text>
                   <Text mt={4} fw={500} c="dimmed">
-                    {user.branch ? `${user.branch}${user.year ? ' • Year ' + user.year : ''}` : 'Branch not set'}
+                    {user.branch
+                      ? `${user.branch}${
+                          user.year ? " • Year " + user.year : ""
+                        }`
+                      : "Branch not set"}
                   </Text>
                 </div>
                 <Group gap="xs">
@@ -100,24 +123,22 @@ export default function UserProfileView() {
                 </Group>
               </Group>
 
-              {user.bio && (
-                <Text size="md">
-                  {user.bio}
-                </Text>
-              )}
+              {user.bio && <Text size="md">{user.bio}</Text>}
 
               {user.collaborationStatus && user.collaborationStatus.visible && (
-                <CollaborationStatus 
-                   level={user.collaborationStatus.level}
-                   visible={true}
-                   onChange={() => {}}
-                   readonly
+                <CollaborationStatus
+                  level={user.collaborationStatus.level}
+                  visible={true}
+                  onChange={() => {}}
+                  readonly
                 />
               )}
 
               <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
                 <div>
-                  <Text size="xs" c="dimmed" fw={700} tt="uppercase" mb={6}>Skills</Text>
+                  <Text size="xs" c="dimmed" fw={700} tt="uppercase" mb={6}>
+                    Skills
+                  </Text>
                   <Group gap={8} wrap="wrap">
                     {user.skills?.length ? (
                       user.skills.map((skill) => (
@@ -132,12 +153,16 @@ export default function UserProfileView() {
                         </Badge>
                       ))
                     ) : (
-                      <Text size="sm" c="dimmed">No skills added.</Text>
+                      <Text size="sm" c="dimmed">
+                        No skills added.
+                      </Text>
                     )}
                   </Group>
                 </div>
                 <div>
-                  <Text size="xs" c="dimmed" fw={700} tt="uppercase" mb={6}>Interests</Text>
+                  <Text size="xs" c="dimmed" fw={700} tt="uppercase" mb={6}>
+                    Interests
+                  </Text>
                   <Group gap={8} wrap="wrap">
                     {user.interests?.length ? (
                       user.interests.map((interest) => (
@@ -152,7 +177,9 @@ export default function UserProfileView() {
                         </Badge>
                       ))
                     ) : (
-                      <Text size="sm" c="dimmed">No interests added.</Text>
+                      <Text size="sm" c="dimmed">
+                        No interests added.
+                      </Text>
                     )}
                   </Group>
                 </div>
