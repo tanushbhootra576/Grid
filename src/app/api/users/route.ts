@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit)
-                .select('firebaseUid name email branch year skills interests role'),
+                .select('firebaseUid name email branch year skills interests role collaborationStatus'),
             User.countDocuments(query),
         ]);
 

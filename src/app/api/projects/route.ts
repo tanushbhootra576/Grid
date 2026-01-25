@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
         }
         const projects = await Project.find(query)
             .sort({ isFeatured: -1, createdAt: -1 })
-            .populate('teamMembers', 'firebaseUid name email')
+            .populate('teamMembers', 'firebaseUid name email collaborationStatus')
             .lean();
         return NextResponse.json({ projects });
     } catch (error) {

@@ -24,6 +24,7 @@ import {
   Tooltip,
   Select,
   Stack,
+  Box,
 } from "@mantine/core";
 import { useAuth } from "@/components/AuthProvider";
 import {
@@ -33,6 +34,7 @@ import {
   IconTrash,
   IconRefresh,
 } from "@tabler/icons-react";
+import { CollaborationStatus, CollaborationLevel } from '@/components/CollaborationStatus'; // IMPORT ADDED
 import {
   deleteUser,
   GoogleAuthProvider,
@@ -80,6 +82,8 @@ export default function ProfilePage() {
     github: "",
     linkedin: "",
     portfolio: "",
+    collaborationLevel: 1 as CollaborationLevel,
+    collaborationVisible: true,
   });
 
   useEffect(() => {
@@ -94,6 +98,8 @@ export default function ProfilePage() {
         github: profile.socialLinks?.github || "",
         linkedin: profile.socialLinks?.linkedin || "",
         portfolio: profile.socialLinks?.portfolio || "",
+        collaborationLevel: (profile.collaborationStatus?.level ?? 1) as CollaborationLevel,
+        collaborationVisible: profile.collaborationStatus?.visible ?? true,
       });
     } else if (user) {
       setFormData((prev) => ({ ...prev, name: user.displayName || "" }));
@@ -133,6 +139,10 @@ export default function ProfilePage() {
             linkedin: formData.linkedin,
             portfolio: formData.portfolio,
           },
+          collaborationStatus: {
+            level: formData.collaborationLevel,
+            visible: formData.collaborationVisible
+          }
         }),
       });
 
@@ -566,6 +576,22 @@ export default function ProfilePage() {
             value={formData.bio}
             onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
           />
+
+
+          {/* Collaboration Status Slider */}
+          <Box my="lg">
+             <CollaborationStatus 
+                  level={formData.collaborationLevel}
+                  visible={formData.collaborationVisible}
+                  onChange={(level, visible) => 
+                     setFormData(prev => ({ 
+                        ...prev, 
+                        collaborationLevel: level, 
+                        collaborationVisible: visible 
+                     }))
+                  }
+             />
+          </Box>
 
           <TagsInput
             label="Skills"

@@ -15,6 +15,10 @@ export interface IUser extends Document {
         linkedin?: string;
         portfolio?: string;
     };
+    collaborationStatus?: {
+        level: number; // 0=Not Looking, 1=Exploring, 2=Learning, 3=Actively Collaborating
+        visible: boolean;
+    };
     profileLocked: boolean;
     acceptedGuidelines: boolean;
     blockedUsers: string[];
@@ -42,6 +46,10 @@ const UserSchema: Schema<IUser> = new Schema({
         github: String,
         linkedin: String,
         portfolio: String,
+    },
+    collaborationStatus: {
+        level: { type: Number, default: 1, min: 0, max: 3 },
+        visible: { type: Boolean, default: true }
     },
     profileLocked: {
         type: Boolean,

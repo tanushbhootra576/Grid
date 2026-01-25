@@ -6,6 +6,7 @@ import { Navbar } from '@/components/Navbar';
 import { Container, Title, Text, Badge, Group, Card, Loader, Button, Stack, Divider, SimpleGrid } from '@mantine/core';
 import { IconMessage, IconMail, IconExternalLink } from '@tabler/icons-react';
 import { getAuthHeaders } from '@/lib/api';
+import { CollaborationStatus, CollaborationLevel } from '@/components/CollaborationStatus'; // IMPORT ADDED
 
 interface UserDetail {
   _id: string;
@@ -21,6 +22,10 @@ interface UserDetail {
     github?: string;
     linkedin?: string;
     portfolio?: string;
+  };
+  collaborationStatus?: {
+    level: CollaborationLevel;
+    visible: boolean;
   };
   role: string;
 }
@@ -99,6 +104,15 @@ export default function UserProfileView() {
                 <Text size="md">
                   {user.bio}
                 </Text>
+              )}
+
+              {user.collaborationStatus && user.collaborationStatus.visible && (
+                <CollaborationStatus 
+                   level={user.collaborationStatus.level}
+                   visible={true}
+                   onChange={() => {}}
+                   readonly
+                />
               )}
 
               <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">

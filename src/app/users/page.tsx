@@ -3,10 +3,11 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
-import { Container, Title, TextInput, Select, SimpleGrid, Card, Text, Badge, Group, Button, LoadingOverlay, Pagination, Modal } from '@mantine/core';
+import { Container, Title, TextInput, Select, SimpleGrid, Card, Text, Badge, Group, Button, LoadingOverlay, Pagination, Modal, Avatar } from '@mantine/core';
 import { IconSearch, IconMail, IconBrandGmail, IconBrandWindows, IconBrandYahoo, IconMessage } from '@tabler/icons-react';
 import Link from 'next/link';
 import { getAuthHeaders } from '@/lib/api';
+import { CollaborationBadge, CollaborationLevel } from '@/components/CollaborationStatus'; // IMPORT ADDED
 
 interface ListedUser {
   firebaseUid: string;
@@ -17,6 +18,10 @@ interface ListedUser {
   skills: string[];
   interests: string[];
   role: string;
+  collaborationStatus?: {
+    level: CollaborationLevel;
+    visible: boolean;
+  };
 }
 
 interface UsersResponse {
@@ -119,20 +124,58 @@ export default function UsersDirectoryPage() {
           <div style={{ position: 'relative', minHeight: 300 }}>
             <LoadingOverlay visible={loading} />
             <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 3 }} spacing="md">
-              {data?.users.map(u => (
-                <Card key={u.firebaseUid} withBorder shadow="sm" radius="md">
-                  <Group justify="space-between" mb={4}>
-                    <Text fw={600}>{u.name}</Text>
-                    <Badge color="blue" variant="light">{u.role}</Badge>
+              {data?.users && data.users.map((u) => (
+                <Card 
+                  key={u.firebaseUid} 
+                  withBorder 
+                  shadow="sm" 
+                  radius="md" 
+                  padding="md" 
+                  style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+                >
+                  <Group wrap="nowrap" align="flex-start" mb="md">
+                    <Avatar 
+                        src={null} 
+                        name={u.name} 
+                        color="initials" 
+                        size="lg" 
+                        radius="xl" 
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <Group justify="space-between" align="flex-start" wrap="nowrap" mb={4}>
+                            <Text fw={600} lineClamp={1} title={u.name}>{u.name}</Text>
+                            <Badge color="blue" variant="light" size="sm" style={{ flexShrink: 0 }}>{u.role}</Badge>
+                        </Group>
+                        <Text size="sm" c="dimmed" lineClamp={1} title={u.branch ? `${u.branch} - Year ${u.year}` : 'Branch not set'}>
+                            {u.branch ? `${u.branch}${u.year ? ' • Year ' + u.year : ''}` : 'Branch not set'}
+                        </Text>
+                        
+                        {u.collaborationStatus?.visible && (
+                            <div style={{ marginTop: 6 }}>
+                              <CollaborationBadge level={u.collaborationStatus.level} size="xs" />
+                            </div>
+                        )}
+                    </div>
                   </Group>
-                  <Text size="sm" c="dimmed" mb={6}>{u.branch ? `${u.branch}${u.year ? ' • Year ' + u.year : ''}` : 'Branch not set'}</Text>
-                  <Group gap={4} mb={8} wrap="wrap">
-                    {u.skills.slice(0,5).map(s => <Badge key={s} size="sm" variant="outline">{s}</Badge>)}
-                    {u.skills.length > 5 && <Badge size="sm" variant="light">+{u.skills.length - 5}</Badge>}
-                  </Group>
-                  <Group gap="xs" mt="xs">
-                    <Button size="xs" variant="light" onClick={() => { setContactUser(u); setContactOpened(true); }}>Contact</Button>
-                    <Button size="xs" component={Link} href={`/users/${u.firebaseUid}`} variant="default">View</Button>
+
+                  {/* Spacer to push content */}
+                  <div style={{ flex: 1, marginBottom: '16px' }}>
+                    {u.skills && u.skills.length > 0 ? (
+                        <>
+                            <Text size="xs" c="dimmed" fw={700} tt="uppercase" mb={6}>Skills</Text>
+                            <Group gap={6}>
+                                {u.skills.slice(0, 3).map(s => <Badge key={s} size="sm" variant="outline">{s}</Badge>)}
+                                {u.skills.length > 3 && <Badge size="sm" variant="transparent" c="dimmed" pl={0}>+{u.skills.length - 3}</Badge>}
+                            </Group>
+                        </>
+                    ) : (
+                         <Text size="sm" c="dimmed" fs="italic">No skills added yet.</Text>
+                    )}
+                  </div>
+
+                  <Group gap="xs" mt="auto">
+                    <Button flex={1} size="sm" variant="light" onClick={() => { setContactUser(u); setContactOpened(true); }}>Contact</Button>
+                    <Button flex={1} size="sm" component={Link} href={`/users/${u.firebaseUid}`} variant="default">View Profile</Button>
                   </Group>
                 </Card>
               ))}

@@ -4,6 +4,11 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   // Only run on /api routes
   if (request.nextUrl.pathname.startsWith('/api')) {
+      // Public routes that don't require API key auth
+      if (request.nextUrl.pathname.startsWith('/api/screenshot')) {
+        return NextResponse.next();
+      }
+
       const auth = request.headers.get("authorization");
       const secret = process.env.API_SECRET;
       
