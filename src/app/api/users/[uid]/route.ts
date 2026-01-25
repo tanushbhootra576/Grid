@@ -17,10 +17,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ uid:
         const { uid } = await params;
         let user;
         if (mongoose.Types.ObjectId.isValid(uid)) {
-            user = await User.findById(uid);
+            user = await User.findById(uid).select('-blockedUsers -dmLastRead -pinnedDms -__v');
         }
         if (!user) {
-            user = await User.findOne({ firebaseUid: uid });
+            user = await User.findOne({ firebaseUid: uid }).select('-blockedUsers -dmLastRead -pinnedDms -__v');
         }
 
         if (!user) {
