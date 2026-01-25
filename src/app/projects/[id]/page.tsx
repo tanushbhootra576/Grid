@@ -84,7 +84,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   let project = null;
   try {
     project = await Project.findById(id)
-      .populate("teamMembers", "name email firebaseUid collaborationStatus")
+      .populate("teamMembers", "name collaborationStatus")
       .lean();
   } catch (e) {
     console.error("Failed to fetch project", e);

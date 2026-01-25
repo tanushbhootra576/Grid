@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
         .skip(skip)
         .limit(limit)
         .select(
-          "firebaseUid name email branch year skills interests role collaborationStatus"
+          "firebaseUid name branch year skills interests role collaborationStatus"
         ),
       User.countDocuments(query),
     ]);
