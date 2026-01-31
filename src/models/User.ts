@@ -36,7 +36,12 @@ function createPublicId() {
 }
 
 const UserSchema: Schema<IUser> = new Schema({
-  publicId: { type: String, unique: true, index: true, default: createPublicId },
+  publicId: {
+    type: String,
+    unique: true,
+    index: true,
+    default: createPublicId,
+  },
   firebaseUid: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   name: { type: String, required: true },

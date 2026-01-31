@@ -72,9 +72,17 @@ export default function ProjectsPage() {
     try {
       const res = await fetch("/api/projects", { headers: getAuthHeaders() });
       const data = await res.json();
-      setProjects(data.projects);
+      if (!res.ok) {
+        console.error("API error:", data.error);
+        showError(data.error || "Failed to fetch projects");
+        setProjects([]);
+        return;
+      }
+      setProjects(data.projects || []);
     } catch (error) {
       console.error(error);
+      showError("Failed to fetch projects");
+      setProjects([]);
     } finally {
       setLoading(false);
     }

@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
       .lean();
     return NextResponse.json({ projects });
   } catch (error) {
+    console.error("Error fetching projects:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

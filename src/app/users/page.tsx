@@ -329,7 +329,9 @@ export default function UsersDirectoryPage() {
                 variant="filled"
                 onClick={() => {
                   setContactOpened(false);
-                  router.push(`/chat?dm=${contactUser.publicId ?? contactUser._id}`);
+                  router.push(
+                    `/chat?dm=${contactUser.publicId ?? contactUser._id}`
+                  );
                 }}
               >
                 Direct Message
