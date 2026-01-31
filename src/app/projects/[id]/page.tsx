@@ -38,7 +38,11 @@ import {
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string }> | { id: string };
+}
+
+function isValidObjectId(value: string) {
+  return /^[a-fA-F0-9]{24}$/.test(value);
 }
 
 async function getProjectReadme(repoLink?: string) {
@@ -79,20 +83,21 @@ async function getProjectReadme(repoLink?: string) {
 export default async function ProjectDetailPage({ params }: PageProps) {
   const { id } = await params;
 
-  await dbConnect();
-
-  let project = null;
-  try {
-    project = await Project.findById(id)
-      .populate("teamMembers", "name collaborationStatus")
-      .lean();
-  } catch (e) {
-    console.error("Failed to fetch project", e);
-  }
-
-  if (!project) {
+  if (!isValidObjectId(id)) {
     notFound();
   }
+
+  await dbConnect();
+
+  const project = await Project.findById(id)
+    .populate("teamMembers", "name collaborationStatus")
+    .lean()
+    .catch((e) => {
+      console.error("Failed to fetch project", e);
+      throw new Error("Failed to load project");
+    });
+
+  if (!project) notFound();
 
   // Serialize _id and dates for client components if needed
   const projectId = project._id.toString();

@@ -5,7 +5,10 @@ export function middleware(request: NextRequest) {
   // Only run on /api routes
   if (request.nextUrl.pathname.startsWith("/api")) {
     // Public routes that don't require API key auth
-    if (request.nextUrl.pathname.startsWith("/api/screenshot")) {
+    if (
+      request.nextUrl.pathname.startsWith("/api/screenshot") ||
+      request.nextUrl.pathname.startsWith("/api/health")
+    ) {
       return NextResponse.next();
     }
 
