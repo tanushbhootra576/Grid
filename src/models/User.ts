@@ -91,11 +91,7 @@ UserSchema.pre("save", function (next) {
   next();
 });
 
-// Delete the model if it exists to prevent hot-reload errors with schema changes
-if (mongoose.models.User) {
-  delete mongoose.models.User;
-}
-
-const User: Model<IUser> = mongoose.model<IUser>("User", UserSchema);
+const User: Model<IUser> =
+  (mongoose.models.User as Model<IUser>) || mongoose.model<IUser>("User", UserSchema);
 
 export default User;

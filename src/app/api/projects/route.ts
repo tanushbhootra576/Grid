@@ -1,8 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Project from "@/models/Project";
-import User from "@/models/User";
+import "@/models/User";
 import { validateContent } from "@/lib/moderation";
+
+function classifyServerError(error: unknown): { code: string; detail?: string } {
+  const detail = error instanceof Error ? error.message : String(error);
+
+  if (/MONGODB_URI missing/i.test(detail)) {
+    return { code: "DB_NOT_CONFIGURED", detail };
+  }
+
+  if (/Schema hasn't been registered for model\s+"User"/i.test(detail)) {
+    return { code: "MODEL_USER_NOT_REGISTERED", detail };
+  }
+
+  if (/(ECONNREFUSED|ENOTFOUND|ETIMEDOUT|MongoNetworkError|MongooseServerSelectionError)/i.test(detail)) {
+    return { code: "DB_CONNECTION_FAILED", detail };
+  }
+
+  return { code: "UNKNOWN", detail };
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -19,9 +37,14 @@ export async function GET(req: NextRequest) {
       .lean();
     return NextResponse.json({ projects });
   } catch (error) {
-    console.error("Error fetching projects:", error);
+    const { code, detail } = classifyServerError(error);
+    console.error("[projects.GET] Error", code, detail);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      {
+        error: "Internal Server Error",
+        code,
+        ...(process.env.NODE_ENV !== "production" ? { detail } : null),
+      },
       { status: 500 }
     );
   }
