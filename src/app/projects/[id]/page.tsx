@@ -28,6 +28,7 @@ import ReactMarkdown from "react-markdown";
 import { Navbar } from "@/components/Navbar";
 import dbConnect from "@/lib/db";
 import Project from "@/models/Project";
+import "@/models/User";
 import { SkillGapAnalyzer } from "@/components/SkillGapAnalyzer";
 import {
   CollaborationBadge,

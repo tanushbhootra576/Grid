@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Project from '@/models/Project';
+import '@/models/User';
 import { validateContent } from '@/lib/moderation';
 
 export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> | { id: string } }) {
@@ -76,6 +77,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
     return NextResponse.json({ project });
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Unknown';
+    console.error('[projects.GET_BY_ID] Error', msg);
     return NextResponse.json({ error: 'Internal Server Error', detail: msg }, { status: 500 });
   }
 }
