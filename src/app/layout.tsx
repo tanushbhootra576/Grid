@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import '@mantine/core/styles.css';
-import React from 'react';
-import { ColorSchemeScript } from '@mantine/core';
-import { Providers } from './providers';
+import "@mantine/core/styles.css";
+import React from "react";
+import { ColorSchemeScript } from "@mantine/core";
+import { Providers } from "./providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: 'College Platform',
-  description: 'Campus-wide skill and resource sharing platform',
+  title: "College Platform",
+  description: "Campus-wide skill and resource sharing platform",
 };
 
 export default function RootLayout({

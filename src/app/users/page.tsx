@@ -35,7 +35,8 @@ import {
 } from "@/components/CollaborationStatus"; // IMPORT ADDED
 
 interface ListedUser {
-  firebaseUid: string;
+  _id: string;
+  publicId?: string;
   name: string;
   email: string;
   branch?: string;
@@ -169,7 +170,7 @@ export default function UsersDirectoryPage() {
               {data?.users &&
                 data.users.map((u) => (
                   <Card
-                    key={u.firebaseUid}
+                    key={u._id}
                     withBorder
                     shadow="sm"
                     radius="md"
@@ -287,7 +288,7 @@ export default function UsersDirectoryPage() {
                         flex={1}
                         size="sm"
                         component={Link}
-                        href={`/users/${u.firebaseUid}`}
+                        href={`/users/${u.publicId ?? u._id}`}
                         variant="default"
                       >
                         View Profile
@@ -328,7 +329,7 @@ export default function UsersDirectoryPage() {
                 variant="filled"
                 onClick={() => {
                   setContactOpened(false);
-                  router.push(`/chat?dm=${contactUser.firebaseUid}`);
+                  router.push(`/chat?dm=${contactUser.publicId ?? contactUser._id}`);
                 }}
               >
                 Direct Message

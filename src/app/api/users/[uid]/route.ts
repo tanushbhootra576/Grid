@@ -20,6 +20,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ uid:
             user = await User.findById(uid).select('-blockedUsers -dmLastRead -pinnedDms -__v');
         }
         if (!user) {
+            user = await User.findOne({ publicId: uid }).select('-blockedUsers -dmLastRead -pinnedDms -__v');
+        }
+        if (!user) {
             user = await User.findOne({ firebaseUid: uid }).select('-blockedUsers -dmLastRead -pinnedDms -__v');
         }
 

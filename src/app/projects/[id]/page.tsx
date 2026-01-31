@@ -87,15 +87,76 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  await dbConnect();
+  try {
+    await dbConnect();
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[projects/[id]] dbConnect failed", msg);
+    return (
+      <>
+        <Navbar />
+        <Container size="sm" py="xl">
+          <Card withBorder radius="md" p="lg">
+            <Title order={2} mb="xs">
+              Couldn’t load this project
+            </Title>
+            <Text c="dimmed" mb="md">
+              The database is not reachable from the server right now.
+            </Text>
+            {process.env.NODE_ENV !== "production" && (
+              <Text size="sm" c="dimmed" style={{ whiteSpace: "pre-wrap" }}>
+                {msg}
+              </Text>
+            )}
+            <Group mt="md">
+              <Link href="/projects" style={{ textDecoration: "none" }}>
+                <Button component="span" variant="default">
+                  Back to Projects
+                </Button>
+              </Link>
+            </Group>
+          </Card>
+        </Container>
+      </>
+    );
+  }
 
-  const project = await Project.findById(id)
-    .populate("teamMembers", "name collaborationStatus")
-    .lean()
-    .catch((e) => {
-      console.error("Failed to fetch project", e);
-      throw new Error("Failed to load project");
-    });
+  let project: any = null;
+  try {
+    project = await Project.findById(id)
+      .populate("teamMembers", "name collaborationStatus")
+      .lean();
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[projects/[id]] Failed to fetch project", msg);
+    return (
+      <>
+        <Navbar />
+        <Container size="sm" py="xl">
+          <Card withBorder radius="md" p="lg">
+            <Title order={2} mb="xs">
+              Couldn’t load this project
+            </Title>
+            <Text c="dimmed" mb="md">
+              Something went wrong while loading this project.
+            </Text>
+            {process.env.NODE_ENV !== "production" && (
+              <Text size="sm" c="dimmed" style={{ whiteSpace: "pre-wrap" }}>
+                {msg}
+              </Text>
+            )}
+            <Group mt="md">
+              <Link href="/projects" style={{ textDecoration: "none" }}>
+                <Button component="span" variant="default">
+                  Back to Projects
+                </Button>
+              </Link>
+            </Group>
+          </Card>
+        </Container>
+      </>
+    );
+  }
 
   if (!project) notFound();
 
@@ -107,6 +168,12 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
   // Fetch readme content if available
   const readmeContent = await getProjectReadme(project.repoLink);
+
+  const images: string[] = Array.isArray(project.images)
+    ? project.images
+        .map((s: unknown) => String(s || "").trim())
+        .filter((s: string) => s && /^https?:\/\//i.test(s))
+    : [];
 
   return (
     <>
@@ -179,12 +246,13 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 {project.description}
               </Text>
 
-              {project.images && project.images.length > 0 && (
+              {images.length > 0 && (
                 <SimpleGrid cols={{ base: 1, sm: 2 }} mt="xl">
-                  {project.images.map((img: string, idx: number) => (
+                  {images.map((img: string, idx: number) => (
                     <Image
                       key={idx}
                       src={img}
+                      fallbackSrc="https://placehold.co/1200x800?text=Image+Unavailable"
                       radius="md"
                       alt={`Project image ${idx + 1}`}
                     />

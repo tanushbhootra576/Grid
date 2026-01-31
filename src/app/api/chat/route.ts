@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
             }
 
             const users = await User.find({ _id: { $in: otherUserIds } })
-                .select('name _id firebaseUid photoURL');
+                .select('name _id publicId photoURL');
 
             const userMap = new Map(users.map((u) => [u._id.toString(), u]));
             const pinnedList = (currentUser?.pinnedDms || []).map((id: any) => String(id));
@@ -114,7 +114,7 @@ export async function GET(req: NextRequest) {
                         _id: otherId,
                         name: userDetails?.name || 'Unknown',
                         photoURL: userDetails?.photoURL,
-                        firebaseUid: userDetails?.firebaseUid,
+                        publicId: userDetails?.publicId,
                         unreadCount: unreadCountMap[otherId] || 0,
                         lastMessagePreview: lastMessage?.sticker ? '🖼 Sticker' : (lastMessage?.content || ''),
                         lastMessageAt,

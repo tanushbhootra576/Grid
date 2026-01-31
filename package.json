@@ -13,7 +13,6 @@
     "@mantine/hooks": "^8.3.8",
     "@mantine/modals": "^8.3.8",
     "@mantine/notifications": "^8.3.8",
-    "@sparticuz/chromium": "^123.0.1",
     "@tabler/icons-react": "^3.35.0",
     "@tanstack/react-query": "^5.59.15",
     "@types/bad-words": "^3.0.3",
@@ -26,7 +25,6 @@
     "lucide-react": "^0.554.0",
     "mongoose": "^8.20.0",
     "next": "16.0.10",
-    "puppeteer-core": "^22.6.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-markdown": "^10.1.0",
@@ -42,7 +40,6 @@
     "postcss": "^8.5.6",
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",
-    "puppeteer": "^22.6.0",
     "typescript": "^5"
   }
 }

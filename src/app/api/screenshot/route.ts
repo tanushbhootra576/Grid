@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// We conditionally require either full puppeteer (local dev) or puppeteer-core + @sparticuz/chromium (Vercel serverless).
-// Avoid top-level imports of heavy modules for edge; we force Node.js runtime anyway.
-// Force Node.js runtime (not edge) so native modules / larger binaries can run.
 export const runtime = 'nodejs';
 
 // Query interface (documentation only) removed to avoid unused lint error.
@@ -43,35 +40,11 @@ function validateAndNormalize(params: URLSearchParams): {
   return { url, fullPage, width, height, type, quality, waitMs };
 }
 
-async function getBrowser() {
-  const isServerless = !!process.env.VERCEL || !!process.env.AWS_REGION;
-  if (isServerless) {
-    // Lazy import to keep local dev simpler and reduce cold start impact.
-    const chromium = await import('@sparticuz/chromium');
-    const puppeteerCore = await import('puppeteer-core');
-    const executablePath = await chromium.default.executablePath();
-    return puppeteerCore.default.launch({
-      executablePath,
-      args: chromium.default.args,
-      defaultViewport: { width: 1280, height: 800 },
-      headless: chromium.default.headless,
-    });
-  } else {
-    const puppeteer = (await import('puppeteer')).default;
-    return puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--no-first-run',
-        '--no-zygote',
-        '--disable-extensions'
-      ],
-      defaultViewport: { width: 1280, height: 800 }
-    });
-  }
+function getMShotsUrl(url: string, width: number) {
+  // Free, no-key screenshot service (best-effort). It can be slow on first request.
+  // Docs/usage are informal, but it's widely used for simple thumbnails.
+  const w = Math.min(2000, Math.max(320, width || 1280));
+  return `https://s0.wordpress.com/mshots/v1/${encodeURIComponent(url)}?w=${w}`;
 }
 
 export async function GET(req: NextRequest) {
@@ -81,50 +54,42 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: norm.error }, { status: norm.status });
   }
 
-  let browser: Awaited<ReturnType<typeof getBrowser>> | null = null;
   const started = Date.now();
   try {
-    browser = await getBrowser();
-    const page = await browser.newPage();
-    await page.setViewport({ width: norm.width, height: norm.height });
+    // NOTE: We intentionally do NOT launch Chromium/Puppeteer here.
+    // Vercel Serverless often lacks required shared libs (e.g. libnss3.so), causing crashes.
+    // Instead we use a free external thumbnail service.
 
-    // Navigation: networkidle0 can hang on sites with open connections, use domcontentloaded
-    try {
-      await page.goto(norm.url, { waitUntil: ['domcontentloaded'], timeout: 45000 });
-    } catch (navErr) {
-      const navMsg = navErr instanceof Error ? navErr.message : String(navErr);
-      console.warn('[screenshot] navigation warning', navMsg);
+    const upstreamUrl = getMShotsUrl(norm.url, norm.width);
+    const ac = new AbortController();
+    const timeout = setTimeout(() => ac.abort(), 15000);
+    const upstream = await fetch(upstreamUrl, {
+      signal: ac.signal,
+      // Avoid caching broken responses for long.
+      cache: 'no-store',
+    }).finally(() => clearTimeout(timeout));
+
+    if (!upstream.ok || !upstream.body) {
+      throw new Error(`Upstream screenshot failed (${upstream.status})`);
     }
-    if (norm.waitMs) await new Promise(r => setTimeout(r, norm.waitMs));
-    // Ensure body is present (non-fatal)
-    await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
 
-    const screenshot = await page.screenshot({
-      fullPage: norm.fullPage,
-      type: norm.type,
-      quality: norm.quality,
-      captureBeyondViewport: false
-    });
-
-    const resp = new NextResponse(screenshot as unknown as BodyInit, {
+    const contentType = upstream.headers.get('content-type') || 'image/jpeg';
+    return new NextResponse(upstream.body as unknown as BodyInit, {
       status: 200,
       headers: {
-        'Content-Type': `image/${norm.type === 'png' ? 'png' : norm.type}`,
-        'Cache-Control': 'public, max-age=60',
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=300',
         'X-Screenshot-Time': String(Date.now() - started),
       },
     });
-    return resp;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error('[screenshot.GET] Error', message);
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400" role="img" aria-label="Screenshot error"><rect width="800" height="400" fill="#18181b"/><text x="50%" y="40%" fill="#fafafa" font-size="22" font-family="system-ui, sans-serif" dominant-baseline="middle" text-anchor="middle">Preview Unavailable</text><text x="50%" y="58%" fill="#9ca3af" font-size="14" font-family="system-ui, sans-serif" dominant-baseline="middle" text-anchor="middle">${escapeHtml(message).slice(0,100)}</text></svg>`;
+    const showDetail = process.env.NODE_ENV !== 'production' && !process.env.VERCEL;
+    const detail = showDetail ? escapeHtml(message).slice(0, 100) : '';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400" role="img" aria-label="Screenshot error"><rect width="800" height="400" fill="#18181b"/><text x="50%" y="40%" fill="#fafafa" font-size="22" font-family="system-ui, sans-serif" dominant-baseline="middle" text-anchor="middle">Preview Unavailable</text>${detail ? `<text x="50%" y="58%" fill="#9ca3af" font-size="14" font-family="system-ui, sans-serif" dominant-baseline="middle" text-anchor="middle">${detail}</text>` : ''}</svg>`;
     // Return 200 so <img> does not show broken icon
     return new NextResponse(svg, { status: 200, headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'no-store' } });
-  } finally {
-    if (browser) {
-      try { await browser.close(); } catch {}
-    }
   }
 }
 

@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
         .skip(skip)
         .limit(limit)
         .select(
-          "firebaseUid name branch year skills interests role collaborationStatus"
+          "publicId name email branch year skills interests role collaborationStatus"
         ),
       User.countDocuments(query),
     ]);
@@ -165,7 +165,17 @@ export async function POST(req: NextRequest) {
       }
 
       if (Object.keys(updates).length > 0) {
-        user = await User.findByIdAndUpdate(user._id, updates, { new: true });
+        Object.assign(user, updates);
+      }
+
+      // Backfill publicId for legacy users (findByIdAndUpdate would skip pre-save)
+      if (!user.publicId) {
+        // @ts-ignore
+        user.publicId = undefined;
+      }
+
+      if (Object.keys(updates).length > 0 || !user.publicId) {
+        await user.save();
       }
     }
 

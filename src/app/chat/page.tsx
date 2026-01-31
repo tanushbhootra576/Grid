@@ -35,6 +35,7 @@ interface Message {
 
 interface ConversationSummary {
     _id: string;
+    publicId?: string;
     name: string;
     photoURL?: string;
     unreadCount?: number;
@@ -805,7 +806,7 @@ function ChatPageContent() {
                                                             leftSection={<IconEye size={14} />}
                                                             onClick={(event) => {
                                                                 event.stopPropagation();
-                                                                router.push(`/users/${dm._id}`);
+                                                                router.push(`/users/${dm.publicId ?? dm._id}`);
                                                             }}
                                                         >
                                                             View Profile

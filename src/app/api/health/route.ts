@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
+import { NextResponse } from "next/server";
+import dbConnect from "@/lib/db";
 
 export async function GET() {
   const result: any = {
@@ -11,9 +11,9 @@ export async function GET() {
   };
   try {
     await dbConnect();
-    result.db = 'connected';
+    result.db = "connected";
   } catch (e: any) {
-    result.db = 'error';
+    result.db = "error";
     // Keep error message for debugging; should not contain secrets.
     result.dbError = e?.message;
     result.ok = false;

@@ -1,6 +1,8 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
+import crypto from "crypto";
 
 export interface IUser extends Document {
+  publicId?: string;
   firebaseUid: string;
   email: string;
   name: string;
@@ -28,7 +30,13 @@ export interface IUser extends Document {
   createdAt: Date;
 }
 
+function createPublicId() {
+  // Opaque, URL-safe-ish id (no PII; not guessable). 24 chars keeps URLs short.
+  return crypto.randomBytes(18).toString("hex");
+}
+
 const UserSchema: Schema<IUser> = new Schema({
+  publicId: { type: String, unique: true, index: true, default: createPublicId },
   firebaseUid: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   name: { type: String, required: true },
@@ -68,6 +76,14 @@ const UserSchema: Schema<IUser> = new Schema({
   pinnedDms: [{ type: String }],
   lastActive: { type: Date },
   createdAt: { type: Date, default: Date.now },
+});
+
+UserSchema.pre("save", function (next) {
+  // Ensure legacy users get a publicId without requiring a one-time migration.
+  if (!this.publicId) {
+    this.publicId = createPublicId();
+  }
+  next();
 });
 
 // Delete the model if it exists to prevent hot-reload errors with schema changes
