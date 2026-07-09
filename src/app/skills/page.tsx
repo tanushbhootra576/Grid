@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
-import { Container, Title, Button, Group, Card, Badge, Text, SimpleGrid, TextInput, Select, Modal, Textarea, LoadingOverlay } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
 import { useAuth } from '@/components/AuthProvider';
-import { IconSearch, IconPlus, IconBrandGmail, IconBrandWindows, IconBrandYahoo, IconMail, IconCheck, IconTrash } from '@tabler/icons-react';
+import { IconSearch, IconPlus, IconBrandGmail, IconBrandWindows, IconBrandYahoo, IconMail, IconX } from '@tabler/icons-react';
 import { showError } from '@/lib/error-handling';
 import { getAuthHeaders } from '@/lib/api';
+import g from '../grid.module.css';
 
 interface Skill {
     _id: string;
@@ -17,7 +16,6 @@ interface Skill {
     category: 'ACADEMIC' | 'NON_ACADEMIC';
     status: 'OPEN' | 'CLOSED';
     tags: string[];
-    // userId may be populated object, raw id string, or null if user removed
     userId?: {
         _id: string;
         name?: string;
@@ -33,13 +31,12 @@ export default function SkillsPage() {
     const [skills, setSkills] = useState<Skill[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
-    const [typeFilter, setTypeFilter] = useState<string | null>(null);
+    const [typeFilter, setTypeFilter] = useState<string>('');
 
-    const [opened, { open, close }] = useDisclosure(false);
-    const [contactModalOpened, { open: openContactModal, close: closeContactModal }] = useDisclosure(false);
+    const [opened, setOpened] = useState(false);
+    const [contactOpened, setContactOpened] = useState(false);
     const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
 
-    // Form state
     const [newSkill, setNewSkill] = useState({
         title: '',
         description: '',
@@ -74,13 +71,10 @@ export default function SkillsPage() {
             alert('Please complete your profile before posting a skill.');
             return;
         }
-
         try {
             const res = await fetch('/api/skills', {
                 method: 'POST',
-                headers: { 
-                    ...getAuthHeaders()
-                },
+                headers: getAuthHeaders(),
                 body: JSON.stringify({
                     ...newSkill,
                     userId: profile._id,
@@ -89,7 +83,7 @@ export default function SkillsPage() {
             });
 
             if (res.ok) {
-                close();
+                setOpened(false);
                 fetchSkills();
                 setNewSkill({ title: '', description: '', type: 'OFFER', category: 'ACADEMIC', tags: '' });
             } else {
@@ -97,241 +91,180 @@ export default function SkillsPage() {
                 showError({ message: data.error || 'Failed to create skill listing' }, 'Creation Failed');
             }
         } catch (error) {
-            console.error(error);
             showError(error, 'Creation Failed');
-        }
-    };
-
-    const handleMarkDone = async (skillId: string) => {
-        if (!confirm('Mark this listing as completed? It will be hidden from the marketplace.')) return;
-        try {
-            const res = await fetch(`/api/skills/${skillId}`, {
-                method: 'PATCH',
-                headers: { 
-                    ...getAuthHeaders()
-                },
-                body: JSON.stringify({ status: 'CLOSED' }),
-            });
-            if (res.ok) {
-                fetchSkills(); // This will re-fetch, and since API filters OPEN by default, it will disappear
-            } else {
-                alert('Failed to update status');
-            }
-        } catch (error) {
-            console.error(error);
-            alert('Error updating status');
-        }
-    };
-
-    const handleDelete = async (skillId: string) => {
-        if (!confirm('Are you sure you want to delete this listing?')) return;
-        try {
-            const res = await fetch(`/api/skills/${skillId}`, {
-                method: 'DELETE',
-                headers: getAuthHeaders(),
-            });
-            if (res.ok) {
-                fetchSkills();
-            } else {
-                alert('Failed to delete listing');
-            }
-        } catch (error) {
-            console.error(error);
-            alert('Error deleting listing');
         }
     };
 
     return (
         <>
             <Navbar />
-            <Container size="lg" py="xl">
-                <Group justify="space-between" mb="xl">
-                    <Title>Skills Marketplace</Title>
+            <div className={g.container}>
+                <div className={g.headerRow}>
+                    <h1 className={g.title}>
+                        <div className={g.titleAccent} />
+                        Skill Exchange
+                    </h1>
                     {user && (
-                        <Button leftSection={<IconPlus size={14} />} onClick={open}>
-                            Post Listing
-                        </Button>
+                        <button className={`${g.btn} ${g.btnPrimary}`} onClick={() => setOpened(true)}>
+                            <IconPlus size={18} /> POST LISTING
+                        </button>
                     )}
-                </Group>
+                </div>
 
-                <Group mb="xl">
-                    <TextInput
-                        placeholder="Search skills..."
-                        leftSection={<IconSearch size={14} />}
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        style={{ flex: 1 }}
-                    />
-                    <Select
-                        placeholder="Filter by Type"
-                        data={['OFFER', 'REQUEST']}
-                        clearable
+                <div className={g.controlsRow}>
+                    <div className={g.inputGroup}>
+                        <IconSearch size={18} className={g.inputIcon} />
+                        <input
+                            type="text"
+                            className={g.input}
+                            placeholder="Search skills..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
+                    <select
+                        className={g.select}
                         value={typeFilter}
-                        onChange={setTypeFilter}
-                    />
-                </Group>
+                        onChange={(e) => setTypeFilter(e.target.value)}
+                    >
+                        <option value="">All Types</option>
+                        <option value="OFFER">Offers</option>
+                        <option value="REQUEST">Requests</option>
+                    </select>
+                </div>
 
-                <div style={{ position: 'relative', minHeight: 200 }}>
-                    <LoadingOverlay visible={loading} />
-                    <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
+                {loading ? (
+                    <div className={g.spinner} />
+                ) : (
+                    <div className={g.grid}>
                         {skills.map((skill) => {
                             const skillUser = (skill.userId && typeof skill.userId === 'object') ? skill.userId : null;
                             const isOwner = profile && skillUser && String(skillUser._id) === String(profile._id);
 
                             return (
-                            <Card key={skill._id} shadow="sm" padding="lg" radius="md" withBorder>
-                                <Group justify="space-between" mb="xs">
-                                    <Badge color={skill.type === 'OFFER' ? 'blue' : 'orange'}>{skill.type}</Badge>
-                                    <Badge variant="light" color="gray">{skill.category}</Badge>
-                                </Group>
+                                <div key={skill._id} className={`${g.card} ${skill.type === 'OFFER' ? g.offer : g.request}`}>
+                                    <div className={g.cardTop} />
+                                    <div className={g.cardBody}>
+                                        <div className={g.cardHeader}>
+                                            <div className={g.badgeRow}>
+                                                <span className={`${g.badge} ${skill.type === 'OFFER' ? g.offer : g.request}`}>
+                                                    {skill.type}
+                                                </span>
+                                                <span className={g.badge}>{skill.category}</span>
+                                            </div>
+                                        </div>
 
-                                <Text fw={500}>{skill.title}</Text>
-                                <Text size="sm" c="dimmed" lineClamp={3} mt="xs">
-                                    {skill.description}
-                                </Text>
+                                        <h3 className={g.cardTitle}>{skill.title}</h3>
+                                        <p className={g.cardDesc}>{skill.description}</p>
 
-                                <Group mt="md" gap="xs">
-                                    {skill.tags.map(tag => (
-                                        <Badge key={tag} variant="outline" size="sm">{tag}</Badge>
-                                    ))}
-                                </Group>
+                                        <div className={g.tagList}>
+                                            {skill.tags.map(tag => (
+                                                <span key={tag} className={g.tag}>{tag}</span>
+                                            ))}
+                                        </div>
 
-                                <Text size="xs" c="dimmed" mt="md">
-                                    {(() => {
-                                        const name = skillUser?.name?.trim() || 'Unknown user';
-                                        const branch = skillUser?.branch ? ` (${skillUser.branch})` : '';
-                                        return `Posted by ${name}${branch}`;
-                                    })()}
-                                </Text>
-
-                                {(() => {
-                                    const user = (skill.userId && typeof skill.userId === 'object') ? skill.userId : null;
-                                    if (!user?.email) {
-                                        return (
-                                            <Text size="xs" c="red" mt="sm">Contact unavailable</Text>
-                                        );
-                                    }
-                                    // If owner, maybe show nothing or disabled button? 
-                                    // User asked "dont remove the contact button", so we leave it as is (or disable it for owner).
-                                    // We'll just show it.
-                                    return (
-                                        <Button
-                                            onClick={() => {
-                                                setSelectedSkill(skill);
-                                                openContactModal();
-                                            }}
-                                            variant="light"
-                                            color="blue"
-                                            fullWidth
-                                            mt="md"
-                                            radius="md"
-                                            disabled={skill.status === 'CLOSED'}
-                                        >
-                                            {skill.status === 'CLOSED' ? 'Closed' : 'Contact'}
-                                        </Button>
-                                    );
-                                })()}
-                            </Card>
-                        )})}
-                    </SimpleGrid>
-                    {!loading && skills.length === 0 && (
-                        <Text ta="center" c="dimmed" mt="xl">No skills found.</Text>
-                    )}
-                </div>
-            </Container>
-
-            <Modal opened={opened} onClose={close} title="Create New Listing">
-                <TextInput
-                    label="Title"
-                    placeholder="e.g., Photography for Events"
-                    required
-                    mb="md"
-                    value={newSkill.title}
-                    onChange={(e) => setNewSkill({ ...newSkill, title: e.target.value })}
-                />
-                <Select
-                    label="Type"
-                    data={['OFFER', 'REQUEST']}
-                    required
-                    mb="md"
-                    value={newSkill.type}
-                    onChange={(val) => setNewSkill({ ...newSkill, type: val as any })}
-                />
-                <Select
-                    label="Category"
-                    data={['ACADEMIC', 'NON_ACADEMIC']}
-                    required
-                    mb="md"
-                    value={newSkill.category}
-                    onChange={(val) => setNewSkill({ ...newSkill, category: val as any })}
-                />
-                <Textarea
-                    label="Description"
-                    placeholder="Describe what you are offering or looking for..."
-                    required
-                    mb="md"
-                    minRows={3}
-                    value={newSkill.description}
-                    onChange={(e) => setNewSkill({ ...newSkill, description: e.target.value })}
-                />
-                <TextInput
-                    label="Tags"
-                    placeholder="comma, separated, tags"
-                    mb="xl"
-                    value={newSkill.tags}
-                    onChange={(e) => setNewSkill({ ...newSkill, tags: e.target.value })}
-                />
-                <Button fullWidth onClick={handleSubmit}>Post Listing</Button>
-            </Modal>
-            <Modal opened={contactModalOpened} onClose={closeContactModal} title="Contact Options" centered>
-                {selectedSkill && (
-                    <SimpleGrid cols={1} spacing="md">
-                        <Text size="sm" mb="xs">Choose how you want to contact <b>{typeof selectedSkill.userId === 'object' && selectedSkill.userId?.name ? selectedSkill.userId.name : 'the user'}</b>:</Text>
-
-                        <Button
-                            component="a"
-                            href={`https://mail.google.com/mail/?view=cm&fs=1&to=${typeof selectedSkill.userId === 'object' && selectedSkill.userId?.email ? selectedSkill.userId.email : ''}&su=Regarding your skill listing: ${selectedSkill.title}`}
-                            target="_blank"
-                            leftSection={<IconBrandGmail size={20} />}
-                            color="red"
-                            variant="light"
-                        >
-                            Gmail
-                        </Button>
-
-                        <Button
-                            component="a"
-                            href={`https://outlook.office.com/mail/deeplink/compose?to=${typeof selectedSkill.userId === 'object' && selectedSkill.userId?.email ? selectedSkill.userId.email : ''}&subject=Regarding your skill listing: ${selectedSkill.title}`}
-                            target="_blank"
-                            leftSection={<IconBrandWindows size={20} />}
-                            color="blue"
-                            variant="light"
-                        >
-                            Outlook
-                        </Button>
-
-                        <Button
-                            component="a"
-                            href={`https://compose.mail.yahoo.com/?to=${typeof selectedSkill.userId === 'object' && selectedSkill.userId?.email ? selectedSkill.userId.email : ''}&subject=Regarding your skill listing: ${selectedSkill.title}`}
-                            target="_blank"
-                            leftSection={<IconBrandYahoo size={20} />}
-                            color="violet"
-                            variant="light"
-                        >
-                            Yahoo Mail
-                        </Button>
-
-                        <Button
-                            component="a"
-                            href={`mailto:${typeof selectedSkill.userId === 'object' && selectedSkill.userId?.email ? selectedSkill.userId.email : ''}?subject=Regarding your skill listing: ${selectedSkill.title}`}
-                            leftSection={<IconMail size={20} />}
-                            variant="default"
-                        >
-                            Default Mail App
-                        </Button>
-                    </SimpleGrid>
+                                        <div className={g.cardFooter}>
+                                            <div className={g.author}>
+                                                {skillUser?.name ? (
+                                                    <>By <strong>{skillUser.name}</strong> {skillUser.branch && `(${skillUser.branch})`}</>
+                                                ) : 'Unknown User'}
+                                            </div>
+                                            
+                                            {skillUser?.email && (
+                                                <button
+                                                    className={g.btn}
+                                                    style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                                                    onClick={() => {
+                                                        setSelectedSkill(skill);
+                                                        setContactOpened(true);
+                                                    }}
+                                                    disabled={skill.status === 'CLOSED'}
+                                                >
+                                                    {skill.status === 'CLOSED' ? 'CLOSED' : 'CONTACT'}
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        {skills.length === 0 && (
+                            <div className={g.empty}>No skills found matching your criteria.</div>
+                        )}
+                    </div>
                 )}
-            </Modal>
+            </div>
+
+            {/* Post Modal */}
+            {opened && (
+                <div className={g.modalBackdrop}>
+                    <div className={g.modal}>
+                        <div className={g.modalHeader}>
+                            <h2 className={g.modalTitle}>Post Listing</h2>
+                            <button className={g.closeBtn} onClick={() => setOpened(false)}><IconX size={24} /></button>
+                        </div>
+                        <div className={g.modalBody}>
+                            <div className={g.formGroup}>
+                                <label className={g.label}>Title</label>
+                                <input className={g.input} style={{border: '1px solid var(--border)'}} value={newSkill.title} onChange={e => setNewSkill({...newSkill, title: e.target.value})} placeholder="e.g. Photography for Events" />
+                            </div>
+                            <div className={g.formGroup}>
+                                <label className={g.label}>Type</label>
+                                <select className={g.select} value={newSkill.type} onChange={e => setNewSkill({...newSkill, type: e.target.value as any})}>
+                                    <option value="OFFER">Offer (I can teach/do this)</option>
+                                    <option value="REQUEST">Request (I want to learn/need this)</option>
+                                </select>
+                            </div>
+                            <div className={g.formGroup}>
+                                <label className={g.label}>Category</label>
+                                <select className={g.select} value={newSkill.category} onChange={e => setNewSkill({...newSkill, category: e.target.value as any})}>
+                                    <option value="ACADEMIC">Academic</option>
+                                    <option value="NON_ACADEMIC">Non-Academic</option>
+                                </select>
+                            </div>
+                            <div className={g.formGroup}>
+                                <label className={g.label}>Description</label>
+                                <textarea className={`${g.input} ${g.textarea}`} style={{border: '1px solid var(--border)'}} value={newSkill.description} onChange={e => setNewSkill({...newSkill, description: e.target.value})} placeholder="Describe what you're offering or looking for..." />
+                            </div>
+                            <div className={g.formGroup}>
+                                <label className={g.label}>Tags</label>
+                                <input className={g.input} style={{border: '1px solid var(--border)'}} value={newSkill.tags} onChange={e => setNewSkill({...newSkill, tags: e.target.value})} placeholder="comma, separated, tags" />
+                            </div>
+                            <button className={`${g.btn} ${g.btnPrimary}`} style={{marginTop: 10}} onClick={handleSubmit}>POST LISTING</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Contact Modal */}
+            {contactOpened && selectedSkill && (
+                <div className={g.modalBackdrop}>
+                    <div className={g.modal}>
+                        <div className={g.modalHeader}>
+                            <h2 className={g.modalTitle}>Contact Options</h2>
+                            <button className={g.closeBtn} onClick={() => setContactOpened(false)}><IconX size={24} /></button>
+                        </div>
+                        <div className={g.modalBody}>
+                            <p style={{fontFamily: 'var(--font-dm)', fontSize: '0.9rem', color: 'var(--text-muted)'}}>
+                                Choose how you want to contact <strong>{typeof selectedSkill.userId === 'object' && selectedSkill.userId?.name ? selectedSkill.userId.name : 'the user'}</strong>:
+                            </p>
+                            
+                            <a href={`https://mail.google.com/mail/?view=cm&fs=1&to=${typeof selectedSkill.userId === 'object' ? selectedSkill.userId?.email : ''}&su=Regarding your skill listing: ${selectedSkill.title}`} target="_blank" rel="noreferrer" className={g.btn}>
+                                <IconBrandGmail size={20} /> Gmail
+                            </a>
+                            <a href={`https://outlook.office.com/mail/deeplink/compose?to=${typeof selectedSkill.userId === 'object' ? selectedSkill.userId?.email : ''}&subject=Regarding your skill listing: ${selectedSkill.title}`} target="_blank" rel="noreferrer" className={g.btn}>
+                                <IconBrandWindows size={20} /> Outlook
+                            </a>
+                            <a href={`https://compose.mail.yahoo.com/?to=${typeof selectedSkill.userId === 'object' ? selectedSkill.userId?.email : ''}&subject=Regarding your skill listing: ${selectedSkill.title}`} target="_blank" rel="noreferrer" className={g.btn}>
+                                <IconBrandYahoo size={20} /> Yahoo Mail
+                            </a>
+                            <a href={`mailto:${typeof selectedSkill.userId === 'object' ? selectedSkill.userId?.email : ''}?subject=Regarding your skill listing: ${selectedSkill.title}`} className={g.btn}>
+                                <IconMail size={20} /> Default Mail App
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

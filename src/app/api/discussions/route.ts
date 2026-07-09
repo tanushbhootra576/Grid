@@ -46,13 +46,13 @@ export async function GET(req: NextRequest) {
             raw = await DiscussionThread.aggregate(pipeline);
             // Populate manually after aggregate
             raw = await DiscussionThread.populate(raw, [
-                { path: 'authorId', select: 'name', strictPopulate: false },
-                { path: 'comments.authorId', select: 'name', strictPopulate: false },
+                { path: 'authorId', select: 'name role', strictPopulate: false },
+                { path: 'comments.authorId', select: 'name role', strictPopulate: false },
             ]);
         } else {
             raw = await DiscussionThread.find(query)
-                .populate({ path: 'authorId', select: 'name', strictPopulate: false })
-                .populate({ path: 'comments.authorId', select: 'name', strictPopulate: false })
+                .populate({ path: 'authorId', select: 'name role', strictPopulate: false })
+                .populate({ path: 'comments.authorId', select: 'name role', strictPopulate: false })
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(pageSize)
@@ -65,12 +65,12 @@ export async function GET(req: NextRequest) {
             content: t.content,
             category: t.category,
             tags: Array.isArray(t.tags) ? t.tags : [],
-            authorId: t.authorId || { name: 'Unknown' },
+            authorId: t.authorId || { name: 'Unknown', role: 'student' },
             createdAt: t.createdAt,
             upvotes: Array.isArray(t.upvotes) ? t.upvotes.map((u: unknown) => String(u)) : [],
             comments: Array.isArray(t.comments) ? t.comments.map((c: any) => ({
                 _id: c._id ? String(c._id) : undefined,
-                authorId: c.authorId || { name: 'Unknown' },
+                authorId: c.authorId || { name: 'Unknown', role: 'student' },
                 content: c.content,
                 createdAt: c.createdAt,
             })) : []

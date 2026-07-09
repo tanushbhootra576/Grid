@@ -9,6 +9,9 @@ export interface IUser extends Document {
   role: "student" | "admin" | "alumni";
   branch?: string;
   year?: number;
+  college?: string;
+  city?: string;
+  state?: string;
   bio?: string;
   skills: string[];
   interests: string[];
@@ -18,10 +21,17 @@ export interface IUser extends Document {
     portfolio?: string;
   };
   collaborationStatus?: {
-    level: number; // 0=Not Looking, 1=Exploring, 2=Learning, 3=Actively Collaborating
+    level: number; // 0=Not Looking, 1=Exploring, 2=Learning, 3=Actively Collaborating (Co-founder)
     visible: boolean;
   };
+  powProjects: {
+    title: string;
+    url: string;
+    description?: string;
+    endorsements: string[]; // array of user IDs
+  }[];
   profileLocked: boolean;
+  verified: boolean;
   acceptedGuidelines: boolean;
   blockedUsers: string[];
   dmLastRead?: Record<string, Date>;
@@ -52,6 +62,9 @@ const UserSchema: Schema<IUser> = new Schema({
   },
   branch: { type: String },
   year: { type: Number },
+  college: { type: String, index: true },
+  city: { type: String },
+  state: { type: String },
   bio: { type: String },
   skills: [{ type: String }],
   interests: [{ type: String }],
@@ -64,7 +77,17 @@ const UserSchema: Schema<IUser> = new Schema({
     level: { type: Number, default: 1, min: 0, max: 3 },
     visible: { type: Boolean, default: true },
   },
+  powProjects: [{
+    title: String,
+    url: String,
+    description: String,
+    endorsements: [{ type: String }]
+  }],
   profileLocked: {
+    type: Boolean,
+    default: false,
+  },
+  verified: {
     type: Boolean,
     default: false,
   },
@@ -81,7 +104,7 @@ const UserSchema: Schema<IUser> = new Schema({
   pinnedDms: [{ type: String }],
   lastActive: { type: Date },
   createdAt: { type: Date, default: Date.now },
-});
+}, { strict: false });
 
 UserSchema.pre("save", function (next) {
   // Ensure legacy users get a publicId without requiring a one-time migration.

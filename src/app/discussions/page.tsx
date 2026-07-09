@@ -20,12 +20,13 @@ interface Thread {
     authorId: {
         _id: string;
         name: string;
+        role?: string;
     };
     createdAt: string;
     upvotes: string[];
     comments: {
         _id?: string;
-        authorId: { name: string };
+        authorId: { name: string; role?: string; };
         content: string;
         createdAt: string;
     }[];
@@ -366,6 +367,13 @@ export default function DiscussionsPage() {
                                     display: block !important;
                                 }
                             }
+                            /* Override Mantine Fonts */
+                            .mantine-Text-root, .mantine-Button-label, .mantine-Badge-root, .mantine-Input-input {
+                                font-family: var(--font-inter) !important;
+                            }
+                            .mantine-Title-root {
+                                font-family: var(--font-space) !important;
+                            }
                         `}</style>
 
                         <div style={{ position: 'relative', minHeight: 200 }}>
@@ -382,7 +390,14 @@ export default function DiscussionsPage() {
                                             <Group gap="xs">
                                                 <Avatar radius="xl" color="blue" size="md">{thread.authorId.name[0]}</Avatar>
                                                 <div>
-                                                    <Text size="sm" fw={600}>{thread.authorId.name}</Text>
+                                                    <Group gap={4} align="center">
+                                                        <Text size="sm" fw={600}>{thread.authorId.name}</Text>
+                                                        {thread.authorId.role === 'alumni' && (
+                                                            <Badge size="xs" color="yellow" variant="filled" style={{ color: '#000' }}>
+                                                                Verified Alumni
+                                                            </Badge>
+                                                        )}
+                                                    </Group>
                                                     <Text size="xs" c="dimmed">{new Date(thread.createdAt).toLocaleDateString()}</Text>
                                                 </div>
                                             </Group>
@@ -449,7 +464,14 @@ export default function DiscussionsPage() {
                                                             <Avatar size={28} radius="xl" color="cyan">{c.authorId.name[0]}</Avatar>
                                                             <div style={{ flex: 1, backgroundColor: '#f8f9fa', padding: '8px 12px', borderRadius: '8px' }}>
                                                                 <Group justify="space-between" mb={2}>
-                                                                    <Text size="xs" fw={600}>{c.authorId.name}</Text>
+                                                                    <Group gap={4} align="center">
+                                                                        <Text size="xs" fw={600}>{c.authorId.name}</Text>
+                                                                        {c.authorId.role === 'alumni' && (
+                                                                            <Badge size="xs" color="yellow" variant="filled" style={{ color: '#000', fontSize: '0.6rem', padding: '0 4px', height: '16px' }}>
+                                                                                Alumni
+                                                                            </Badge>
+                                                                        )}
+                                                                    </Group>
                                                                     <Text size="xs" c="dimmed">{new Date(c.createdAt).toLocaleDateString()}</Text>
                                                                 </Group>
                                                                 <Text size="sm">{c.content}</Text>

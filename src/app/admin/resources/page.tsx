@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { Navbar } from '@/components/Navbar';
-import { Container, Title, Table, Button, Group, Badge, Text, Card, Stack, Loader, ActionIcon, Tooltip } from '@mantine/core';
 import { IconCheck, IconX, IconExternalLink } from '@tabler/icons-react';
 import { showSuccess, showError } from '@/lib/error-handling';
 import { getAuthHeaders } from '@/lib/api';
+import g from '../../grid.module.css';
 
 interface PendingItem {
     resourceId: string;
@@ -33,7 +33,6 @@ export default function AdminResourcesPage() {
                 data.resources.forEach((r: any) => {
                     const uploader = r.uploaderId?.name || 'Unknown';
                     
-                    // Check Course
                     if (r.isApproved === false) {
                         flattened.push({
                             resourceId: r._id,
@@ -46,7 +45,6 @@ export default function AdminResourcesPage() {
                         });
                     }
 
-                    // Check Syllabus
                     if (r.syllabus && r.syllabus.isApproved === false) {
                         flattened.push({
                             resourceId: r._id,
@@ -55,11 +53,10 @@ export default function AdminResourcesPage() {
                             title: 'Syllabus',
                             linkUrl: r.syllabus.linkUrl,
                             uploaderName: uploader,
-                            date: r.createdAt // Syllabus doesn't have own date usually
+                            date: r.createdAt 
                         });
                     }
 
-                    // Check Modules
                     r.modules?.forEach((m: any) => {
                         if (m.isApproved === false) {
                             flattened.push({
@@ -75,7 +72,6 @@ export default function AdminResourcesPage() {
                         }
                     });
 
-                    // Check PYQs
                     r.pyqs?.forEach((p: any) => {
                         if (p.isApproved === false) {
                             flattened.push({
@@ -91,7 +87,6 @@ export default function AdminResourcesPage() {
                         }
                     });
 
-                    // Check Others
                     r.others?.forEach((o: any) => {
                         if (o.isApproved === false) {
                             flattened.push({
@@ -149,52 +144,60 @@ export default function AdminResourcesPage() {
     return (
         <>
             <Navbar />
-            <Container size="lg" py="xl">
-                <Title order={2} mb="xl">Pending Resource Approvals</Title>
+            <div className={g.container} style={{ paddingTop: 40, paddingBottom: 40 }}>
+                <h2 style={{ fontFamily: 'var(--font-space)', fontSize: '2rem', marginBottom: 32 }}>Pending Resource Approvals</h2>
                 
                 {loading ? (
-                    <Loader />
+                    <div className={g.spinner} style={{ margin: '40px auto' }} />
                 ) : items.length === 0 ? (
-                    <Text c="dimmed">No pending resources found.</Text>
+                    <div className={g.card} style={{ height: 'auto', border: '1px solid var(--border)', padding: 32, textAlign: 'center' }}>
+                        <p style={{ color: 'var(--text-muted)' }}>No pending resources found.</p>
+                    </div>
                 ) : (
-                    <Stack>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                         {items.map((item, index) => (
-                            <Card key={index} withBorder shadow="sm" radius="md">
-                                <Group justify="space-between">
-                                    <Stack gap="xs">
-                                        <Group>
-                                            <Badge color="blue">{item.courseCode}</Badge>
-                                            <Badge variant="outline">{item.category}</Badge>
-                                            <Text size="sm" c="dimmed">by {item.uploaderName}</Text>
-                                        </Group>
-                                        <Text fw={500}>{item.title}</Text>
+                            <div key={index} className={g.card} style={{ height: 'auto', border: '1px solid var(--border)', padding: 24 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 24 }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                                            <span className={g.badge} style={{ background: 'var(--accent)', color: '#fff' }}>{item.courseCode}</span>
+                                            <span className={g.badge} style={{ background: 'var(--bg-3)', color: 'var(--text)', border: '1px solid var(--border)' }}>{item.category}</span>
+                                            <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>by {item.uploaderName}</span>
+                                        </div>
+                                        
+                                        <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{item.title}</div>
+                                        
                                         {item.linkUrl && (
-                                            <Group gap="xs">
-                                                <IconExternalLink size={14} />
-                                                <Text component="a" href={item.linkUrl} target="_blank" size="sm" c="blue" td="underline">
-                                                    View Resource
-                                                </Text>
-                                            </Group>
+                                            <a href={item.linkUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--accent)', fontSize: '0.95rem', textDecoration: 'none' }}>
+                                                <IconExternalLink size={16} /> View Resource
+                                            </a>
                                         )}
-                                    </Stack>
-                                    <Group>
-                                        <Tooltip label="Reject">
-                                            <ActionIcon color="red" variant="light" size="lg" onClick={() => handleAction(item, 'REJECT')}>
-                                                <IconX size={20} />
-                                            </ActionIcon>
-                                        </Tooltip>
-                                        <Tooltip label="Approve">
-                                            <ActionIcon color="green" variant="filled" size="lg" onClick={() => handleAction(item, 'APPROVE')}>
-                                                <IconCheck size={20} />
-                                            </ActionIcon>
-                                        </Tooltip>
-                                    </Group>
-                                </Group>
-                            </Card>
+                                    </div>
+                                    
+                                    <div style={{ display: 'flex', gap: 12 }}>
+                                        <button 
+                                            className={g.btn} 
+                                            style={{ padding: 12, color: 'red', border: '1px solid red' }} 
+                                            onClick={() => handleAction(item, 'REJECT')}
+                                            title="Reject"
+                                        >
+                                            <IconX size={20} />
+                                        </button>
+                                        <button 
+                                            className={`${g.btn} ${g.btnPrimary}`} 
+                                            style={{ padding: 12, background: 'green' }} 
+                                            onClick={() => handleAction(item, 'APPROVE')}
+                                            title="Approve"
+                                        >
+                                            <IconCheck size={20} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         ))}
-                    </Stack>
+                    </div>
                 )}
-            </Container>
+            </div>
         </>
     );
 }

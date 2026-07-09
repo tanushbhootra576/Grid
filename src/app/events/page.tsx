@@ -1,19 +1,19 @@
 "use client";
 
 import { Navbar } from '@/components/Navbar';
-import { Container, Title, Text, Center } from '@mantine/core';
+import g from '../grid.module.css';
 
 export default function EventsPage() {
     return (
         <>
             <Navbar />
-            <Container size="md" py="xl">
-                <Center style={{ minHeight: '50vh', flexDirection: 'column' }}>
-                    <Title order={1}>Events</Title>
-                    <Title order={2} mt="md">Coming Soon!!</Title>
-                    <Text c="dimmed" mt="sm">This section is under construction.</Text>
-                </Center>
-            </Container>
+            <div className={g.container}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', textAlign: 'center' }}>
+                    <h1 className={g.title} style={{ marginBottom: 16 }}>Events</h1>
+                    <h2 style={{ fontFamily: 'var(--font-space)', fontSize: '2rem', color: 'var(--accent)', marginBottom: 8 }}>Coming Soon</h2>
+                    <p style={{ fontFamily: 'var(--font-dm)', color: 'var(--text-muted)' }}>This section is under construction.</p>
+                </div>
+            </div>
         </>
     );
 }

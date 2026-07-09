@@ -4,621 +4,765 @@ import Link from "next/link";
 import React from "react";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/components/AuthProvider";
-import {
-  Container,
-  Title,
-  Text,
-  Button,
-  Group,
-  SimpleGrid,
-  Card,
-  ThemeIcon,
-  rem,
-  Stack,
-  Badge,
-  Grid,
-  Center,
-  List,
-  Avatar,
-  ActionIcon,
-} from "@mantine/core";
-import {
-  IconSchool,
-  IconBooks,
-  IconUsers,
-  IconTrophy,
-  IconArrowRight,
-  IconRocket,
-  IconMessage,
-  IconBolt,
-  IconNotes,
-  IconCheck,
-  IconBrandGithub,
-  IconBrandLinkedin,
-  IconBrandTwitter,
-  IconHeart,
-} from "@tabler/icons-react";
-import classes from "./page.module.css";
+import { Container } from "@mantine/core";
 import { getAuthHeaders } from "@/lib/api";
+import s from "./page.module.css";
 
-interface StatsData {
-  users: number;
-  resources: number;
-  projects: number;
-  discussions: number;
+/* ── Animated counter ── */
+function AnimCounter({ target, suffix = "" }: { target: number; suffix?: string }) {
+  const [val, setVal] = React.useState(0);
+  const ref = React.useRef<HTMLSpanElement>(null);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      obs.disconnect();
+      const step = Math.ceil(target / 55);
+      let cur = 0;
+      const id = setInterval(() => {
+        cur = Math.min(cur + step, target);
+        setVal(cur);
+        if (cur >= target) clearInterval(id);
+      }, 18);
+    }, { threshold: 0.5 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [target]);
+  return <span ref={ref}>{val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val}{suffix}</span>;
 }
 
+/* ── Per-section scroll reveal ── */
+function useReveal() {
+  const ref = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { el.classList.add(s.visible); obs.disconnect(); } },
+      { threshold: 0.04, rootMargin: "0px 0px -24px 0px" }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return ref;
+}
+
+/* ── Live feed ── */
+const FEED = [
+  { av: "PK", name: "Priya K.", action: "posted a React.js swap request", time: "just now", col: "ember" },
+  { av: "RM", name: "Rohan M.", action: "joined team Nebula for the Hackathon", time: "2m ago", col: "spark" },
+  { av: "KS", name: "Kabir S.", action: "uploaded Linear Algebra notes", time: "8m ago", col: "ember" },
+  { av: "DS", name: "Diya S.", action: "matched with a Python tutor", time: "15m ago", col: "spark" },
+  { av: "NJ", name: "Neha J.", action: "scored 94% on the DSA quiz", time: "21m ago", col: "ember" },
+];
+
+/* ── SVG Illustrations ── */
+function HeroIllustration() {
+  return (
+    <svg viewBox="0 0 500 440" fill="none" xmlns="http://www.w3.org/2000/svg"
+      className={s.heroIllustration} aria-label="Grid workspace illustration">
+      {/* Background glow */}
+      <circle cx="300" cy="220" r="200" fill="var(--accent)" opacity={0.04} />
+
+      {/* Desk */}
+      <rect x="40" y="300" width="400" height="6" fill="var(--accent-2)" opacity={0.5} />
+
+      {/* Monitor */}
+      <rect x="150" y="155" width="200" height="135" fill="var(--bg-2)" stroke="var(--accent)" strokeWidth="2.5" />
+      <rect x="162" y="167" width="176" height="111" fill="var(--bg-3)" />
+
+      {/* Code on screen with syntax colors */}
+      <rect x="172" y="178" width="70" height="3.5" fill="var(--accent)" opacity={0.8} />
+      <rect x="172" y="188" width="130" height="3.5" fill="var(--accent-2)" opacity={0.7} />
+      <rect x="172" y="198" width="55" height="3.5" fill="var(--text-muted)" opacity={0.5} />
+      <rect x="172" y="208" width="110" height="3.5" fill="var(--accent)" opacity={0.6} />
+      <rect x="172" y="218" width="90" height="3.5" fill="var(--accent-2)" opacity={0.5} />
+      <rect x="172" y="228" width="45" height="3.5" fill="var(--text-muted)" opacity={0.4} />
+      <rect x="172" y="238" width="100" height="3.5" fill="var(--accent)" opacity={0.55} />
+      <rect x="172" y="248" width="75" height="3.5" fill="var(--accent-2)" opacity={0.4} />
+
+      {/* Stand */}
+      <rect x="238" y="288" width="24" height="14" fill="var(--border)" />
+      <rect x="222" y="300" width="56" height="4" fill="var(--border)" />
+
+      {/* Keyboard */}
+      <rect x="162" y="314" width="176" height="20" fill="var(--bg-3)" stroke="var(--border)" strokeWidth="1.5" />
+      {[0,1,2,3,4,5].map(i => (
+        <rect key={i} x={170 + i*26} y={320} width={20} height={8} fill="var(--border)" />
+      ))}
+
+      {/* Stacked books left */}
+      <rect x="65" y="282" width="66" height="9" fill="var(--accent)" />
+      <rect x="69" y="273" width="58" height="9" fill="var(--accent-2)" />
+      <rect x="65" y="264" width="62" height="9" fill="var(--bg-3)" stroke="var(--border)" strokeWidth="1" />
+
+      {/* Coffee cup right */}
+      <rect x="386" y="272" width="32" height="28" fill="var(--bg-3)" stroke="var(--border)" strokeWidth="1.5" />
+      <path d="M418 280 Q430 280 430 286 Q430 292 418 292" stroke="var(--border)" strokeWidth="1.5" fill="none" />
+      <rect x="391" y="275" width="22" height="4" fill="var(--accent)" opacity={0.4} />
+
+      {/* Floating "Match Found" badge */}
+      <g className={s.floatBob} style={{ transformOrigin: "410px 90px" }}>
+        <rect x="365" y="55" width="110" height="68" fill="var(--accent)" />
+        <rect x="365" y="55" width="4" height="68" fill="rgba(0,0,0,0.2)" />
+        <text x="422" y="85" textAnchor="middle" fill="#fff"
+          style={{ fontFamily: "var(--font-space)", fontSize: 10, fontWeight: 700, letterSpacing: "0.05em" }}>
+          MATCH FOUND
+        </text>
+        <text x="422" y="102" textAnchor="middle" fill="rgba(255,255,255,0.75)"
+          style={{ fontFamily: "var(--font-dm)", fontSize: 9 }}>
+          React.js ↔ Python
+        </text>
+        {/* Checkmark */}
+        <circle cx="395" cy="91" r="0" fill="rgba(255,255,255,0.2)" />
+      </g>
+
+      <g className={s.floatBob2} style={{ transformOrigin: "85px 360px" }}>
+        <rect x="48" y="326" width="74" height="68" fill="var(--bg-2)" stroke="var(--accent)" strokeWidth="2" />
+        <rect x="48" y="326" width="74" height="4" fill="var(--accent)" />
+        <text x="85" y="356" textAnchor="middle" fill="var(--accent)"
+          style={{ fontFamily: "var(--font-space)", fontSize: 20, fontWeight: 700 }}>
+          A+
+        </text>
+        <text x="85" y="373" textAnchor="middle" fill="var(--text-muted)"
+          style={{ fontFamily: "var(--font-dm)", fontSize: 8, letterSpacing: "0.08em" }}>
+          GRADE
+        </text>
+      </g>
+
+      {/* Triangle corner accent */}
+      <polygon points="0,0 100,0 0,100" fill="var(--accent)" opacity={0.08} />
+
+      {/* Connection dots + lines */}
+      <line x1="365" y1="120" x2="258" y2="167" stroke="var(--border)" strokeWidth="1.5" strokeDasharray="5 4" />
+      <circle cx="365" cy="120" r="4" fill="var(--accent)" />
+      <line x1="122" y1="326" x2="162" y2="300" stroke="var(--border)" strokeWidth="1.5" strokeDasharray="5 4" />
+      <circle cx="122" cy="326" r="4" fill="var(--accent-2)" />
+
+      {/* Bottom decoration */}
+      <rect x="40" y="400" width="140" height="3" fill="var(--accent)" opacity={0.3} />
+      <rect x="190" y="400" width="60" height="3" fill="var(--accent-2)" opacity={0.3} />
+    </svg>
+  );
+}
+
+function FeatureIcon({ type }: { type: string }) {
+  const map: Record<string, React.ReactNode> = {
+    skills: (
+      <svg viewBox="0 0 44 44" fill="none">
+        <rect x="3" y="3" width="17" height="17" fill="var(--accent)" />
+        <rect x="24" y="3" width="17" height="17" fill="var(--accent-2)" opacity={0.7} />
+        <rect x="3" y="24" width="17" height="17" fill="var(--accent-2)" opacity={0.7} />
+        <rect x="24" y="24" width="17" height="17" fill="var(--accent)" opacity={0.5} />
+      </svg>
+    ),
+    discuss: (
+      <svg viewBox="0 0 44 44" fill="none">
+        <rect x="4" y="6" width="30" height="22" fill="none" stroke="var(--accent)" strokeWidth="2.5" />
+        <rect x="10" y="13" width="12" height="3" fill="var(--accent)" opacity={0.8} />
+        <rect x="10" y="20" width="18" height="3" fill="var(--accent-2)" opacity={0.7} />
+        <polygon points="14,28 14,38 24,28" fill="var(--accent)" />
+      </svg>
+    ),
+    events: (
+      <svg viewBox="0 0 44 44" fill="none">
+        <rect x="4" y="9" width="36" height="28" fill="none" stroke="var(--accent)" strokeWidth="2.5" />
+        <line x1="4" y1="17" x2="40" y2="17" stroke="var(--accent)" strokeWidth="2" />
+        <circle cx="14" cy="5" r="3" fill="var(--accent-2)" />
+        <circle cx="30" cy="5" r="3" fill="var(--accent-2)" />
+        <rect x="11" y="22" width="9" height="9" fill="var(--accent)" />
+        <rect x="24" y="22" width="9" height="9" fill="var(--accent-2)" opacity={0.7} />
+      </svg>
+    ),
+    quiz: (
+      <svg viewBox="0 0 44 44" fill="none">
+        <circle cx="22" cy="22" r="18" fill="none" stroke="var(--accent)" strokeWidth="2.5" />
+        <rect x="19" y="10" width="6" height="14" fill="var(--accent)" />
+        <rect x="19" y="28" width="6" height="6" fill="var(--accent-2)" />
+      </svg>
+    ),
+    projects: (
+      <svg viewBox="0 0 44 44" fill="none">
+        <polygon points="22,3 41,39 3,39" fill="var(--accent)" opacity={0.9} />
+        <rect x="19" y="14" width="6" height="14" fill="var(--accent-2)" />
+        <circle cx="22" cy="32" r="5" fill="var(--bg)" />
+      </svg>
+    ),
+    chat: (
+      <svg viewBox="0 0 44 44" fill="none">
+        <rect x="3" y="7" width="28" height="20" fill="var(--accent)" />
+        <rect x="13" y="21" width="28" height="18" fill="var(--accent-2)" opacity={0.75} />
+        <rect x="8" y="13" width="14" height="3" fill="white" opacity={0.6} />
+        <rect x="8" y="20" width="8" height="3" fill="white" opacity={0.4} />
+      </svg>
+    ),
+  };
+  return <div className={s.featureIconWrap}>{map[type] ?? map.skills}</div>;
+}
+
+/* ── Testimonials ── */
+const TESTIMONIALS = [
+  { name: "Priya K.", role: "3rd Year, CSE", text: "Found a Python tutor in 20 minutes. Taught her React in return. This is how campus should work.", initials: "PK", col: "ember" },
+  { name: "Arjun R.", role: "Final Year, IT", text: "Built my capstone project team entirely on Grid. Four people, four skill sets, one week.", initials: "AR", col: "spark" },
+  { name: "Sneha V.", role: "2nd Year, Design", text: "The discussion forum answered my elective questions better than any advisor ever did.", initials: "SV", col: "ember" },
+];
+
+/* ── Main Page ── */
 export default function Home() {
   const { user } = useAuth();
-  const [stats, setStats] = React.useState<StatsData | null>(null);
-  const [statsError, setStatsError] = React.useState<string | null>(null);
+  const [stats, setStats] = React.useState<Record<string, number> | null>(null);
+  const [openFaq, setOpenFaq] = React.useState<number | null>(null);
+  const [swapTab, setSwapTab] = React.useState(0);
+  const [swapStatus, setSwapStatus] = React.useState<"idle" | "loading" | "done">("idle");
+  const [feedIdx, setFeedIdx] = React.useState(0);
+
+  const r0 = useReveal();
+  const r1 = useReveal();
+  const r2 = useReveal();
+  const r3 = useReveal();
+  const r4 = useReveal();
+  const r5 = useReveal();
+  const r6 = useReveal();
+
   React.useEffect(() => {
-    let mounted = true;
+    const id = setInterval(() => setFeedIdx(i => (i + 1) % FEED.length), 3000);
+    return () => clearInterval(id);
+  }, []);
+
+  React.useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("/api/stats", { headers: getAuthHeaders() });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.detail || err.error || "Failed stats");
-        }
-        const data = await res.json();
-        if (mounted) setStats(data);
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : "Unknown error";
-        if (mounted) setStatsError(msg);
-      }
+        const r = await fetch("/api/stats", { headers: getAuthHeaders() });
+        if (r.ok) setStats(await r.json());
+      } catch {}
     })();
-    return () => {
-      mounted = false;
-    };
   }, []);
+
+  const features = [
+    { type: "skills",   title: "Skill Marketplace", desc: "Teach what you know. Learn what you need. Direct peer-to-peer exchange, zero middlemen.",         href: "/skills",      tag: "CORE" },
+    { type: "discuss",  title: "Discussion Forums",  desc: "Course questions, elective advice, senior mentors. Your academic network, organised.",              href: "/discussions", tag: "POPULAR" },
+    { type: "events",   title: "Events & Hackathons",desc: "Club drives, workshops, inter-college hackathons. One calendar for everything campus.",             href: "/events",      tag: "" },
+    { type: "quiz",     title: "Study Quizzes",      desc: "Test yourself, track growth, climb the campus scoreboard. Know exactly where you stand.",           href: "/quizzes",     tag: "" },
+    { type: "projects", title: "Project Teams",      desc: "Post your idea, recruit by skill, build together. From college assignments to actual startups.",     href: "/projects",    tag: "HOT" },
+    { type: "chat",     title: "Real-time Chat",     desc: "DMs, group rooms, skill-session scheduling. Everything you need to coordinate in one thread.",       href: "/chat",        tag: "" },
+  ];
+
+  const swapData = [
+    [
+      { name: "Priya Patel",  year: 2, branch: "CSE",    offers: "React.js",      wants: "Python",         av: "PP", col: "ember" },
+      { name: "Rohan Mehta",  year: 3, branch: "IT",     offers: "Django API",    wants: "Kotlin",         av: "RM", col: "spark" },
+    ],
+    [
+      { name: "Sneha Sen",    year: 1, branch: "Design", offers: "Figma / UI",    wants: "3D Blender",     av: "SS", col: "ember" },
+      { name: "Arjun Rao",    year: 4, branch: "Mech.",  offers: "CAD / SolidWorks", wants: "Web Dev",    av: "AR", col: "spark" },
+    ],
+    [
+      { name: "Kabir Singh",  year: 3, branch: "Maths",  offers: "Calculus II",   wants: "Linear Algebra", av: "KS", col: "ember" },
+      { name: "Diya Shah",    year: 2, branch: "Chem.",  offers: "Physics",       wants: "Python Basics",  av: "DS", col: "spark" },
+    ],
+  ];
+
+  const faqs = [
+    { q: "Is Grid free to use?",         a: "Completely free. No subscription, no hidden fees, no paywalls. Skill swaps, quizzes, project listings — all free." },
+    { q: "How does Skill Swap work?",      a: "List skills you can teach and skills you want to learn. Grid matches you with a peer offering the exact trade. You schedule a session; they get yours in return." },
+    { q: "Can seniors offer mentorship?",  a: "Yes. Senior students and alumni create mentor profiles listing their expertise. Juniors browse and book time directly — no intermediary required." },
+    { q: "How do I build a project team?", a: "Post your project with the skills you need. Interested students apply. You review their profiles and skill-swap history before accepting." },
+    { q: "How are achievements earned?",   a: "Contributions earn XP: uploading notes, answering threads, completing swaps, scoring in quizzes. XP unlocks badges visible on your profile." },
+  ];
+
   return (
     <>
       <Navbar />
-      <section className={classes.hero}>
-        <div className={classes.spotlight} />
-        <div className={classes.glow} />
-        <Container size="lg">
-          <Center>
-            <Stack align="center" gap="md" ta="center">
-              <Badge
-                variant="gradient"
-                gradient={{ from: "blue", to: "cyan" }}
-                size="lg"
-                radius="xl"
-                tt="uppercase"
-              >
-                The Ultimate Campus Platform
-              </Badge>
-              <Title order={1} className={classes.headline}>
-                Empowering the Next Generation of
-                <Text
-                  span
-                  variant="gradient"
-                  gradient={{ from: "violet", to: "blue" }}
-                  inherit
-                >
-                  {" "}
-                  Innovators
-                </Text>
-              </Title>
 
-              <Text className={classes.subheadline}>
-                CollegeConnect is your digital campus. Connect with peers, share
-                and build projects, and accelerate your career, all in one
-                place.
-              </Text>
+      {/* ─── HERO ─────────────────────────────────────────────── */}
+      <section className={s.hero}>
+        {/* Structural grid lines */}
+        <div className={s.gridOverlay} aria-hidden="true">
+          <div className={s.gridLine} style={{ top: "28%" }} />
+          <div className={s.gridLine} style={{ top: "70%" }} />
+          <div className={s.gridLineV} style={{ left: "55%" }} />
+        </div>
 
-              <Group>
-                {!user ? (
-                  <Button
-                    component={Link}
-                    href="/signup"
-                    size="xl"
-                    radius="xl"
-                    variant="gradient"
-                    gradient={{ from: "violet", to: "blue" }}
-                    rightSection={<IconArrowRight size={20} />}
-                  >
-                    Join the Community
-                  </Button>
-                ) : (
-                  <Button
-                    component={Link}
-                    href="/profile"
-                    size="xl"
-                    radius="xl"
-                    variant="gradient"
-                    gradient={{ from: "violet", to: "blue" }}
-                    rightSection={<IconArrowRight size={20} />}
-                  >
-                    Complete Your Profile
-                  </Button>
-                )}
-                <Button
-                  component={Link}
-                  href="/skills"
-                  size="xl"
-                  radius="xl"
-                  variant="default"
-                  leftSection={<IconRocket size={20} />}
-                >
-                  Find Skills
-                </Button>
-              </Group>
+        {/* Ember glow spot */}
+        <div className={s.heroGlow} aria-hidden="true" />
 
-              <Group gap="xl" className={classes.stats}>
-                <Stat
-                  value={formatStat(stats?.users, "1.2k+")}
-                  label="Active Students"
-                />
-                {/* <Stat value={formatStat(stats?.resources, '350+')} label="Shared Resources" /> */}
-                <Stat
-                  value={formatStat(stats?.projects, "90+")}
-                  label="Projects Built"
-                />
-                <Stat
-                  value={formatStat(stats?.discussions, "500+")}
-                  label="Discussions"
-                />
-              </Group>
-              {statsError && (
-                <Text size="xs" c="red" mt={-8}>
-                  Stats unavailable: {statsError}
-                </Text>
+        <Container size="xl" className={s.heroInner}>
+          <div className={s.heroLeft}>
+            {/* Status pill */}
+            <div className={s.heroPill}>
+              <span className={s.pillDot} />
+              <span>
+                {stats
+                  ? `${stats.users?.toLocaleString() ?? 0} students building together`
+                  : "Connecting students across India"}
+              </span>
+            </div>
+
+            <h1 className={s.heroTitle}>
+              Build skills.<br />
+              Ship projects.<br />
+              <span className={s.heroTitleAccent}>Own your campus.</span>
+            </h1>
+
+            <p className={s.heroSub}>
+              Grid connects university students for peer skill exchange, project teams, and
+              campus collaboration. Like LinkedIn for your campus — but actually useful.
+            </p>
+
+            <div className={s.heroCta}>
+              {!user ? (
+                <>
+                  <Link href="/signup" className={s.btnPrimary} id="hero-join-btn">
+                    Start for free
+                    <svg viewBox="0 0 16 16" fill="none" width={14} height={14}>
+                      <line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" strokeWidth="2" />
+                      <polyline points="9,3 14,8 9,13" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                  </Link>
+                  <Link href="/skills" className={s.btnGhost} id="hero-skills-btn">
+                    Browse skills
+                  </Link>
+                </>
+              ) : (
+                <Link href="/profile" className={s.btnPrimary} id="hero-profile-btn">
+                  Go to dashboard
+                </Link>
               )}
-            </Stack>
-          </Center>
+            </div>
+
+            {/* Social proof avatars */}
+            <div className={s.socialProof}>
+              <div className={s.avatarStack}>
+                {["PK","RM","KS","DS","NJ"].map((initials, i) => (
+                  <div key={i} className={s.miniAvatar}
+                    style={{ background: i % 2 === 0 ? "var(--accent)" : "var(--accent-2)",
+                             color: i % 2 === 0 ? "#fff" : "#0D0C0B",
+                             marginLeft: i === 0 ? 0 : -10, zIndex: 5 - i }}>
+                    {initials[0]}
+                  </div>
+                ))}
+              </div>
+              <span className={s.socialText}>
+                <strong>
+                  {stats
+                    ? `${stats.users?.toLocaleString() ?? 0} students`
+                    : "Students"}
+                </strong>{" "}building together
+              </span>
+            </div>
+          </div>
+
+          <div className={s.heroRight}>
+            <HeroIllustration />
+          </div>
         </Container>
+
+        {/* Marquee */}
+        <div className={s.marqueeWrap} aria-hidden="true">
+          <div className={s.marqueeTrack}>
+            {Array(8).fill(null).map((_, i) => (
+              <React.Fragment key={i}>
+                <span>SKILL SWAP</span>
+                <span className={s.mDot} style={{ color: "var(--accent)" }}>◆</span>
+                <span>PROJECT TEAMS</span>
+                <span className={s.mDot} style={{ color: "var(--accent-2)" }}>◆</span>
+                <span>PEER MENTORS</span>
+                <span className={s.mDot} style={{ color: "var(--accent)" }}>◆</span>
+                <span>GRID YOUR FUTURE</span>
+                <span className={s.mDot} style={{ color: "var(--accent-2)" }}>◆</span>
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
       </section>
 
-      {/* About Section */}
-      <section className={classes.section}>
-        <Container size="lg">
-          <Grid gutter={50} align="center">
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <Title order={2} mb="md">
-                Built by Students, For Students
-              </Title>
-              <Text size="lg" c="dimmed" mb="xl">
-                We understand the college hustle. Finding notes, looking for
-                hackathon teammates, or just needing advice on which elective to
-                pick, it can be chaotic.
-              </Text>
-              <Text size="lg" c="dimmed" mb="xl">
-                CollegeConnect brings order to the chaos. We provide a
-                structured platform where you can:
-              </Text>
-              <List
-                spacing="sm"
-                size="md"
-                icon={
-                  <ThemeIcon color="blue" size={24} radius="xl">
-                    <IconCheck size={16} />
-                  </ThemeIcon>
-                }
-              >
-                <List.Item>Collaborate on real-world projects</List.Item>
-                <List.Item>
-                  Access a curated library of study materials
-                </List.Item>
-                <List.Item>Get mentorship from seniors and alumni</List.Item>
-                <List.Item>
-                  Showcase your skills and build a portfolio
-                </List.Item>
-              </List>
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <SimpleGrid cols={2} spacing="md">
-                <Card
-                  withBorder
-                  radius="md"
-                  padding="xl"
-                  bg="var(--mantine-color-body)"
-                >
-                  <ThemeIcon
-                    size="xl"
-                    radius="md"
-                    variant="light"
-                    color="violet"
-                    mb="md"
-                  >
-                    <IconUsers />
-                  </ThemeIcon>
-                  <Text fw={700} size="lg">
-                    Community First
-                  </Text>
-                  <Text size="sm" c="dimmed" mt="sm">
-                    A safe, inclusive space for everyone to learn and grow.
-                  </Text>
-                </Card>
-                <Card
-                  withBorder
-                  radius="md"
-                  padding="xl"
-                  bg="var(--mantine-color-body)"
-                >
-                  <ThemeIcon
-                    size="xl"
-                    radius="md"
-                    variant="light"
-                    color="orange"
-                    mb="md"
-                  >
-                    <IconTrophy />
-                  </ThemeIcon>
-                  <Text fw={700} size="lg">
-                    Merit Based
-                  </Text>
-                  <Text size="sm" c="dimmed" mt="sm">
-                    Earn recognition for your contributions and skills.
-                  </Text>
-                </Card>
-                <Card
-                  withBorder
-                  radius="md"
-                  padding="xl"
-                  bg="var(--mantine-color-body)"
-                >
-                  <ThemeIcon
-                    size="xl"
-                    radius="md"
-                    variant="light"
-                    color="teal"
-                    mb="md"
-                  >
-                    <IconSchool />
-                  </ThemeIcon>
-                  <Text fw={700} size="lg">
-                    Academic Focus
-                  </Text>
-                  <Text size="sm" c="dimmed" mt="sm">
-                    Tools designed to boost your GPA and learning.
-                  </Text>
-                </Card>
-                <Card
-                  withBorder
-                  radius="md"
-                  padding="xl"
-                  bg="var(--mantine-color-body)"
-                >
-                  <ThemeIcon
-                    size="xl"
-                    radius="md"
-                    variant="light"
-                    color="pink"
-                    mb="md"
-                  >
-                    <IconHeart />
-                  </ThemeIcon>
-                  <Text fw={700} size="lg">
-                    Open Source
-                  </Text>
-                  <Text size="sm" c="dimmed" mt="sm">
-                    Transparent and constantly evolving with your feedback.
-                  </Text>
-                </Card>
-              </SimpleGrid>
-            </Grid.Col>
-          </Grid>
-        </Container>
+
+
+      {/* ─── FEATURES ─────────────────────────────────────────── */}
+      <section className={s.section}>
+        <div ref={r1} className={s.revealBlock}>
+          <Container size="xl">
+            <div className={s.sectionHeader}>
+              <div className={s.sectionTag}>
+                <div className={s.tagBar} />
+                <span>PLATFORM</span>
+              </div>
+              <h2 className={s.sectionTitle}>
+                Built for how students<br />actually work
+              </h2>
+              <p className={s.sectionSub}>
+                Six tools. One platform. Zero bloat.
+              </p>
+            </div>
+
+            <div className={s.featuresGrid}>
+              {features.map((f, i) => (
+                <Link key={i} href={f.href}
+                  className={s.featureCard}
+                  style={{ "--card-delay": `${i * 80}ms` } as React.CSSProperties}>
+                  {f.tag && <span className={s.featureTag}>{f.tag}</span>}
+                  <FeatureIcon type={f.type} />
+                  <h3 className={s.featureTitle}>{f.title}</h3>
+                  <p className={s.featureDesc}>{f.desc}</p>
+                  <span className={s.featureArrow}>
+                    <svg viewBox="0 0 20 20" fill="none" width="18" height="18">
+                      <line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" strokeWidth="2" />
+                      <polyline points="12,5 17,10 12,15" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                  </span>
+                  <span className={s.cardCorner} />
+                </Link>
+              ))}
+            </div>
+          </Container>
+        </div>
       </section>
 
-      {/* Features */}
-      <section className={classes.sectionAlt}>
-        <Container size="lg">
-          <SectionHeader
-            title="Everything You Need to Succeed"
-            subtitle="Platform Features"
-          />
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing={30} mt={50}>
-            <Feature
-              icon={
-                <IconSchool
-                  style={{ width: rem(28), height: rem(28) }}
-                  stroke={2}
-                />
-              }
-              title="Skill Marketplace"
-              description="Don't just learn alone. Find peers to trade skills with—teach React, learn Python."
-              color="blue"
-              href="/skills"
-            />
-            {/* <Feature
-              icon={
-                <IconBooks
-                  style={{ width: rem(28), height: rem(28) }}
-                  stroke={2}
-                />
-              }
-              title="Resource Library"
-              description="Access a goldmine of notes, previous year papers, and project references."
-              color="teal"
-              href="/resources"
-            /> */}
-            <Feature
-              icon={
-                <IconUsers
-                  style={{ width: rem(28), height: rem(28) }}
-                  stroke={2}
-                />
-              }
-              title="Discussion Forums"
-              description="Stuck on a bug? Need career advice? The community has your back."
-              color="grape"
-              href="/discussions"
-            />
-            <Feature
-              icon={
-                <IconTrophy
-                  style={{ width: rem(28), height: rem(28) }}
-                  stroke={2}
-                />
-              }
-              title="Events & Hackathons"
-              description="Stay updated on the latest campus events, workshops, and competitions."
-              color="orange"
-              href="/events"
-            />
-            <Feature
-              icon={
-                <IconNotes
-                  style={{ width: rem(28), height: rem(28) }}
-                  stroke={2}
-                />
-              }
-              title="Interactive Quizzes"
-              description="Test your knowledge in various domains and climb the leaderboard."
-              color="cyan"
-              href="/quizzes"
-            />
-            <Feature
-              icon={
-                <IconBolt
-                  style={{ width: rem(28), height: rem(28) }}
-                  stroke={2}
-                />
-              }
-              title="Project Showcase"
-              description="Find the perfect teammates and showcase your projects to the world."
-              color="yellow"
-              href="/projects"
-            />
-            <Feature
-              icon={
-                <IconMessage
-                  style={{ width: rem(28), height: rem(28) }}
-                  stroke={2}
-                />
-              }
-              title="Real-time Chat"
-              description="Connect instantly with peers. Create groups, share and collaborate seamlessly."
-              color="indigo"
-              href="/chat"
-            />
-          </SimpleGrid>
-        </Container>
+      {/* ─── HOW IT WORKS ─────────────────────────────────────── */}
+      <section className={`${s.section} ${s.sectionAlt}`}>
+        <div ref={r2} className={s.revealBlock}>
+          <Container size="xl">
+            <div className={s.sectionHeader}>
+              <div className={s.sectionTag}>
+                <div className={s.tagBar} style={{ background: "var(--accent-2)" }} />
+                <span>PROCESS</span>
+              </div>
+              <h2 className={s.sectionTitle}>From signup to shipping in four steps</h2>
+            </div>
+
+            <div className={s.stepsGrid}>
+              {[
+                { n: "01", t: "Build your Grid profile", d: "Skills you teach. Skills you want. Your year, branch, projects. Your professional campus identity.", col: "ember" },
+                { n: "02", t: "Find your skill match",    d: "Browse the Skill Marketplace. Request a swap. Schedule a session with someone who has what you need.", col: "spark" },
+                { n: "03", t: "Ship a real project",       d: "Post your idea. Recruit by skill. Coordinate in a dedicated project room. Build something real.",        col: "ember" },
+                { n: "04", t: "Earn your reputation",     d: "Every contribution earns XP and badges. Your profile becomes proof of what you can actually do.",         col: "spark" },
+              ].map((step, i) => (
+                <div key={i} className={s.stepCard}
+                  style={{ "--step-delay": `${i * 100}ms` } as React.CSSProperties}>
+                  <div className={s.stepNum}
+                    style={{
+                      background: step.col === "ember" ? "var(--accent)" : "var(--accent-2)",
+                      color: step.col === "ember" ? "#fff" : "#0D0C0B",
+                    }}>
+                    {step.n}
+                  </div>
+                  <h3 className={s.stepTitle}>{step.t}</h3>
+                  <p className={s.stepDesc}>{step.d}</p>
+                </div>
+              ))}
+            </div>
+          </Container>
+        </div>
       </section>
 
-      <section className={classes.ctaWrap}>
-        <Container size="lg">
-          <Card className={classes.cta} radius="xl" p={50} withBorder>
-            <Stack align="center" ta="center" gap="lg">
-              <Title order={2}>
-                Ready to Transform Your College Experience?
-              </Title>
-              <Text size="lg" c="dimmed" maw={600}>
-                Join thousands of students who are already building, learning,
-                and growing together on CollegeConnect.
-              </Text>
-              <Group>
+      {/* ─── SKILL SWAP DEMO ──────────────────────────────────── */}
+      <section className={s.section}>
+        <div ref={r3} className={s.revealBlock}>
+          <Container size="xl">
+            <div className={s.swapLayout}>
+              <div className={s.swapLeft}>
+                <div className={s.sectionTag}>
+                  <div className={s.tagBar} />
+                  <span>LIVE DEMO</span>
+                </div>
+                <h2 className={s.sectionTitle} style={{ marginTop: 16 }}>
+                  The Skill Swap engine — live
+                </h2>
+                <p className={s.swapCopy}>
+                  Select a skill category. Hit swap. See how Grid matches two students
+                  with complementary needs in under 2 seconds.
+                </p>
+                <div className={s.swapMeta}>
+                  <div className={s.swapMetaItem}>
+                    <span className={s.swapMetaNum}>2s</span>
+                    <span className={s.swapMetaLabel}>avg match time</span>
+                  </div>
+                  <div className={s.swapMetaDivider} />
+                  <div className={s.swapMetaItem}>
+                    <span className={s.swapMetaNum}>94%</span>
+                    <span className={s.swapMetaLabel}>satisfaction rate</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className={s.swapWidget}>
+                <div className={s.swapTabs}>
+                  {["Development", "Creative", "Academic"].map((t, i) => (
+                    <button key={i}
+                      className={`${s.swapTab} ${swapTab === i ? s.swapTabActive : ""}`}
+                      onClick={() => { setSwapTab(i); setSwapStatus("idle"); }}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+
+                <div className={s.swapCards}>
+                  {swapStatus === "loading" && (
+                    <div className={s.swapOverlay}>
+                      <div className={s.spinnerRing} />
+                      <p>Finding best match...</p>
+                    </div>
+                  )}
+                  {swapStatus === "done" && (
+                    <div className={`${s.swapOverlay} ${s.swapDone}`}>
+                      <svg viewBox="0 0 48 48" fill="none" width="52" height="52">
+                        <rect x="2" y="2" width="44" height="44" fill="none" stroke="#fff" strokeWidth="2.5" />
+                        <polyline points="12,24 22,34 38,16" stroke="#fff" strokeWidth="3.5" />
+                      </svg>
+                      <p className={s.doneTitle}>Match found!</p>
+                      <p className={s.doneSub}>Chat room created. Schedule your first session.</p>
+                      <button className={s.doneReset} onClick={() => setSwapStatus("idle")}>Try another</button>
+                    </div>
+                  )}
+                  {swapData[swapTab].map((c, i) => (
+                    <div key={`${swapTab}-${i}`} className={s.swapCard}
+                      style={{ "--swap-delay": `${i * 70}ms` } as React.CSSProperties}>
+                      <div className={s.swapAv}
+                        style={{
+                          background: c.col === "ember" ? "var(--accent)" : "var(--accent-2)",
+                          color:      c.col === "ember" ? "#fff"          : "#0D0C0B",
+                        }}>
+                        {c.av}
+                      </div>
+                      <div className={s.swapInfo}>
+                        <strong>{c.name}</strong>
+                        <span>Year {c.year} · {c.branch}</span>
+                        <div className={s.swapBadges}>
+                          <span className={s.bRed}>Teaches: {c.offers}</span>
+                          <span className={s.bYellow}>Wants: {c.wants}</span>
+                        </div>
+                      </div>
+                      <button className={s.swapBtn}
+                        onClick={() => { setSwapStatus("loading"); setTimeout(() => setSwapStatus("done"), 1300); }}>
+                        Request swap
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Container>
+        </div>
+      </section>
+
+      {/* ─── STATS + LIVE FEED ────────────────────────────────── */}
+      <section className={`${s.section} ${s.sectionAlt}`}>
+        <div ref={r4} className={s.revealBlock}>
+          <Container size="xl">
+            <div className={s.statsLayout}>
+              <div className={s.statBigBlock}>
+                <div className={s.statBig} style={{ color: "var(--accent)" }}>
+                  <AnimCounter target={stats?.users ?? 0} />
+                </div>
+                <div className={s.statBigLabel}>Students on Grid</div>
+                <div className={s.statBigBar} style={{ background: "var(--accent)" }} />
+              </div>
+              <div className={s.statBigBlock}>
+                <div className={s.statBig} style={{ color: "var(--accent-2)" }}>
+                  <AnimCounter target={stats?.projects ?? 0} />
+                </div>
+                <div className={s.statBigLabel}>Projects shipped</div>
+                <div className={s.statBigBar} style={{ background: "var(--accent-2)" }} />
+              </div>
+              <div className={s.statBigBlock}>
+                <div className={s.statBig} style={{ color: "var(--accent)" }}>
+                  <AnimCounter target={stats?.discussions ?? 0} />
+                </div>
+                <div className={s.statBigLabel}>Active discussions</div>
+                <div className={s.statBigBar} style={{ background: "var(--accent)" }} />
+              </div>
+
+              {/* Live feed */}
+              <div className={s.liveFeed}>
+                <div className={s.liveHeader}>
+                  <span className={s.liveDot} />
+                  <span className={s.liveText}>LIVE ACTIVITY</span>
+                </div>
+                <div className={s.feedWin}>
+                  {FEED.map((item, i) => (
+                    <div key={i} className={`${s.feedItem} ${i === feedIdx ? s.feedActive : ""}`}>
+                      <div className={s.feedAv}
+                        style={{
+                          background: item.col === "ember" ? "var(--accent)" : "var(--accent-2)",
+                          color:      item.col === "ember" ? "#fff"          : "#0D0C0B",
+                        }}>
+                        {item.av}
+                      </div>
+                      <div className={s.feedBody}>
+                        <span><strong>{item.name}</strong> {item.action}</span>
+                        <span className={s.feedTime}>{item.time}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Container>
+        </div>
+      </section>
+
+      {/* ─── TESTIMONIALS ─────────────────────────────────────── */}
+      <section className={s.section}>
+        <div ref={r5} className={s.revealBlock}>
+          <Container size="xl">
+            <div className={s.sectionHeader}>
+              <div className={s.sectionTag}>
+                <div className={s.tagBar} style={{ background: "var(--accent-2)" }} />
+                <span>WHAT THEY SAY</span>
+              </div>
+              <h2 className={s.sectionTitle}>Real students. Real results.</h2>
+            </div>
+            <div className={s.testimonialsGrid}>
+              {TESTIMONIALS.map((t, i) => (
+                <div key={i} className={s.testimonialCard}
+                  style={{ "--t-delay": `${i * 90}ms` } as React.CSSProperties}>
+                  <div className={s.tAccent}
+                    style={{ background: t.col === "ember" ? "var(--accent)" : "var(--accent-2)" }} />
+                  <p className={s.tText}>{t.text}</p>
+                  <div className={s.tAuthor}>
+                    <div className={s.tAv}
+                      style={{
+                        background: t.col === "ember" ? "var(--accent)" : "var(--accent-2)",
+                        color:      t.col === "ember" ? "#fff"          : "#0D0C0B",
+                      }}>
+                      {t.initials}
+                    </div>
+                    <div>
+                      <strong className={s.tName}>{t.name}</strong>
+                      <span className={s.tRole}>{t.role}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Container>
+        </div>
+      </section>
+
+      {/* ─── FAQ ──────────────────────────────────────────────── */}
+      <section className={`${s.section} ${s.sectionAlt}`}>
+        <div ref={r6} className={s.revealBlock}>
+          <Container size="xl">
+            <div className={s.faqLayout}>
+              <div className={s.faqLeft}>
+                <div className={s.sectionTag}>
+                  <div className={s.tagBar} />
+                  <span>FAQ</span>
+                </div>
+                <h2 className={s.sectionTitle} style={{ marginTop: 16 }}>
+                  Questions answered.
+                </h2>
+                <div className={s.faqDecor} aria-hidden="true">
+                  <div style={{ width: 72, height: 72, background: "var(--accent)" }} />
+                  <div style={{ width: 72, height: 72, background: "var(--accent-2)", marginTop: 10 }} />
+                  <div style={{ width: 72, height: 144, background: "var(--bg-3)", marginTop: 10, border: "2px solid var(--border)" }} />
+                </div>
+              </div>
+              <div className={s.faqRight}>
+                {faqs.map((f, i) => (
+                  <div key={i} className={s.faqItem}>
+                    <button className={s.faqQ}
+                      onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+                      <span>{f.q}</span>
+                      <span className={`${s.faqIcon} ${openFaq === i ? s.faqIconOpen : ""}`}>
+                        <svg viewBox="0 0 20 20" fill="none" width="16" height="16">
+                          <line x1="10" y1="3" x2="10" y2="17" stroke="currentColor" strokeWidth="2.5" />
+                          <line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" strokeWidth="2.5"
+                            style={{ opacity: openFaq === i ? 0 : 1, transition: "opacity 0.2s" }} />
+                        </svg>
+                      </span>
+                    </button>
+                    <div className={`${s.faqBody} ${openFaq === i ? s.faqBodyOpen : ""}`}>
+                      <p className={s.faqAns}>{f.a}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Container>
+        </div>
+      </section>
+
+      {/* ─── CTA ──────────────────────────────────────────────── */}
+      <section className={s.ctaSection}>
+        <Container size="xl">
+          <div className={s.ctaInner}>
+            <div className={s.ctaDecor} aria-hidden="true">
+              <div style={{ width: 56, height: 56, background: "rgba(255,255,255,0.12)" }} />
+              <div style={{ width: 56, height: 56, background: "var(--accent-2)", marginTop: 10 }} />
+            </div>
+            <div>
+              <h2 className={s.ctaTitle}>
+                Your campus.<br />Your community.<br />Your grid.
+              </h2>
+              <p className={s.ctaSub}>
+                Join the students who are trading skills,
+                building projects, and owning their academic journey.
+              </p>
+              <div className={s.ctaBtns}>
                 {!user ? (
                   <>
-                    <Button
-                      component={Link}
-                      href="/signup"
-                      radius="xl"
-                      size="lg"
-                      variant="gradient"
-                      gradient={{ from: "violet", to: "blue" }}
-                    >
-                      Get Started for Free
-                    </Button>
-                    <Button
-                      component={Link}
-                      href="/login"
-                      radius="xl"
-                      size="lg"
-                      variant="default"
-                    >
-                      Login
-                    </Button>
+                    <Link href="/signup" className={s.ctaBtnPrimary} id="cta-signup-btn">
+                      Create free account
+                    </Link>
+                    <Link href="/login" className={s.ctaBtnGhost} id="cta-login-btn">
+                      Sign in
+                    </Link>
                   </>
                 ) : (
-                  <Button
-                    component={Link}
-                    href="/profile"
-                    radius="xl"
-                    size="lg"
-                    variant="gradient"
-                    gradient={{ from: "violet", to: "blue" }}
-                  >
-                    Go to Your Profile
-                  </Button>
+                  <Link href="/profile" className={s.ctaBtnPrimary} id="cta-profile-btn">
+                    Go to dashboard
+                  </Link>
                 )}
-              </Group>
-            </Stack>
-          </Card>
+              </div>
+            </div>
+          </div>
         </Container>
       </section>
 
-      {/* Footer */}
-      <footer className={classes.footer}>
-        <Container size="lg">
-          <Group justify="space-between" align="start">
-            <Stack gap="xs" maw={300}>
-              <Group gap={8}>
-                <IconSchool size={28} color="var(--mantine-color-blue-6)" />
-                <Text size="xl" fw={900} c="blue">
-                  CollegeConnect
-                </Text>
-              </Group>
-              <Text size="sm" c="dimmed">
-                The all-in-one platform for students to collaborate, share and
-                grow their careers.
-              </Text>
-              <Group gap="xs" mt="md">
-                <ActionIcon size="lg" variant="subtle" color="gray">
-                  <Link href="https://github.com/tanushbhootra576">
-                    <IconBrandGithub size={18} />
-                  </Link>
-                </ActionIcon>
-                {/* <ActionIcon size="lg" variant="subtle" color="gray"><IconBrandTwitter size={18} /></ActionIcon> */}
-                <ActionIcon size="lg" variant="subtle" color="gray">
-                  <Link href="https://www.linkedin.com/in/tanushbhootra576/">
-                    <IconBrandLinkedin size={18} />
-                  </Link>
-                </ActionIcon>
-              </Group>
-            </Stack>
-
-            <Group gap={50} align="start">
-              <Stack gap="sm">
-                <Text fw={700}>Platform</Text>
-                <Text component={Link} href="/skills" size="sm" c="dimmed">
-                  Skills
-                </Text>
-                {/* <Text component={Link} href="/resources" size="sm" c="dimmed">
-                  Resources
-                </Text> */}
-                <Text component={Link} href="/projects" size="sm" c="dimmed">
-                  Projects
-                </Text>
-                <Text component={Link} href="/discussions" size="sm" c="dimmed">
-                  Discussions
-                </Text>
-              </Stack>
-              <Stack gap="sm">
-                <Text fw={700}>Community</Text>
-                <Text component={Link} href="/events" size="sm" c="dimmed">
-                  Events
-                </Text>
-                <Text component={Link} href="/quizzes" size="sm" c="dimmed">
-                  Quizzes
-                </Text>
-                <Text component={Link} href="/chat" size="sm" c="dimmed">
-                  Chat
-                </Text>
-              </Stack>
-              <Stack gap="sm">
-                <Text fw={700}>Legal</Text>
-                <Text component={Link} href="/privacy" size="sm" c="dimmed">
-                  Privacy Policy
-                </Text>
-                <Text component={Link} href="/terms" size="sm" c="dimmed">
-                  Terms of Service
-                </Text>
-                <Text component={Link} href="/guidelines" size="sm" c="dimmed">
-                  Guidelines
-                </Text>
-              </Stack>
-            </Group>
-          </Group>
-          <Text size="xs" c="dimmed" mt={40} ta="center">
-            © {new Date().getFullYear()} CollegeConnect. All rights reserved.
-          </Text>
+      {/* ─── FOOTER ───────────────────────────────────────────── */}
+      <footer className={s.footer}>
+        <Container size="xl">
+          <div className={s.footerGrid}>
+            <div>
+              <div className={s.footerBrand}>
+                <svg viewBox="0 0 28 28" fill="none" width={22} height={22}>
+                  <rect x="3" y="9" width="22" height="12" fill="var(--accent)" />
+                  <rect x="9" y="3" width="10" height="7" fill="var(--accent)" opacity={0.7} />
+                  <rect x="0" y="19" width="28" height="4" fill="var(--accent)" opacity={0.4} />
+                  <circle cx="23" cy="5" r="2.5" fill="var(--accent-2)" />
+                </svg>
+                <span>Grid</span>
+              </div>
+              <p className={s.footerTagline}>
+                The peer-driven platform where university<br />students build skills and ship projects.
+              </p>
+              <div style={{ display: "flex", gap: 6, marginTop: 20 }}>
+                <div style={{ width: 16, height: 16, background: "var(--accent)" }} />
+                <div style={{ width: 16, height: 16, background: "var(--accent-2)" }} />
+                <div style={{ width: 16, height: 16, background: "var(--border)" }} />
+              </div>
+            </div>
+            {[
+              { label: "Platform", links: [{ t:"Skills",h:"/skills"},{t:"Projects",h:"/projects"},{t:"Discuss",h:"/discussions"},{t:"Quizzes",h:"/quizzes"}] },
+              { label: "Community",links: [{ t:"Events",h:"/events"},{t:"Chat",h:"/chat"},{t:"People",h:"/users"}] },
+              { label: "Legal",    links: [{ t:"Privacy",h:"/privacy"},{t:"Terms",h:"/terms"},{t:"Guidelines",h:"/guidelines"}] },
+            ].map((col, i) => (
+              <div key={i} className={s.footerCol}>
+                <span className={s.footerColLabel}>{col.label}</span>
+                {col.links.map((l, j) => (
+                  <Link key={j} href={l.h} className={s.footerLink}>{l.t}</Link>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div className={s.footerBottom}>
+            <div className={s.footerRule} />
+            <span>© {new Date().getFullYear()} Grid — Built by students, for students.</span>
+          </div>
         </Container>
       </footer>
     </>
-  );
-}
-
-function SectionHeader({
-  title,
-  subtitle,
-}: {
-  title: string;
-  subtitle?: string;
-}) {
-  return (
-    <Stack gap={4} align="center" ta="center">
-      {subtitle && (
-        <Badge variant="light" color="blue" size="lg" mb="sm">
-          {subtitle}
-        </Badge>
-      )}
-      <Title order={2} style={{ fontSize: "2.5rem" }}>
-        {title}
-      </Title>
-    </Stack>
-  );
-}
-
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <Stack gap={0} align="center">
-      <Text
-        fw={900}
-        size="xl"
-        variant="gradient"
-        gradient={{ from: "blue", to: "cyan" }}
-        style={{ fontSize: "2rem" }}
-      >
-        {value}
-      </Text>
-      <Text c="dimmed" size="sm" fw={500}>
-        {label}
-      </Text>
-    </Stack>
-  );
-}
-
-function formatStat(actual: number | undefined, fallback: string): string {
-  if (typeof actual === "number") {
-    if (actual >= 1000) {
-      const rounded = (actual / 1000).toFixed(actual % 1000 === 0 ? 0 : 1);
-      return `${rounded}k+`;
-    }
-    return `${actual}+`;
-  }
-  return fallback;
-}
-
-function Feature({
-  icon,
-  title,
-  description,
-  color,
-  href,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  color: string;
-  href: string;
-}) {
-  return (
-    <Card className={classes.featureCard} padding="xl" radius="lg">
-      <ThemeIcon size={50} radius="md" variant="light" color={color} mb="md">
-        {icon}
-      </ThemeIcon>
-      <Text size="xl" fw={700} mb="xs">
-        {title}
-      </Text>
-      <Text size="sm" c="dimmed" mb="lg" style={{ lineHeight: 1.6 }}>
-        {description}
-      </Text>
-      <Button
-        component={Link}
-        href={href}
-        variant="light"
-        color={color}
-        fullWidth
-        mt="auto"
-        rightSection={<IconArrowRight size={16} />}
-      >
-        Explore
-      </Button>
-    </Card>
   );
 }

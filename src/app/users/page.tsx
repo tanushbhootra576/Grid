@@ -4,35 +4,21 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import {
-  Container,
-  Title,
-  TextInput,
-  Select,
-  SimpleGrid,
-  Card,
-  Text,
-  Badge,
-  Group,
-  Button,
-  LoadingOverlay,
-  Pagination,
-  Modal,
-  Avatar,
-} from "@mantine/core";
-import {
   IconSearch,
   IconMail,
   IconBrandGmail,
   IconBrandWindows,
   IconBrandYahoo,
   IconMessage,
+  IconX,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { getAuthHeaders } from "@/lib/api";
 import {
   CollaborationBadge,
   CollaborationLevel,
-} from "@/components/CollaborationStatus"; // IMPORT ADDED
+} from "@/components/CollaborationStatus";
+import g from "../grid.module.css";
 
 interface ListedUser {
   _id: string;
@@ -58,10 +44,12 @@ interface UsersResponse {
 }
 
 export const dynamic = "force-dynamic";
+
 export default function UsersDirectoryPage() {
   const [search, setSearch] = useState("");
-  const [branch, setBranch] = useState<string | null>(null);
+  const [branch, setBranch] = useState<string>("");
   const [skill, setSkill] = useState("");
+  const [cofounder, setCofounder] = useState(false);
   const [page, setPage] = useState(1);
   const [data, setData] = useState<UsersResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -78,6 +66,7 @@ export default function UsersDirectoryPage() {
       if (search) params.append("search", search);
       if (branch) params.append("branch", branch);
       if (skill) params.append("skill", skill);
+      if (cofounder) params.append("cofounder", "true");
       const res = await fetch(`/api/users?${params.toString()}`, {
         headers: getAuthHeaders(),
       });
@@ -90,293 +79,219 @@ export default function UsersDirectoryPage() {
     }
   };
 
-  // Initialize from window.location to avoid useSearchParams prerender constraints
   useEffect(() => {
     if (typeof window !== "undefined") {
       const sp = new URLSearchParams(window.location.search);
       const initialSearch = sp.get("search");
       const initialBranch = sp.get("branch");
       const initialSkill = sp.get("skill");
+      const initialCofounder = sp.get("cofounder");
       if (initialSearch) setSearch(initialSearch);
       if (initialBranch) setBranch(initialBranch);
       if (initialSkill) setSkill(initialSkill);
+      if (initialCofounder === "true") setCofounder(true);
       const initialPage = sp.get("page");
       if (initialPage) setPage(parseInt(initialPage, 10) || 1);
     }
   }, []);
 
-  // Sync URL with current filters (shallow push) when filters change
   useEffect(() => {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     if (branch) params.set("branch", branch);
     if (skill) params.set("skill", skill);
+    if (cofounder) params.set("cofounder", "true");
     params.set("page", String(page));
     router.replace(`/users?${params.toString()}`);
     fetchUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, branch, skill, page]);
+  }, [search, branch, skill, cofounder, page]);
 
   return (
     <>
       <Navbar />
-      <Suspense
-        fallback={
-          <Container py="xl">
-            <Title order={3}>Loading users...</Title>
-          </Container>
-        }
-      >
-        <Container size="lg" py="xl">
-          <Group justify="space-between" mb="md">
-            <Title>User Directory</Title>
-          </Group>
-          <Group mb="lg" wrap="nowrap">
-            <TextInput
-              placeholder="Search name, email, skill..."
-              leftSection={<IconSearch size={14} />}
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              style={{ flex: 1 }}
-            />
-            <TextInput
-              placeholder="Filter by skill"
-              value={skill}
-              onChange={(e) => {
-                setSkill(e.target.value);
-                setPage(1);
-              }}
-              style={{ width: 220 }}
-            />
-            <Select
-              placeholder="Branch"
-              data={["CSE", "ECE", "EEE", "MECH", "CIVIL", "IT", "AIML", "BIO"]}
-              clearable
-              value={branch}
-              onChange={(v) => {
-                setBranch(v);
-                setPage(1);
-              }}
-              style={{ width: 180 }}
-            />
-          </Group>
+      <Suspense fallback={<div className={g.spinner} />}>
+        <div className={g.container}>
+          <div className={g.headerRow}>
+            <h1 className={g.title}>
+              <div className={g.titleAccent} />
+              User Directory
+            </h1>
+          </div>
 
-          <div style={{ position: "relative", minHeight: 300 }}>
-            <LoadingOverlay visible={loading} />
-            <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 3 }} spacing="md">
-              {data?.users &&
-                data.users.map((u) => (
-                  <Card
-                    key={u._id}
-                    withBorder
-                    shadow="sm"
-                    radius="md"
-                    padding="md"
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      height: "100%",
-                    }}
-                  >
-                    <Group wrap="nowrap" align="flex-start" mb="md">
-                      <Avatar
-                        src={null}
-                        name={u.name}
-                        color="initials"
-                        size="lg"
-                        radius="xl"
-                      />
+            <div className={g.controlsRow} style={{ alignItems: 'center' }}>
+              <div className={g.inputGroup}>
+                <IconSearch size={18} className={g.inputIcon} />
+                <input
+                  type="text"
+                  className={g.input}
+                  placeholder="Search name, email, skill..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
+                />
+              </div>
+              <input
+                type="text"
+                className={g.input}
+                placeholder="Filter by skill..."
+                style={{ border: '1px solid var(--border)', background: 'var(--bg-2)', minWidth: 200, flex: 0 }}
+                value={skill}
+                onChange={(e) => {
+                  setSkill(e.target.value);
+                  setPage(1);
+                }}
+              />
+              <select
+                className={g.select}
+                value={branch}
+                onChange={(e) => {
+                  setBranch(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="">All Branches</option>
+                {["CSE", "ECE", "EEE", "MECH", "CIVIL", "IT", "AIML", "BIO"].map(b => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+              </select>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontFamily: 'var(--font-space)', fontSize: '0.9rem', color: 'var(--text)' }}>
+                <input 
+                  type="checkbox" 
+                  checked={cofounder} 
+                  onChange={(e) => { setCofounder(e.target.checked); setPage(1); }} 
+                  style={{ width: 18, height: 18, accentColor: 'var(--accent)' }} 
+                />
+                Looking for Co-founder
+              </label>
+            </div>
+
+          {loading ? (
+            <div className={g.spinner} />
+          ) : (
+            <div className={g.grid}>
+              {data?.users && data.users.map((u) => (
+                <div key={u._id} className={g.card}>
+                  <div className={g.cardTop} style={{ background: 'var(--text)' }} />
+                  <div className={g.cardBody}>
+                    <div style={{ display: 'flex', gap: 16, marginBottom: 20, alignItems: 'center' }}>
+                      <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontFamily: 'var(--font-space)', fontWeight: 700, flexShrink: 0 }}>
+                        {u.name[0].toUpperCase()}
+                      </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <Group
-                          justify="space-between"
-                          align="flex-start"
-                          wrap="nowrap"
-                          mb={4}
-                        >
-                          <Text fw={600} lineClamp={1} title={u.name}>
-                            {u.name}
-                          </Text>
-                          <Badge
-                            color="blue"
-                            variant="light"
-                            size="sm"
-                            style={{ flexShrink: 0 }}
-                          >
-                            {u.role}
-                          </Badge>
-                        </Group>
-                        <Text
-                          size="sm"
-                          c="dimmed"
-                          lineClamp={1}
-                          title={
-                            u.branch
-                              ? `${u.branch} - Year ${u.year}`
-                              : "Branch not set"
-                          }
-                        >
-                          {u.branch
-                            ? `${u.branch}${u.year ? " • Year " + u.year : ""}`
-                            : "Branch not set"}
-                        </Text>
-
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                          <h3 className={g.cardTitle} style={{ marginBottom: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.name}</h3>
+                          <span className={g.badge} style={{ borderColor: 'var(--text-muted)', color: 'var(--text)' }}>{u.role}</span>
+                        </div>
+                        <p className={g.cardDesc} style={{ marginBottom: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {u.branch ? `${u.branch}${u.year ? " • Year " + u.year : ""}` : "Branch not set"}
+                        </p>
                         {u.collaborationStatus?.visible && (
-                          <div style={{ marginTop: 6 }}>
-                            <CollaborationBadge
-                              level={u.collaborationStatus.level}
-                              size="xs"
-                            />
+                          <div style={{ marginTop: 8 }}>
+                            <CollaborationBadge level={u.collaborationStatus.level} size="xs" />
                           </div>
                         )}
                       </div>
-                    </Group>
+                    </div>
 
-                    {/* Spacer to push content */}
-                    <div style={{ flex: 1, marginBottom: "16px" }}>
+                    <div style={{ flex: 1, marginBottom: 24 }}>
                       {u.skills && u.skills.length > 0 ? (
                         <>
-                          <Text
-                            size="xs"
-                            c="dimmed"
-                            fw={700}
-                            tt="uppercase"
-                            mb={6}
-                          >
-                            Skills
-                          </Text>
-                          <Group gap={6}>
+                          <div style={{ fontFamily: 'var(--font-space)', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Skills</div>
+                          <div className={g.tagList}>
                             {u.skills.slice(0, 3).map((s) => (
-                              <Badge key={s} size="sm" variant="outline">
-                                {s}
-                              </Badge>
+                              <span key={s} className={g.tag}>{s}</span>
                             ))}
                             {u.skills.length > 3 && (
-                              <Badge
-                                size="sm"
-                                variant="transparent"
-                                c="dimmed"
-                                pl={0}
-                              >
+                              <span className={g.tag} style={{ background: 'transparent', color: 'var(--text-muted)' }}>
                                 +{u.skills.length - 3}
-                              </Badge>
+                              </span>
                             )}
-                          </Group>
+                          </div>
                         </>
                       ) : (
-                        <Text size="sm" c="dimmed" fs="italic">
-                          No skills added yet.
-                        </Text>
+                        <div style={{ fontStyle: 'italic', fontSize: '0.85rem', color: 'var(--text-muted)' }}>No skills added.</div>
                       )}
                     </div>
 
-                    <Group gap="xs" mt="auto">
-                      <Button
-                        flex={1}
-                        size="sm"
-                        variant="light"
-                        onClick={() => {
-                          setContactUser(u);
-                          setContactOpened(true);
-                        }}
-                      >
-                        Contact
-                      </Button>
-                      <Button
-                        flex={1}
-                        size="sm"
-                        component={Link}
-                        href={`/users/${u.publicId ?? u._id}`}
-                        variant="default"
-                      >
-                        View Profile
-                      </Button>
-                    </Group>
-                  </Card>
-                ))}
-            </SimpleGrid>
-            {!loading && data?.users.length === 0 && (
-              <Text ta="center" c="dimmed" mt="xl">
-                No users found.
-              </Text>
-            )}
-          </div>
+                    <div style={{ display: 'flex', gap: 12, marginTop: 'auto' }}>
+                      <button className={g.btn} style={{ flex: 1, padding: '10px' }} onClick={() => { setContactUser(u); setContactOpened(true); }}>CONTACT</button>
+                      <Link href={`/users/${u.publicId ?? u._id}`} className={`${g.btn} ${g.btnPrimary}`} style={{ flex: 1, padding: '10px' }}>PROFILE</Link>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {!loading && data?.users.length === 0 && (
+                <div className={g.empty}>No users found matching your search criteria.</div>
+              )}
+            </div>
+          )}
 
           {data && data.totalPages > 1 && (
-            <Group justify="center" mt="lg">
-              <Pagination
-                total={data.totalPages}
-                value={page}
-                onChange={setPage}
-              />
-            </Group>
+            <div className={g.pagination}>
+              <button 
+                className={g.pageBtn} 
+                disabled={page === 1} 
+                onClick={() => setPage(page - 1)}
+              >
+                Prev
+              </button>
+              {Array.from({ length: data.totalPages }, (_, i) => (
+                <button 
+                  key={i + 1} 
+                  className={`${g.pageBtn} ${page === i + 1 ? g.active : ''}`}
+                  onClick={() => setPage(i + 1)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button 
+                className={g.pageBtn} 
+                disabled={page === data.totalPages} 
+                onClick={() => setPage(page + 1)}
+              >
+                Next
+              </button>
+            </div>
           )}
-        </Container>
+        </div>
 
-        <Modal
-          opened={contactOpened}
-          onClose={() => setContactOpened(false)}
-          title={contactUser ? `Contact ${contactUser.name}` : "Contact"}
-          centered
-        >
-          {contactUser && (
-            <SimpleGrid cols={1} spacing="sm">
-              <Button
-                leftSection={<IconMessage size={18} />}
-                color="grape"
-                variant="filled"
-                onClick={() => {
-                  setContactOpened(false);
-                  router.push(
-                    `/chat?dm=${contactUser.publicId ?? contactUser._id}`
-                  );
-                }}
-              >
-                Direct Message
-              </Button>
-              <Button
-                component="a"
-                href={`https://mail.google.com/mail/?view=cm&fs=1&to=${contactUser.email}&su=Connecting via the platform`}
-                target="_blank"
-                leftSection={<IconBrandGmail size={18} />}
-                color="red"
-                variant="light"
-              >
-                Gmail
-              </Button>
-              <Button
-                component="a"
-                href={`https://outlook.office.com/mail/deeplink/compose?to=${contactUser.email}&subject=Connecting via the platform`}
-                target="_blank"
-                leftSection={<IconBrandWindows size={18} />}
-                color="blue"
-                variant="light"
-              >
-                Outlook
-              </Button>
-              <Button
-                component="a"
-                href={`https://compose.mail.yahoo.com/?to=${contactUser.email}&subject=Connecting via the platform`}
-                target="_blank"
-                leftSection={<IconBrandYahoo size={18} />}
-                color="violet"
-                variant="light"
-              >
-                Yahoo Mail
-              </Button>
-              <Button
-                component="a"
-                href={`mailto:${contactUser.email}?subject=Connecting via the platform`}
-                leftSection={<IconMail size={18} />}
-                variant="default"
-              >
-                Default Mail App
-              </Button>
-            </SimpleGrid>
-          )}
-        </Modal>
+        {contactOpened && contactUser && (
+          <div className={g.modalBackdrop}>
+            <div className={g.modal}>
+              <div className={g.modalHeader}>
+                <h2 className={g.modalTitle}>Contact {contactUser.name}</h2>
+                <button className={g.closeBtn} onClick={() => setContactOpened(false)}><IconX size={24} /></button>
+              </div>
+              <div className={g.modalBody}>
+                <button 
+                  className={g.btn} 
+                  style={{ width: '100%', justifyContent: 'flex-start', background: 'var(--accent)', color: '#fff' }}
+                  onClick={() => {
+                    setContactOpened(false);
+                    router.push(`/chat?dm=${contactUser.publicId ?? contactUser._id}`);
+                  }}
+                >
+                  <IconMessage size={20} /> Direct Message
+                </button>
+                <a href={`https://mail.google.com/mail/?view=cm&fs=1&to=${contactUser.email}&su=Connecting via the platform`} target="_blank" rel="noreferrer" className={g.btn} style={{ width: '100%', justifyContent: 'flex-start' }}>
+                  <IconBrandGmail size={20} /> Gmail
+                </a>
+                <a href={`https://outlook.office.com/mail/deeplink/compose?to=${contactUser.email}&subject=Connecting via the platform`} target="_blank" rel="noreferrer" className={g.btn} style={{ width: '100%', justifyContent: 'flex-start' }}>
+                  <IconBrandWindows size={20} /> Outlook
+                </a>
+                <a href={`https://compose.mail.yahoo.com/?to=${contactUser.email}&subject=Connecting via the platform`} target="_blank" rel="noreferrer" className={g.btn} style={{ width: '100%', justifyContent: 'flex-start' }}>
+                  <IconBrandYahoo size={20} /> Yahoo Mail
+                </a>
+                <a href={`mailto:${contactUser.email}?subject=Connecting via the platform`} className={g.btn} style={{ width: '100%', justifyContent: 'flex-start' }}>
+                  <IconMail size={20} /> Default Mail App
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
       </Suspense>
     </>
   );

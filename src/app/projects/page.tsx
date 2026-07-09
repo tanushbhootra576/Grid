@@ -1,35 +1,23 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
-import {
-  Container,
-  Title,
-  Button,
-  Group,
-  Card,
-  Badge,
-  Text,
-  SimpleGrid,
-  TextInput,
-  Modal,
-  Textarea,
-  LoadingOverlay,
-  Image,
-  Avatar,
-  Tooltip,
-} from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
 import { useAuth } from "@/components/AuthProvider";
 import {
   IconBrandGithub,
   IconExternalLink,
   IconPlus,
   IconStar,
+  IconX,
+  IconBrandGmail,
+  IconBrandWindows,
+  IconBrandYahoo,
+  IconMail
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { showError } from "@/lib/error-handling";
 import { getAuthHeaders } from "@/lib/api";
+import g from "../grid.module.css";
 
 interface ProjectTeamMember {
   _id: string;
@@ -55,9 +43,12 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [opened, { open, close }] = useDisclosure(false);
+  const [opened, setOpened] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Form state
+  const [contactOpened, setContactOpened] = useState(false);
+  const [contactMember, setContactMember] = useState<ProjectTeamMember | null>(null);
+
   const [newProject, setNewProject] = useState({
     title: "",
     description: "",
@@ -73,14 +64,12 @@ export default function ProjectsPage() {
       const res = await fetch("/api/projects", { headers: getAuthHeaders() });
       const data = await res.json();
       if (!res.ok) {
-        console.error("API error:", data.error);
         showError(data.error || "Failed to fetch projects");
         setProjects([]);
         return;
       }
       setProjects(data.projects || []);
     } catch (error) {
-      console.error(error);
       showError("Failed to fetch projects");
       setProjects([]);
     } finally {
@@ -92,12 +81,6 @@ export default function ProjectsPage() {
     fetchProjects();
   }, []);
 
-  const [submitting, setSubmitting] = useState(false);
-  const [contactOpened, setContactOpened] = useState(false);
-  const [contactMember, setContactMember] = useState<ProjectTeamMember | null>(
-    null
-  );
-
   const handleSubmit = async () => {
     if (!profile) {
       alert("Please complete your profile before submitting a project.");
@@ -108,9 +91,7 @@ export default function ProjectsPage() {
     try {
       const res = await fetch("/api/projects", {
         method: "POST",
-        headers: {
-          ...getAuthHeaders(),
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           ...newProject,
           techStack: newProject.techStack
@@ -123,7 +104,7 @@ export default function ProjectsPage() {
       });
 
       if (res.ok) {
-        close();
+        setOpened(false);
         fetchProjects();
         setNewProject({
           title: "",
@@ -135,13 +116,9 @@ export default function ProjectsPage() {
         });
       } else {
         const data = await res.json();
-        showError(
-          { message: data.error || data.detail || "Failed to submit project" },
-          "Submission Failed"
-        );
+        showError({ message: data.error || data.detail || "Failed to submit project" }, "Submission Failed");
       }
     } catch (error) {
-      console.error(error);
       showError(error, "Submission Failed");
     } finally {
       setSubmitting(false);
@@ -151,325 +128,190 @@ export default function ProjectsPage() {
   return (
     <>
       <Navbar />
-      <Container size="lg" py="xl">
-        <Group justify="space-between" mb="xl">
-          <Title>Campus Projects</Title>
+      <div className={g.container}>
+        <div className={g.headerRow}>
+          <h1 className={g.title}>
+            <div className={g.titleAccent} />
+            Campus Projects
+          </h1>
           {user && (
-            <Button leftSection={<IconPlus size={14} />} onClick={open}>
-              Submit Project
-            </Button>
-          )}
-        </Group>
-
-        <div style={{ position: "relative", minHeight: 200 }}>
-          <LoadingOverlay visible={loading} />
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
-            {projects.map((project) => (
-              <Card
-                key={project._id}
-                shadow="sm"
-                padding="lg"
-                radius="md"
-                withBorder
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  height: "100%",
-                }}
-              >
-                <Card.Section>
-                  <img
-                    src={
-                      project.images?.[0]
-                        ? project.images[0]
-                        : project.demoLink
-                        ? `/api/screenshot?url=${encodeURIComponent(
-                            project.demoLink
-                          )}` // Screenshot API might need auth too, but it's an img src. Middleware might block it.
-                        : "https://placehold.co/600x400?text=No+Preview"
-                    }
-                    alt={project.title}
-                    style={{
-                      height: 160,
-                      width: "100%",
-                      objectFit: "cover",
-                      display: "block",
-                      background: "#18181b",
-                    }}
-                    onError={(e) => {
-                      if (!e.currentTarget.dataset.fallback) {
-                        e.currentTarget.dataset.fallback = "1";
-                        e.currentTarget.src =
-                          "https://placehold.co/600x400?text=Preview+Unavailable";
-                      }
-                    }}
-                  />
-                </Card.Section>
-
-                <div
-                  style={{ flex: 1, display: "flex", flexDirection: "column" }}
-                >
-                  <Group
-                    justify="space-between"
-                    mt="md"
-                    mb="xs"
-                    align="flex-start"
-                    wrap="nowrap"
-                  >
-                    <Text fw={600} lineClamp={1} title={project.title}>
-                      {project.title}
-                    </Text>
-                    {project.isFeatured && (
-                      <Badge
-                        color="yellow"
-                        variant="light"
-                        leftSection={<IconStar size={12} />}
-                        style={{ flexShrink: 0 }}
-                      >
-                        Featured
-                      </Badge>
-                    )}
-                  </Group>
-
-                  <Text size="sm" c="dimmed" lineClamp={3} mb="md">
-                    {project.description}
-                  </Text>
-
-                  <div style={{ marginTop: "auto" }}>
-                    {project.techStack?.length > 0 && (
-                      <Group gap={6} mb="sm">
-                        {project.techStack.slice(0, 3).map((tech) => (
-                          <Badge
-                            key={tech}
-                            variant="outline"
-                            size="sm"
-                            color="gray"
-                          >
-                            {tech}
-                          </Badge>
-                        ))}
-                        {project.techStack.length > 3 && (
-                          <Badge
-                            variant="transparent"
-                            c="dimmed"
-                            size="sm"
-                            pl={0}
-                          >
-                            +{project.techStack.length - 3}
-                          </Badge>
-                        )}
-                      </Group>
-                    )}
-
-                    <Group justify="space-between" align="center" mt="xs">
-                      {project.teamMembers && project.teamMembers.length > 0 ? (
-                        <Avatar.Group spacing="sm">
-                          {project.teamMembers.slice(0, 3).map((m) => (
-                            <Tooltip key={m._id} label={m.name} withArrow>
-                              <Avatar
-                                src={null}
-                                name={m.name}
-                                radius="xl"
-                                color="initials"
-                              />
-                            </Tooltip>
-                          ))}
-                          {project.teamMembers.length > 3 && (
-                            <Avatar radius="xl">
-                              +{project.teamMembers.length - 3}
-                            </Avatar>
-                          )}
-                        </Avatar.Group>
-                      ) : (
-                        <Text size="xs" c="dimmed">
-                          No members
-                        </Text>
-                      )}
-                    </Group>
-                  </div>
-                </div>
-
-                <Group mt="lg" grow>
-                  <Button
-                    component={Link}
-                    href={`/projects/${project._id}`}
-                    variant="light"
-                    color="blue"
-                  >
-                    Details
-                  </Button>
-                  {project.demoLink ? (
-                    <Button
-                      component="a"
-                      href={project.demoLink}
-                      target="_blank"
-                      variant="light"
-                      leftSection={<IconExternalLink size={16} />}
-                    >
-                      Demo
-                    </Button>
-                  ) : project.repoLink ? (
-                    <Button
-                      component="a"
-                      href={project.repoLink}
-                      target="_blank"
-                      variant="default"
-                      leftSection={<IconBrandGithub size={16} />}
-                    >
-                      Code
-                    </Button>
-                  ) : null}
-                </Group>
-
-                {project.teamMembers && project.teamMembers.length > 0 && (
-                  <Button
-                    variant="white"
-                    color="gray"
-                    size="compact-xs"
-                    mt="sm"
-                    onClick={() => {
-                      setContactMember(project.teamMembers![0]);
-                      setContactOpened(true);
-                    }}
-                  >
-                    {project.teamMembers[0].name
-                      ? `Contact Author`
-                      : "Contact Author"}
-                  </Button>
-                )}
-              </Card>
-            ))}
-          </SimpleGrid>
-          {!loading && projects.length === 0 && (
-            <Text ta="center" c="dimmed" mt="xl">
-              No projects found.
-            </Text>
+            <button className={`${g.btn} ${g.btnPrimary}`} onClick={() => setOpened(true)}>
+              <IconPlus size={18} /> SUBMIT PROJECT
+            </button>
           )}
         </div>
-      </Container>
 
-      <Modal opened={opened} onClose={close} title="Submit Project">
-        <TextInput
-          label="Title"
-          required
-          mb="md"
-          value={newProject.title}
-          onChange={(e) =>
-            setNewProject({ ...newProject, title: e.target.value })
-          }
-        />
-        <TextInput
-          label="Tech Stack"
-          placeholder="React, Node.js, MongoDB"
-          required
-          mb="md"
-          value={newProject.techStack}
-          onChange={(e) =>
-            setNewProject({ ...newProject, techStack: e.target.value })
-          }
-        />
-        <TextInput
-          label="Repository Link"
-          placeholder="https://github.com/..."
-          mb="md"
-          value={newProject.repoLink}
-          onChange={(e) =>
-            setNewProject({ ...newProject, repoLink: e.target.value })
-          }
-        />
-        <TextInput
-          label="Demo Link"
-          placeholder="https://..."
-          mb="md"
-          value={newProject.demoLink}
-          onChange={(e) =>
-            setNewProject({ ...newProject, demoLink: e.target.value })
-          }
-        />
-        <TextInput
-          label="Image URL"
-          placeholder="https://..."
-          mb="md"
-          value={newProject.imageUrl}
-          onChange={(e) =>
-            setNewProject({ ...newProject, imageUrl: e.target.value })
-          }
-        />
-        <Textarea
-          label="Description"
-          required
-          mb="xl"
-          minRows={3}
-          value={newProject.description}
-          onChange={(e) =>
-            setNewProject({ ...newProject, description: e.target.value })
-          }
-        />
-        <Button fullWidth onClick={handleSubmit} loading={submitting}>
-          Submit Project
-        </Button>
-      </Modal>
-      <Modal
-        opened={contactOpened}
-        onClose={() => setContactOpened(false)}
-        title={
-          contactMember?.name
-            ? `Contact ${contactMember.name}`
-            : "Contact Author"
-        }
-        centered
-      >
-        {contactMember?.email ? (
-          <SimpleGrid cols={1} spacing="sm">
-            <Button
-              component="a"
-              href={`https://mail.google.com/mail/?view=cm&fs=1&to=${
-                contactMember.email
-              }&su=${encodeURIComponent("Regarding your project")}`}
-              target="_blank"
-              variant="light"
-              color="red"
-            >
-              Gmail
-            </Button>
-            <Button
-              component="a"
-              href={`https://outlook.office.com/mail/deeplink/compose?to=${
-                contactMember.email
-              }&subject=${encodeURIComponent("Regarding your project")}`}
-              target="_blank"
-              variant="light"
-              color="blue"
-            >
-              Outlook
-            </Button>
-            <Button
-              component="a"
-              href={`https://compose.mail.yahoo.com/?to=${
-                contactMember.email
-              }&subject=${encodeURIComponent("Regarding your project")}`}
-              target="_blank"
-              variant="light"
-              color="violet"
-            >
-              Yahoo Mail
-            </Button>
-            <Button
-              component="a"
-              href={`mailto:${contactMember.email}?subject=${encodeURIComponent(
-                "Regarding your project"
-              )}`}
-              variant="default"
-            >
-              Default Mail App
-            </Button>
-          </SimpleGrid>
+        {loading ? (
+          <div className={g.spinner} />
         ) : (
-          <Text size="sm" c="dimmed">
-            Email not available for this author.
-          </Text>
+          <div className={g.grid}>
+            {projects.map((project) => (
+              <div key={project._id} className={g.card}>
+                <div className={g.cardTop} style={{ background: project.isFeatured ? 'var(--accent-2)' : 'var(--border)' }} />
+                
+                <img
+                  src={
+                    project.images?.[0]
+                      ? project.images[0]
+                      : project.demoLink
+                      ? `/api/screenshot?url=${encodeURIComponent(project.demoLink)}`
+                      : "https://placehold.co/600x400/18181b/ffffff?text=No+Preview"
+                  }
+                  alt={project.title}
+                  style={{ height: 160, width: "100%", objectFit: "cover", display: "block", background: "#18181b", borderBottom: '1px solid var(--border)' }}
+                  onError={(e) => {
+                    if (!e.currentTarget.dataset.fallback) {
+                      e.currentTarget.dataset.fallback = "1";
+                      e.currentTarget.src = "https://placehold.co/600x400/18181b/ffffff?text=Preview+Unavailable";
+                    }
+                  }}
+                />
+
+                <div className={g.cardBody}>
+                  <div className={g.cardHeader} style={{ marginBottom: 12 }}>
+                    <h3 className={g.cardTitle} style={{ marginBottom: 0 }}>{project.title}</h3>
+                    {project.isFeatured && (
+                      <span className={`${g.badge} ${g.request}`} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <IconStar size={12} /> FEATURED
+                      </span>
+                    )}
+                  </div>
+
+                  <p className={g.cardDesc}>{project.description}</p>
+
+                  {project.techStack?.length > 0 && (
+                    <div className={g.tagList} style={{ marginBottom: 16 }}>
+                      {project.techStack.slice(0, 3).map((tech) => (
+                        <span key={tech} className={g.tag}>{tech}</span>
+                      ))}
+                      {project.techStack.length > 3 && (
+                        <span className={g.tag} style={{ background: 'transparent', color: 'var(--text-muted)' }}>
+                          +{project.techStack.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <div className={g.cardFooter} style={{ flexDirection: 'column', gap: 16, alignItems: 'stretch' }}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <Link href={`/projects/${project._id}`} className={g.btn} style={{ flex: 1, padding: '8px 12px', fontSize: '0.75rem' }}>
+                        DETAILS
+                      </Link>
+                      {project.demoLink && (
+                        <a href={project.demoLink} target="_blank" rel="noreferrer" className={g.btn} style={{ flex: 1, padding: '8px 12px', fontSize: '0.75rem' }}>
+                          <IconExternalLink size={14} /> DEMO
+                        </a>
+                      )}
+                      {project.repoLink && !project.demoLink && (
+                        <a href={project.repoLink} target="_blank" rel="noreferrer" className={g.btn} style={{ flex: 1, padding: '8px 12px', fontSize: '0.75rem' }}>
+                          <IconBrandGithub size={14} /> CODE
+                        </a>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+                      <div className={g.author}>
+                        {project.teamMembers && project.teamMembers.length > 0 ? (
+                          <>By <strong>{project.teamMembers[0].name}</strong> {project.teamMembers.length > 1 && `+${project.teamMembers.length - 1}`}</>
+                        ) : 'No members'}
+                      </div>
+                      
+                      {project.teamMembers && project.teamMembers.length > 0 && (
+                        <button
+                          className={g.btn}
+                          style={{ padding: '4px 8px', fontSize: '0.7rem', border: 'none', textDecoration: 'underline' }}
+                          onClick={() => {
+                            setContactMember(project.teamMembers![0]);
+                            setContactOpened(true);
+                          }}
+                        >
+                          CONTACT
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {!loading && projects.length === 0 && (
+              <div className={g.empty}>No projects found. Submit the first one!</div>
+            )}
+          </div>
         )}
-      </Modal>
+      </div>
+
+      {/* Post Modal */}
+      {opened && (
+        <div className={g.modalBackdrop}>
+          <div className={g.modal}>
+            <div className={g.modalHeader}>
+              <h2 className={g.modalTitle}>Submit Project</h2>
+              <button className={g.closeBtn} onClick={() => setOpened(false)}><IconX size={24} /></button>
+            </div>
+            <div className={g.modalBody}>
+              <div className={g.formGroup}>
+                <label className={g.label}>Title</label>
+                <input className={g.input} style={{border: '1px solid var(--border)'}} value={newProject.title} onChange={e => setNewProject({...newProject, title: e.target.value})} required />
+              </div>
+              <div className={g.formGroup}>
+                <label className={g.label}>Tech Stack</label>
+                <input className={g.input} style={{border: '1px solid var(--border)'}} value={newProject.techStack} onChange={e => setNewProject({...newProject, techStack: e.target.value})} placeholder="React, Node.js, MongoDB" required />
+              </div>
+              <div className={g.formGroup}>
+                <label className={g.label}>Repository Link</label>
+                <input className={g.input} style={{border: '1px solid var(--border)'}} value={newProject.repoLink} onChange={e => setNewProject({...newProject, repoLink: e.target.value})} placeholder="https://github.com/..." />
+              </div>
+              <div className={g.formGroup}>
+                <label className={g.label}>Demo Link</label>
+                <input className={g.input} style={{border: '1px solid var(--border)'}} value={newProject.demoLink} onChange={e => setNewProject({...newProject, demoLink: e.target.value})} placeholder="https://..." />
+              </div>
+              <div className={g.formGroup}>
+                <label className={g.label}>Image URL</label>
+                <input className={g.input} style={{border: '1px solid var(--border)'}} value={newProject.imageUrl} onChange={e => setNewProject({...newProject, imageUrl: e.target.value})} placeholder="https://..." />
+              </div>
+              <div className={g.formGroup}>
+                <label className={g.label}>Description</label>
+                <textarea className={`${g.input} ${g.textarea}`} style={{border: '1px solid var(--border)'}} value={newProject.description} onChange={e => setNewProject({...newProject, description: e.target.value})} required minLength={10} />
+              </div>
+              <button className={`${g.btn} ${g.btnPrimary}`} style={{marginTop: 10}} onClick={handleSubmit} disabled={submitting}>
+                {submitting ? 'SUBMITTING...' : 'SUBMIT PROJECT'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contact Modal */}
+      {contactOpened && contactMember && (
+        <div className={g.modalBackdrop}>
+          <div className={g.modal}>
+            <div className={g.modalHeader}>
+              <h2 className={g.modalTitle}>Contact {contactMember.name || 'Author'}</h2>
+              <button className={g.closeBtn} onClick={() => setContactOpened(false)}><IconX size={24} /></button>
+            </div>
+            <div className={g.modalBody}>
+              {contactMember.email ? (
+                <>
+                  <a href={`https://mail.google.com/mail/?view=cm&fs=1&to=${contactMember.email}&su=Regarding your project`} target="_blank" rel="noreferrer" className={g.btn}>
+                    <IconBrandGmail size={20} /> Gmail
+                  </a>
+                  <a href={`https://outlook.office.com/mail/deeplink/compose?to=${contactMember.email}&subject=Regarding your project`} target="_blank" rel="noreferrer" className={g.btn}>
+                    <IconBrandWindows size={20} /> Outlook
+                  </a>
+                  <a href={`https://compose.mail.yahoo.com/?to=${contactMember.email}&subject=Regarding your project`} target="_blank" rel="noreferrer" className={g.btn}>
+                    <IconBrandYahoo size={20} /> Yahoo Mail
+                  </a>
+                  <a href={`mailto:${contactMember.email}?subject=Regarding your project`} className={g.btn}>
+                    <IconMail size={20} /> Default Mail App
+                  </a>
+                </>
+              ) : (
+                <div style={{ color: 'var(--text-muted)' }}>Email not available for this author.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

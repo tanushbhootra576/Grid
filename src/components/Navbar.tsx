@@ -1,336 +1,247 @@
 "use client";
 
+import React from "react";
+import Link from "next/link";
 import {
-  Group,
-  Button,
-  Text,
-  Box,
-  Burger,
-  Drawer,
-  ScrollArea,
-  Divider,
+  useMantineColorScheme,
+  useComputedColorScheme,
   rem,
   Avatar,
   Menu,
   UnstyledButton,
   ActionIcon,
-  useMantineColorScheme,
-  useComputedColorScheme,
   Container,
-  TextInput,
+  Drawer,
+  ScrollArea,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import Link from "next/link";
-import classes from "./Navbar.module.css";
 import { useAuth } from "@/components/AuthProvider";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { signOut } from "next-auth/react";
 import {
   IconLogout,
   IconUser,
   IconChevronDown,
   IconSun,
   IconMoon,
-  IconSchool,
   IconSearch,
 } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import cx from "clsx";
+import classes from "./Navbar.module.css";
+
+/* ── Grid geometric logo mark ── */
+function GridLogo() {
+  return (
+    <svg viewBox="0 0 32 32" fill="none" width={28} height={28} aria-hidden="true">
+      {/* Anvil-inspired geometric mark */}
+      <rect x="4" y="10" width="24" height="14" fill="var(--accent)" />
+      <rect x="10" y="4" width="12" height="8" fill="var(--accent)" opacity={0.7} />
+      <rect x="0" y="22" width="32" height="4" fill="var(--accent)" opacity={0.4} />
+      {/* Spark dot */}
+      <circle cx="26" cy="6" r="3" fill="var(--accent-2)" />
+    </svg>
+  );
+}
+
+const NAV_LINKS = [
+  { href: "/skills",      label: "Skills" },
+  { href: "/projects",    label: "Projects" },
+  { href: "/discussions", label: "Discuss" },
+  { href: "/events",      label: "Events" },
+  { href: "/quizzes",     label: "Quizzes" },
+  { href: "/chat",        label: "Chat" },
+  { href: "/community",   label: "Community" },
+  { href: "/roast",       label: "Roast" },
+];
 
 export function Navbar() {
-  const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =
-    useDisclosure(false);
+  const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
   const { user, profile } = useAuth();
   const router = useRouter();
   const { setColorScheme } = useMantineColorScheme();
-  const computedColorScheme = useComputedColorScheme("dark", {
-    getInitialValueInEffect: true,
-  });
-  // Search icon navigates to people directory; searching happens there.
+  const computedColorScheme = useComputedColorScheme("dark", { getInitialValueInEffect: true });
 
   const handleLogout = async () => {
-    await signOut(auth);
-    router.push("/");
+    await signOut({ callbackUrl: "/" });
   };
 
+  const toggleTheme = () =>
+    setColorScheme(computedColorScheme === "light" ? "dark" : "light");
+
   return (
-    <Box>
-      <header className={classes.header}>
-        <Container size="xl" className={classes.inner}>
-          <Group justify="space-between" h="100%" wrap="nowrap">
-            <Group gap={5}>
-              <IconSchool size={28} color="var(--mantine-color-blue-6)" />
-              <Text size="xl" fw={900} component={Link} href="/" c="blue">
-                CollegeConnect
-              </Text>
-            </Group>
+    <header className={classes.header}>
+      <Container size="xl" className={classes.inner}>
+        {/* Brand */}
+        <Link href="/" className={classes.brand} id="nav-brand">
+          <GridLogo />
+          <span className={classes.brandName}>Grid</span>
+        </Link>
 
-            <Group h="100%" gap={0} visibleFrom="md">
-              {user && (
-                <>
-                  <Link href="/skills" className={classes.link}>
-                    Skills
-                  </Link>
-                  {/* <Link href="/resources" className={classes.link}>
-                                        Resources
-                                    </Link> */}
-                  <Link href="/events" className={classes.link}>
-                    Events
-                  </Link>
-                  <Link href="/projects" className={classes.link}>
-                    Projects
-                  </Link>
-                  <Link href="/discussions" className={classes.link}>
-                    Discussions
-                  </Link>
-                  <Link href="/quizzes" className={classes.link}>
-                    Quizzes
-                  </Link>
-                  <Link href="/chat" className={classes.link}>
-                    Chat
-                  </Link>
-                </>
-              )}
-            </Group>
+        {/* Desktop nav links — logged in only */}
+        {user && (
+          <nav className={classes.navLinks}>
+            {NAV_LINKS.map((l) => (
+              <Link key={l.href} href={l.href} className={classes.navLink}>
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+        )}
 
-            <Group visibleFrom="md" gap="md">
-              {user && (
-                <ActionIcon
+        {/* Right side actions */}
+        <div className={classes.actions}>
+          {user && (
+            <ActionIcon
+              component={Link}
+              href="/users"
+              className={classes.iconBtn}
+              aria-label="Search people"
+              title="Find people"
+            >
+              <IconSearch size={16} />
+            </ActionIcon>
+          )}
+
+          {/* Theme toggle */}
+          <ActionIcon
+            onClick={toggleTheme}
+            className={classes.iconBtn}
+            aria-label="Toggle theme"
+          >
+            <IconSun className={cx(classes.icon, classes.light)} stroke={1.5} />
+            <IconMoon className={cx(classes.icon, classes.dark)} stroke={1.5} />
+          </ActionIcon>
+
+          {/* User menu or auth buttons */}
+          {user ? (
+            <Menu shadow="md" width={200} position="bottom-end">
+              <Menu.Target>
+                <UnstyledButton className={classes.userBtn}>
+                  <Avatar
+                    src={user.photoURL}
+                    alt={user.displayName || ""}
+                    size={28}
+                    radius={0}
+                    color="orange"
+                    style={{ border: "1px solid var(--border)" }}
+                  >
+                    {(profile?.name?.[0] || user.email?.[0] || "U").toUpperCase()}
+                  </Avatar>
+                  <span className={classes.userName}>
+                    {profile?.name?.split(" ")[0] || "You"}
+                  </span>
+                  <IconChevronDown size={12} style={{ color: "var(--text-muted)" }} />
+                </UnstyledButton>
+              </Menu.Target>
+              <Menu.Dropdown style={{ borderRadius: 0, border: "1px solid var(--border)" }}>
+                <Menu.Label style={{ fontFamily: "var(--font-space)", fontSize: "0.65rem", letterSpacing: "0.1em" }}>
+                  ACCOUNT
+                </Menu.Label>
+                <Menu.Item
+                  leftSection={<IconUser style={{ width: rem(14) }} />}
                   component={Link}
-                  href="/users"
-                  variant="default"
-                  size="lg"
-                  aria-label="Search people"
-                  title="Search people"
+                  href="/profile"
                 >
-                  <IconSearch size={16} />
-                </ActionIcon>
-              )}
-              <ActionIcon
-                onClick={() =>
-                  setColorScheme(
-                    computedColorScheme === "light" ? "dark" : "light"
-                  )
-                }
-                variant="default"
-                size="lg"
-                aria-label="Toggle color scheme"
-              >
-                <IconSun
-                  className={cx(classes.icon, classes.light)}
-                  stroke={1.5}
-                />
-                <IconMoon
-                  className={cx(classes.icon, classes.dark)}
-                  stroke={1.5}
-                />
-              </ActionIcon>
+                  Profile
+                </Menu.Item>
+                <Menu.Divider />
+                <Menu.Item
+                  color="red"
+                  leftSection={<IconLogout style={{ width: rem(14) }} />}
+                  onClick={handleLogout}
+                >
+                  Logout
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          ) : (
+            <div className={classes.authBtns}>
+              <Link href="/login" className={classes.loginBtn} id="navbar-login-btn">
+                Log in
+              </Link>
+              <Link href="/signup" className={classes.signupBtn} id="navbar-signup-btn">
+                Get started
+              </Link>
+            </div>
+          )}
 
-              {user ? (
-                <Menu shadow="md" width={200}>
-                  <Menu.Target>
-                    <UnstyledButton className={classes.user}>
-                      <Group gap={7}>
-                        <Avatar
-                          src={user.photoURL}
-                          alt={user.displayName || ""}
-                          radius="xl"
-                          size={30}
-                          color="blue"
-                        >
-                          {profile?.name?.[0] || user.email?.[0]}
-                        </Avatar>
-                        <Text fw={500} size="sm" lh={1} mr={3}>
-                          {profile?.name || user.displayName || "User"}
-                        </Text>
-                        <IconChevronDown
-                          style={{ width: rem(12), height: rem(12) }}
-                          stroke={1.5}
-                        />
-                      </Group>
-                    </UnstyledButton>
-                  </Menu.Target>
+          {/* Mobile burger */}
+          <button
+            className={classes.burger}
+            onClick={toggleDrawer}
+            aria-label="Open menu"
+            style={{ display: "none" }}
+          >
+            <span className={classes.burgerLine} style={{ transform: drawerOpened ? "translateY(6px) rotate(45deg)" : "" }} />
+            <span className={classes.burgerLine} style={{ opacity: drawerOpened ? 0 : 1 }} />
+            <span className={classes.burgerLine} style={{ transform: drawerOpened ? "translateY(-6px) rotate(-45deg)" : "" }} />
+          </button>
+        </div>
+      </Container>
 
-                  <Menu.Dropdown>
-                    <Menu.Label>Account</Menu.Label>
-                    <Menu.Item
-                      leftSection={
-                        <IconUser style={{ width: rem(14), height: rem(14) }} />
-                      }
-                    >
-                      <Link href="/profile">Profile</Link>
-                    </Menu.Item>
-                    <Menu.Divider />
-                    <Menu.Item
-                      color="red"
-                      leftSection={
-                        <IconLogout
-                          style={{ width: rem(14), height: rem(14) }}
-                        />
-                      }
-                      onClick={handleLogout}
-                    >
-                      Logout
-                    </Menu.Item>
-                  </Menu.Dropdown>
-                </Menu>
-              ) : (
-                <>
-                  <Button variant="default" component={Link} href="/login">
-                    Log in
-                  </Button>
-                  {/* <Button component={Link} href="/signup">
-                    Sign up
-                  </Button> */}
-                </>
-              )}
-            </Group>
-
-            <Burger
-              opened={drawerOpened}
-              onClick={toggleDrawer}
-              hiddenFrom="md"
-            />
-          </Group>
-        </Container>
-      </header>
-
+      {/* Mobile Drawer */}
       <Drawer
         opened={drawerOpened}
         onClose={closeDrawer}
         size="100%"
         padding="md"
-        title="Navigation"
         hiddenFrom="md"
         zIndex={1000000}
-      >
-        <ScrollArea h={`calc(100vh - ${rem(80)})`} mx="-md">
-          <Divider my="sm" />
-
-          <Link href="/" className={classes.linkMobile} onClick={closeDrawer}>
-            Home
+        styles={{
+          header: { background: "var(--bg)", borderBottom: "1px solid var(--border)" },
+          body:   { background: "var(--bg)", padding: 0 },
+          title:  { fontFamily: "var(--font-space)", fontWeight: 700, color: "var(--text)" },
+        }}
+        title={
+          <Link href="/" className={classes.brand} onClick={closeDrawer}>
+            <GridLogo />
+            <span className={classes.brandName}>Grid</span>
           </Link>
-          {user && (
-            <>
-              <Link
-                href="/skills"
-                className={classes.linkMobile}
-                onClick={closeDrawer}
-              >
-                Skills
+        }
+      >
+        <ScrollArea h="calc(100vh - 80px)">
+          <div className={classes.drawerLinks}>
+            <Link href="/" className={classes.drawerLink} onClick={closeDrawer}>Home</Link>
+            {user && NAV_LINKS.map((l) => (
+              <Link key={l.href} href={l.href} className={classes.drawerLink} onClick={closeDrawer}>
+                {l.label}
               </Link>
-              <Link
-                href="/resources"
-                className={classes.linkMobile}
-                onClick={closeDrawer}
-              >
-                Resources
+            ))}
+            {user && (
+              <Link href="/users" className={classes.drawerLink} onClick={closeDrawer}>
+                Find People
               </Link>
-              <Link
-                href="/events"
-                className={classes.linkMobile}
-                onClick={closeDrawer}
-              >
-                Events
-              </Link>
-              <Link
-                href="/projects"
-                className={classes.linkMobile}
-                onClick={closeDrawer}
-              >
-                Projects
-              </Link>
-              <Link
-                href="/discussions"
-                className={classes.linkMobile}
-                onClick={closeDrawer}
-              >
-                Discussions
-              </Link>
-              <Link
-                href="/quizzes"
-                className={classes.linkMobile}
-                onClick={closeDrawer}
-              >
-                Quizzes
-              </Link>
-              <Link
-                href="/chat"
-                className={classes.linkMobile}
-                onClick={closeDrawer}
-              >
-                Chat
-              </Link>
-              <Link
-                href="/users"
-                className={classes.linkMobile}
-                onClick={closeDrawer}
-              >
-                Search People
-              </Link>
-              <Link
-                href="/profile"
-                className={classes.linkMobile}
-                onClick={closeDrawer}
-              >
-                Profile
-              </Link>
-            </>
-          )}
+            )}
+          </div>
 
-          <Divider my="sm" />
-
-          <Group justify="center" pb="xl" px="md">
-            <ActionIcon
-              onClick={() =>
-                setColorScheme(
-                  computedColorScheme === "light" ? "dark" : "light"
-                )
-              }
-              variant="default"
-              size="lg"
-              aria-label="Toggle color scheme"
-            >
-              <IconSun
-                className={cx(classes.icon, classes.light)}
-                stroke={1.5}
-              />
-              <IconMoon
-                className={cx(classes.icon, classes.dark)}
-                stroke={1.5}
-              />
+          <div className={classes.drawerFooter}>
+            <ActionIcon onClick={toggleTheme} className={classes.iconBtn} aria-label="Toggle theme" size="lg">
+              <IconSun className={cx(classes.icon, classes.light)} stroke={1.5} />
+              <IconMoon className={cx(classes.icon, classes.dark)} stroke={1.5} />
             </ActionIcon>
-          </Group>
 
-          <Group justify="center" grow pb="xl" px="md">
             {user ? (
-              <Button
-                color="red"
-                onClick={() => {
-                  handleLogout();
-                  closeDrawer();
-                }}
+              <button
+                className={classes.drawerLogout}
+                onClick={() => { handleLogout(); closeDrawer(); }}
               >
                 Logout
-              </Button>
+              </button>
             ) : (
-              <>
-                <Button
-                  variant="default"
-                  component={Link}
-                  href="/login"
-                  onClick={closeDrawer}
-                >
+              <div style={{ display: "flex", gap: 10, width: "100%" }}>
+                <Link href="/login" className={classes.loginBtn} onClick={closeDrawer}
+                  style={{ flex: 1, justifyContent: "center" }}>
                   Log in
-                </Button>
-                <Button component={Link} href="/signup" onClick={closeDrawer}>
-                  Sign up
-                </Button>
-              </>
+                </Link>
+                <Link href="/signup" className={classes.signupBtn} onClick={closeDrawer}
+                  style={{ flex: 1, justifyContent: "center" }}>
+                  Get started
+                </Link>
+              </div>
             )}
-          </Group>
+          </div>
         </ScrollArea>
       </Drawer>
-    </Box>
+    </header>
   );
 }

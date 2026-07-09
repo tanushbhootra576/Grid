@@ -82,8 +82,11 @@ export async function PUT(
       delete body.firebaseUid;
       delete body.email; // Usually email is managed by Auth provider
 
-      Object.assign(user, body);
-      await user.save();
+      user = await User.findOneAndUpdate(
+        { firebaseUid: uid },
+        { $set: body },
+        { new: true, strict: false }
+      );
     } else {
       // Create new user
       if (!body.email) {
@@ -98,10 +101,16 @@ export async function PUT(
         body.profileLocked = true;
       }
 
-      user = await User.create({
-        ...body,
-        firebaseUid: uid,
-      });
+      // Create new user (bypass schema cache)
+      user = new User({ ...body, firebaseUid: uid });
+      await user.save({ validateBeforeSave: false }); // skip schema stripping if possible
+      
+      // Fallback: force update after create to guarantee fields
+      user = await User.findOneAndUpdate(
+        { firebaseUid: uid },
+        { $set: body },
+        { new: true, strict: false }
+      );
     }
 
     return NextResponse.json({ user }, { status: 200 });

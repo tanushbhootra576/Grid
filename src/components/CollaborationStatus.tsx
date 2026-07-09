@@ -51,9 +51,9 @@ export const STATUS_CONFIG = [
   },
   {
     value: 3,
-    label: "Ready to Build",
-    description: "Actively seeking collaborators to ship projects.",
-    color: "green",
+    label: "Looking for Co-founder",
+    description: "Actively seeking co-founders to build a startup or major project.",
+    color: "orange",
     icon: IconRocket,
   },
 ];

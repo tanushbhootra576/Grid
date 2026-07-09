@@ -1,12 +1,14 @@
 "use client";
 
 import React from "react";
+import { SessionProvider } from "next-auth/react";
 import { MantineProvider } from "@mantine/core";
 import { ModalsProvider } from "@mantine/modals";
 
 import { QueryProvider } from "@/components/QueryProvider";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ToastViewport } from "@/components/ToastViewport";
+import { OnboardingGate } from "@/components/OnboardingGate";
 import { theme } from "@/theme";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -14,12 +16,17 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <MantineProvider theme={theme} defaultColorScheme="dark">
       <ModalsProvider>
         <QueryProvider>
-          <AuthProvider>
-            <ToastViewport />
-            {children}
-          </AuthProvider>
+          <SessionProvider>
+            <AuthProvider>
+              <ToastViewport />
+              <OnboardingGate>
+                {children}
+              </OnboardingGate>
+            </AuthProvider>
+          </SessionProvider>
         </QueryProvider>
       </ModalsProvider>
     </MantineProvider>
   );
 }
+

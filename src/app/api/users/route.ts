@@ -11,6 +11,8 @@ export async function GET(req: NextRequest) {
     const branch = searchParams.get("branch");
     const year = searchParams.get("year");
     const skill = searchParams.get("skill");
+    const cofounder = searchParams.get("cofounder");
+    const college = searchParams.get("college");
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = Math.min(
       parseInt(searchParams.get("limit") || "20", 10),
@@ -20,13 +22,17 @@ export async function GET(req: NextRequest) {
     type UserQuery = {
       branch?: string;
       year?: number;
+      college?: string;
       skills?: { $regex: string; $options: string };
       $or?: Array<Record<string, { $regex: string; $options: string }>>;
+      "collaborationStatus.level"?: number;
     };
     const query: UserQuery = {};
     if (branch) query.branch = branch;
     if (year) query.year = parseInt(year, 10);
     if (skill) query.skills = { $regex: skill, $options: "i" };
+    if (college) query.college = college;
+    if (cofounder === "true") query["collaborationStatus.level"] = 3;
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: "i" } },
@@ -44,7 +50,7 @@ export async function GET(req: NextRequest) {
         .skip(skip)
         .limit(limit)
         .select(
-          "publicId name email branch year skills interests role collaborationStatus"
+          "publicId name email branch year college city verified skills interests bio role collaborationStatus"
         ),
       User.countDocuments(query),
     ]);
@@ -108,10 +114,11 @@ export async function POST(req: NextRequest) {
       // Use the branch code directly as requested
       extractedBranch = branchCode;
     } else {
-      // 2. Fallback: Extract from Email
-      const match = email.match(/(\d{4})@vitstudent\.ac\.in$/);
+      // 2. Fallback: Extract from Email (some colleges use 2021@college.edu or 21@college.edu format)
+      const match = email.match(/(\d{2,4})@.*$/);
       if (match) {
-        const joiningYear = parseInt(match[1], 10);
+        let joiningYear = parseInt(match[1], 10);
+        if (joiningYear < 100) joiningYear += 2000; // handle '21' as 2021
         const now = new Date();
         const currentCalendarYear = now.getFullYear();
         const currentMonth = now.getMonth();

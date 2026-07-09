@@ -1,33 +1,138 @@
+/* ─── Grid — Design System ────────────────────────────────────────────────
+   Brand: Grid
+   Tagline: Build skills. Ship projects. Own your campus.
+   
+   Palette:
+   - Ember:   #F97316  (primary — grid fire)
+   - Spark:   #FBBF24  (secondary — glowing heat)
+   - Iron:    #0D0C0B  (dark base — grid iron)
+   - Ash:     #F5F0EB  (light base — ash cream)
+   - Steel:   #6B7280  (muted text)
+   
+   No blue. No green. No generic.
+─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Brand Tokens ── */
 :root {
-  /* Mantine handles colors, but we can define global overrides if needed */
+  --f-ember:  #F97316;
+  --f-spark:  #FBBF24;
+  --f-iron:   #0D0C0B;
+  --f-ash:    #F5F0EB;
+  --f-steel:  #6B7280;
+  --f-red:    #DC2626;
 }
 
-[data-mantine-color-scheme="dark"] body {
-  background-color: #000000;
-  --mantine-color-body: #000000;
+/* ── DARK MODE (default) ── */
+[data-mantine-color-scheme="dark"] body,
+[data-mantine-color-scheme="dark"] html {
+  --bg:         #0D0C0B;
+  --bg-2:       #161412;
+  --bg-3:       #1E1B18;
+  --border:     #2C2824;
+  --text:       #F5F0EB;
+  --text-muted: #6B7280;
+  --accent:     #F97316;
+  --accent-2:   #FBBF24;
+  --accent-dim: rgba(249,115,22,0.12);
+  --mantine-color-body: #0D0C0B;
 }
 
-html,
-body {
-  max-width: 100vw;
+/* ── LIGHT MODE ── */
+[data-mantine-color-scheme="light"] body,
+[data-mantine-color-scheme="light"] html {
+  --bg:         #FAFAF8;
+  --bg-2:       #F0EBE4;
+  --bg-3:       #E8E0D6;
+  --border:     #D6CEC4;
+  --text:       #0D0C0B;
+  --text-muted: #6B7280;
+  --accent:     #EA6C0A;
+  --accent-2:   #D4A017;
+  --accent-dim: rgba(234,108,10,0.08);
+  --mantine-color-body: #FAFAF8;
+}
+
+/* ── Reset & Base ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
   overflow-x: hidden;
 }
 
 body {
-  color: var(--mantine-color-text);
-  background-color: var(--mantine-color-body);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-dm), system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-space), system-ui, sans-serif;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+a { color: inherit; text-decoration: none; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ── Selection ── */
+::selection { background: var(--accent); color: #fff; }
+
+/* ── Keyframes ── */
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(1.5); }
+}
+@keyframes feedFade {
+  0%   { opacity: 0; transform: translateY(8px); }
+  15%  { opacity: 1; transform: translateY(0); }
+  85%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+@keyframes barGrow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(249,115,22,0); }
+  50%      { box-shadow: 0 0 32px 4px rgba(249,115,22,0.15); }
+}
+@keyframes shimmer {
+  from { background-position: -200% center; }
+  to   { background-position: 200% center; }
 }

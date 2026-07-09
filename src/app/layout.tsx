@@ -1,37 +1,42 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Space_Grotesk, DM_Sans } from "next/font/google";
 import "./globals.css";
 import "@mantine/core/styles.css";
 import React from "react";
 import { ColorSchemeScript } from "@mantine/core";
 import { Providers } from "./providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const dmSans = DM_Sans({
+  variable: "--font-dm",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-export const metadata = {
-  title: "College Platform",
-  description: "Campus-wide skill and resource sharing platform",
+export const metadata: Metadata = {
+  title: "Grid — Build Skills. Ship Projects. Own Your Campus.",
+  description:
+    "Grid is the peer-driven platform where university students trade expertise, form project teams, and build together. Join 1,200+ students across 15+ colleges.",
+  keywords: ["student collaboration", "skill swap", "peer learning", "campus projects", "university platform"],
+  openGraph: {
+    title: "Grid — Build Skills. Ship Projects.",
+    description: "The campus collaboration platform built for student builders.",
+    type: "website",
+  },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <ColorSchemeScript defaultColorScheme="dark" />
       </head>
-      <body>
+      <body className={`${spaceGrotesk.variable} ${dmSans.variable}`}>
         <Providers>{children}</Providers>
       </body>
     </html>

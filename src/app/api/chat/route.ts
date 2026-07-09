@@ -324,7 +324,7 @@ export async function POST(req: NextRequest) {
     const messageData: any = {
       content: content || "",
       senderId,
-      senderName: sender.name,
+      senderName: type === 'blind' ? 'Anonymous' : sender.name,
       type,
       branch: type === "branch" ? branch : undefined,
       year: type === "year" ? year : undefined,

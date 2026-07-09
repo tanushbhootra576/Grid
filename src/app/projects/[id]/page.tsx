@@ -1,27 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
-  Container,
-  Title,
-  Text,
-  Group,
-  Badge,
-  Button,
-  Image,
-  SimpleGrid,
-  Card,
-  Avatar,
-  Stack,
-  ThemeIcon,
-  Box,
-  ScrollArea,
-} from "@mantine/core";
-import {
   IconBrandGithub,
   IconExternalLink,
   IconArrowLeft,
   IconUsers,
-  IconCalendar,
   IconFileText,
 } from "@tabler/icons-react";
 import ReactMarkdown from "react-markdown";
@@ -33,9 +16,9 @@ import { SkillGapAnalyzer } from "@/components/SkillGapAnalyzer";
 import {
   CollaborationBadge,
   CollaborationLevel,
-} from "@/components/CollaborationStatus"; // IMPORT ADDED
+} from "@/components/CollaborationStatus";
+import g from "../../grid.module.css";
 
-// Force dynamic rendering if we rely on request headers/cookies implicitly or data changes often
 export const dynamic = "force-dynamic";
 
 interface PageProps {
@@ -59,9 +42,6 @@ async function getProjectReadme(repoLink?: string) {
     const owner = pathParts[0];
     const repo = pathParts[1].replace(".git", "");
 
-    // Use the API to find the README (handles default branch detection)
-    // We use the raw media type to get the content directly
-    // Not using AUTH TOKEN as requested, so limited to 60 req/hr from this IP
     const res = await fetch(
       `https://api.github.com/repos/${owner}/${repo}/readme`,
       {
@@ -69,7 +49,7 @@ async function getProjectReadme(repoLink?: string) {
           Accept: "application/vnd.github.v3.raw",
           "User-Agent": "Project-Analyzer-App",
         },
-        next: { revalidate: 3600 }, // Cache for 1 hour
+        next: { revalidate: 3600 },
       }
     );
 
@@ -96,28 +76,16 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     return (
       <>
         <Navbar />
-        <Container size="sm" py="xl">
-          <Card withBorder radius="md" p="lg">
-            <Title order={2} mb="xs">
-              Couldn’t load this project
-            </Title>
-            <Text c="dimmed" mb="md">
-              The database is not reachable from the server right now.
-            </Text>
+        <div className={g.container}>
+          <div className={g.card} style={{ border: '1px solid var(--border)', marginTop: 40, padding: 32 }}>
+            <h2 style={{ fontFamily: 'var(--font-space)', marginBottom: 16 }}>Couldn’t load this project</h2>
+            <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>The database is not reachable from the server right now.</p>
             {process.env.NODE_ENV !== "production" && (
-              <Text size="sm" c="dimmed" style={{ whiteSpace: "pre-wrap" }}>
-                {msg}
-              </Text>
+              <pre style={{ color: 'var(--text-muted)', fontSize: '0.8rem', whiteSpace: 'pre-wrap', marginBottom: 24 }}>{msg}</pre>
             )}
-            <Group mt="md">
-              <Link href="/projects" style={{ textDecoration: "none" }}>
-                <Button component="span" variant="default">
-                  Back to Projects
-                </Button>
-              </Link>
-            </Group>
-          </Card>
-        </Container>
+            <Link href="/projects" className={g.btn} style={{ display: 'inline-flex' }}>Back to Projects</Link>
+          </div>
+        </div>
       </>
     );
   }
@@ -133,41 +101,27 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     return (
       <>
         <Navbar />
-        <Container size="sm" py="xl">
-          <Card withBorder radius="md" p="lg">
-            <Title order={2} mb="xs">
-              Couldn’t load this project
-            </Title>
-            <Text c="dimmed" mb="md">
-              Something went wrong while loading this project.
-            </Text>
+        <div className={g.container}>
+          <div className={g.card} style={{ border: '1px solid var(--border)', marginTop: 40, padding: 32 }}>
+            <h2 style={{ fontFamily: 'var(--font-space)', marginBottom: 16 }}>Couldn’t load this project</h2>
+            <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>Something went wrong while loading this project.</p>
             {process.env.NODE_ENV !== "production" && (
-              <Text size="sm" c="dimmed" style={{ whiteSpace: "pre-wrap" }}>
-                {msg}
-              </Text>
+              <pre style={{ color: 'var(--text-muted)', fontSize: '0.8rem', whiteSpace: 'pre-wrap', marginBottom: 24 }}>{msg}</pre>
             )}
-            <Group mt="md">
-              <Link href="/projects" style={{ textDecoration: "none" }}>
-                <Button component="span" variant="default">
-                  Back to Projects
-                </Button>
-              </Link>
-            </Group>
-          </Card>
-        </Container>
+            <Link href="/projects" className={g.btn} style={{ display: 'inline-flex' }}>Back to Projects</Link>
+          </div>
+        </div>
       </>
     );
   }
 
   if (!project) notFound();
 
-  // Serialize _id and dates for client components if needed
   const projectId = project._id.toString();
   const createdAt = project.createdAt
     ? new Date(project.createdAt).toLocaleDateString()
     : "";
 
-  // Fetch readme content if available
   const readmeContent = await getProjectReadme(project.repoLink);
 
   const images: string[] = Array.isArray(project.images)
@@ -179,164 +133,125 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   return (
     <>
       <Navbar />
-      <Container size="lg" py="xl">
-        <Box mb="xl">
-          <Link href="/projects" style={{ textDecoration: "none" }}>
-            <Button
-              component="span"
-              variant="subtle"
-              leftSection={<IconArrowLeft size={16} />}
-            >
-              Back to Projects
-            </Button>
+      <div className={g.container}>
+        <div style={{ marginBottom: 32 }}>
+          <Link href="/projects" className={g.btn} style={{ display: 'inline-flex', border: 'none' }}>
+            <IconArrowLeft size={16} /> Back to Projects
           </Link>
-        </Box>
+        </div>
 
-        <SimpleGrid cols={{ base: 1, md: 3 }} spacing="xl">
-          <Stack style={{ gridColumn: "span 2" }}>
-            <Card withBorder radius="md" padding="lg">
-              <Group justify="space-between" align="start">
-                <div>
-                  <Title order={2} mb="xs">
-                    {project.title}
-                  </Title>
-                  <Group gap="xs">
-                    {project.isFeatured && (
-                      <Badge color="yellow">Featured</Badge>
-                    )}
-                    <Badge variant="dot" color="gray">
-                      {createdAt}
-                    </Badge>
-                  </Group>
-                </div>
-                <Group>
-                  {project.repoLink && (
-                    <Button
-                      component="a"
-                      href={project.repoLink}
-                      target="_blank"
-                      variant="default"
-                      leftSection={<IconBrandGithub size={18} />}
-                    >
-                      Code
-                    </Button>
-                  )}
-                  {project.demoLink && (
-                    <Button
-                      component="a"
-                      href={project.demoLink}
-                      target="_blank"
-                      variant="filled"
-                      leftSection={<IconExternalLink size={18} />}
-                    >
-                      Live Demo
-                    </Button>
-                  )}
-                </Group>
-              </Group>
-
-              <Group mt="lg" gap="xs">
-                {project.techStack?.map((tech: string) => (
-                  <Badge key={tech} size="lg" variant="outline">
-                    {tech}
-                  </Badge>
-                ))}
-              </Group>
-
-              <Text mt="xl" size="lg" style={{ whiteSpace: "pre-wrap" }}>
-                {project.description}
-              </Text>
-
-              {images.length > 0 && (
-                <SimpleGrid cols={{ base: 1, sm: 2 }} mt="xl">
-                  {images.map((img: string, idx: number) => (
-                    <Image
-                      key={idx}
-                      src={img}
-                      fallbackSrc="https://placehold.co/1200x800?text=Image+Unavailable"
-                      radius="md"
-                      alt={`Project image ${idx + 1}`}
-                    />
-                  ))}
-                </SimpleGrid>
-              )}
-
-              {readmeContent && (
-                <Card withBorder radius="md" mt="xl" padding="lg">
-                  <Group mb="md">
-                    <ThemeIcon variant="light" size="lg" color="dark">
-                      <IconFileText size={20} />
-                    </ThemeIcon>
-                    <Text fw={700} size="lg">
-                      README.md
-                    </Text>
-                  </Group>
-
-                  <Box
-                    style={{
-                      // Use a lighter gray background and code styling
-                      backgroundColor: "#f8f9fa",
-                      color: "#24292e", // Ensure text is dark to contrast with light bg
-                      padding: "1rem",
-                      borderRadius: "8px",
-                      overflowX: "auto",
-                    }}
-                  >
-                    <div className="markdown-body">
-                      <ReactMarkdown>{readmeContent}</ReactMarkdown>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 32 }}>
+          <div style={{ gridColumn: '1 / -1', '@media (min-width: 768px)': { gridColumn: 'span 2' } } as any}>
+            <div className={g.card} style={{ height: 'auto', border: '1px solid var(--border)' }}>
+              <div className={g.cardBody}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 24, marginBottom: 24 }}>
+                  <div>
+                    <h1 style={{ fontFamily: 'var(--font-space)', fontSize: '2rem', marginBottom: 12 }}>{project.title}</h1>
+                    <div style={{ display: 'flex', gap: 12 }}>
+                      {project.isFeatured && <span className={g.badge} style={{ background: 'var(--accent)', color: '#fff' }}>Featured</span>}
+                      <span className={g.badge} style={{ background: 'var(--bg-3)', color: 'var(--text)' }}>{createdAt}</span>
                     </div>
-                  </Box>
-                </Card>
-              )}
-            </Card>
-          </Stack>
+                  </div>
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    {project.repoLink && (
+                      <a href={project.repoLink} target="_blank" rel="noopener noreferrer" className={g.btn}>
+                        <IconBrandGithub size={18} /> Code
+                      </a>
+                    )}
+                    {project.demoLink && (
+                      <a href={project.demoLink} target="_blank" rel="noopener noreferrer" className={`${g.btn} ${g.btnPrimary}`}>
+                        <IconExternalLink size={18} /> Live Demo
+                      </a>
+                    )}
+                  </div>
+                </div>
 
-          <Stack>
+                <div className={g.tagList} style={{ marginBottom: 32 }}>
+                  {project.techStack?.map((tech: string) => (
+                    <span key={tech} className={g.tag} style={{ fontSize: '0.9rem', padding: '6px 12px' }}>
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+
+                <div style={{ fontSize: '1.1rem', lineHeight: 1.6, whiteSpace: 'pre-wrap', marginBottom: 32 }}>
+                  {project.description}
+                </div>
+
+                {images.length > 0 && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 24, marginBottom: 32 }}>
+                    {images.map((img: string, idx: number) => (
+                      <div key={idx} style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', border: '1px solid var(--border)', background: 'var(--bg-2)' }}>
+                        <img 
+                          src={img} 
+                          alt={`Project image ${idx + 1}`} 
+                          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} 
+                          onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/1200x800?text=Image+Unavailable"; }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {readmeContent && (
+                  <div style={{ borderTop: '1px solid var(--border)', paddingTop: 32 }}>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 24 }}>
+                      <div style={{ background: 'var(--accent)', color: '#fff', padding: 8, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <IconFileText size={20} />
+                      </div>
+                      <h3 style={{ fontFamily: 'var(--font-space)', fontSize: '1.25rem', margin: 0 }}>README.md</h3>
+                    </div>
+
+                    <div style={{ background: 'var(--bg-2)', padding: 24, border: '1px solid var(--border)', overflowX: 'auto' }}>
+                      <div className="markdown-body" style={{ color: 'var(--text)' }}>
+                        <ReactMarkdown>{readmeContent}</ReactMarkdown>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
             <SkillGapAnalyzer projectId={projectId} />
 
-            <Card withBorder radius="md" padding="lg">
-              <Group mb="md">
-                <ThemeIcon variant="light" size="lg">
-                  <IconUsers size={20} />
-                </ThemeIcon>
-                <Text fw={600}>Team Members</Text>
-              </Group>
-              <Stack gap="sm">
-                {project.teamMembers && project.teamMembers.length > 0 ? (
-                  project.teamMembers.map((member: any) => (
-                    <Group key={member._id.toString()}>
-                      <Avatar color="initials" name={member.name} />
-                      <div>
-                        <Group gap={6}>
-                          <Text size="sm" fw={500}>
-                            {member.name || "Unknown User"}
-                          </Text>
-                          {member.collaborationStatus?.visible && (
-                            <CollaborationBadge
-                              level={
-                                member.collaborationStatus
-                                  .level as CollaborationLevel
-                              }
-                              size="xs"
-                            />
-                          )}
-                        </Group>
-                        <Text size="xs" c="dimmed">
-                          Contributor
-                        </Text>
+            <div className={g.card} style={{ height: 'auto', border: '1px solid var(--border)' }}>
+              <div className={g.cardBody}>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 24 }}>
+                  <div style={{ background: 'var(--accent-2)', color: '#000', padding: 8, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <IconUsers size={20} />
+                  </div>
+                  <h3 style={{ fontFamily: 'var(--font-space)', fontSize: '1.25rem', margin: 0 }}>Team Members</h3>
+                </div>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {project.teamMembers && project.teamMembers.length > 0 ? (
+                    project.teamMembers.map((member: any) => (
+                      <div key={member._id.toString()} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                          {member.name?.[0] || "?"}
+                        </div>
+                        <div>
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <div style={{ fontWeight: 'bold' }}>{member.name || "Unknown User"}</div>
+                            {member.collaborationStatus?.visible && (
+                              <CollaborationBadge level={member.collaborationStatus.level as CollaborationLevel} size="xs" />
+                            )}
+                          </div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Contributor</div>
+                        </div>
                       </div>
-                    </Group>
-                  ))
-                ) : (
-                  <Text size="sm" c="dimmed">
-                    No members listed
-                  </Text>
-                )}
-              </Stack>
-            </Card>
-          </Stack>
-        </SimpleGrid>
-      </Container>
+                    ))
+                  ) : (
+                    <div style={{ color: 'var(--text-muted)' }}>No members listed</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }
