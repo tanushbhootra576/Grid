@@ -7,6 +7,17 @@ import crypto from "crypto";
 import path from "path";
 import os from "os";
 
+// 🔥 VERCEL FIX: Force Vercel's node-file-trace (NFT) to include these files in the serverless bundle!
+// Tesseract dynamically forks a child process which calls `require('..')`. 
+// NFT misses this dynamic require, causing the "Cannot find module '..'" error.
+try {
+  require.resolve("tesseract.js/src/worker-script/node/index.js");
+  require.resolve("tesseract.js/src/worker-script/index.js");
+  require.resolve("tesseract.js-core/tesseract-core.wasm.js");
+} catch (e) {
+  // Ignore at runtime, this is strictly for the Vercel static bundler
+}
+
 const globalForTesseract = globalThis as unknown as {
   tesseractWorker: Worker | null;
 };
