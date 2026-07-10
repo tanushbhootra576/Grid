@@ -18,6 +18,12 @@ const nextConfig: NextConfig = {
     "tesseract.js",
     "tesseract.js-core"
   ],
+  outputFileTracingIncludes: {
+    "/api/**/*": [
+      "./node_modules/tesseract.js/**/*",
+      "./node_modules/tesseract.js-core/**/*",
+    ],
+  },
 };
 
 export default nextConfig;
