@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
+import ollama from "ollama";
+import { PDFParse } from "pdf-parse";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { getServerSession } from "next-auth";
@@ -18,12 +19,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Resume text or PDF is required" }, { status: 400 });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-    if (!apiKey) {
-        return NextResponse.json({ error: "Gemini API key is not configured in the environment. Please add GEMINI_API_KEY to your .env file." }, { status: 500 });
-    }
+    let finalResumeText = resumeText || "";
 
-    const ai = new GoogleGenAI({ apiKey });
+    if (pdfBase64 && !finalResumeText) {
+      try {
+        const cleanBase64 = pdfBase64.replace(/^data:application\/pdf;base64,/, "");
+        const buffer = Buffer.from(cleanBase64, 'base64');
+        const pdfParser = new PDFParse({ data: buffer });
+        const pdfData = await pdfParser.getText();
+        finalResumeText = pdfData.text;
+      } catch (err) {
+        console.error("PDF Parsing Error:", err);
+        return NextResponse.json({ error: "Failed to extract text from PDF locally." }, { status: 400 });
+      }
+    }
 
     const systemPrompt = `You are a ruthless, highly experienced Y Combinator partner and tech recruiter. 
 A college student has just handed you their resume. Your job is to ROAST IT.
@@ -40,39 +49,30 @@ You MUST respond ONLY with a valid JSON object with the following schema, and ab
   ] // Provide exactly 5 or 6 relevant skill areas based on the resume
 }`;
 
-    const parts: any[] = [{ text: systemPrompt }];
-    
-    if (resumeText) {
-        parts.push({ text: "\n\nHere is the resume:\n" + resumeText });
-    }
-    
-    if (pdfBase64) {
-        parts.push({
-            inlineData: {
-                data: pdfBase64,
-                mimeType: "application/pdf"
-            }
-        });
-    }
+    const fullPrompt = `${systemPrompt}\n\nHere is the resume:\n${finalResumeText}`;
 
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: [
-            { role: 'user', parts }
-        ],
-        config: {
-            responseMimeType: "application/json"
-        }
-    });
-
-    let resultJson;
     try {
-        resultJson = JSON.parse(response.text || "{}");
-    } catch (e) {
-        resultJson = { roast: response.text };
-    }
+        const response = await ollama.chat({
+            model: 'llama3.2', // Extremely lightweight SLM (1-3GB)
+            messages: [{ role: 'user', content: fullPrompt }],
+            format: 'json'
+        });
 
-    return NextResponse.json(resultJson, { status: 200 });
+        let resultJson;
+        try {
+            resultJson = JSON.parse(response.message.content || "{}");
+        } catch (e) {
+            resultJson = { roast: response.message.content };
+        }
+
+        return NextResponse.json(resultJson, { status: 200 });
+    } catch (aiError: any) {
+        console.error("Ollama Error:", aiError);
+        return NextResponse.json({ 
+            error: "Failed to connect to local AI. Ensure Ollama is installed and running with 'ollama run llama3.2'." 
+        }, { status: 500 });
+    }
+    
   } catch (error: any) {
     console.error("Error in roast API:", error);
     return NextResponse.json(

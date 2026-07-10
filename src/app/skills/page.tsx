@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/components/AuthProvider';
-import { IconSearch, IconPlus, IconBrandGmail, IconBrandWindows, IconBrandYahoo, IconMail, IconX } from '@tabler/icons-react';
+import { IconSearch, IconPlus, IconBrandGmail, IconBrandWindows, IconBrandYahoo, IconMail, IconX, IconCards, IconLayoutGrid, IconHeart, IconRefresh } from '@tabler/icons-react';
 import { showError } from '@/lib/error-handling';
 import { getAuthHeaders } from '@/lib/api';
 import g from '../grid.module.css';
@@ -36,6 +36,9 @@ export default function SkillsPage() {
     const [opened, setOpened] = useState(false);
     const [contactOpened, setContactOpened] = useState(false);
     const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
+
+    const [swipeMode, setSwipeMode] = useState(false);
+    const [swipeIndex, setSwipeIndex] = useState(0);
 
     const [newSkill, setNewSkill] = useState({
         title: '',
@@ -104,11 +107,17 @@ export default function SkillsPage() {
                         <div className={g.titleAccent} />
                         Skill Exchange
                     </h1>
-                    {user && (
-                        <button className={`${g.btn} ${g.btnPrimary}`} onClick={() => setOpened(true)}>
-                            <IconPlus size={18} /> POST LISTING
+                    <div style={{ display: 'flex', gap: 12 }}>
+                        <button className={`${g.btn}`} onClick={() => setSwipeMode(!swipeMode)}>
+                            {swipeMode ? <IconLayoutGrid size={18} /> : <IconCards size={18} />} 
+                            {swipeMode ? 'GRID VIEW' : 'SWIPE DECK'}
                         </button>
-                    )}
+                        {user && (
+                            <button className={`${g.btn} ${g.btnPrimary}`} onClick={() => setOpened(true)}>
+                                <IconPlus size={18} /> POST LISTING
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 <div className={g.controlsRow}>
@@ -134,7 +143,59 @@ export default function SkillsPage() {
                 </div>
 
                 {loading ? (
-                    <div className={g.spinner} />
+                    <div className="squareSpinner" />
+                ) : swipeMode ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 40 }}>
+                        {swipeIndex < skills.length ? (
+                            (() => {
+                                const skill = skills[swipeIndex];
+                                const skillUser = (skill.userId && typeof skill.userId === 'object') ? skill.userId : null;
+                                return (
+                                    <div className={`${g.card} ${skill.type === 'OFFER' ? g.offer : g.request}`} style={{ width: '100%', maxWidth: 400, transform: 'scale(1.05)', transition: 'all 0.3s ease' }}>
+                                        <div className={g.cardTop} />
+                                        <div className={g.cardBody} style={{ minHeight: 300, display: 'flex', flexDirection: 'column' }}>
+                                            <div className={g.cardHeader}>
+                                                <div className={g.badgeRow}>
+                                                    <span className={`${g.badge} ${skill.type === 'OFFER' ? g.offer : g.request}`}>{skill.type}</span>
+                                                    <span className={g.badge}>{skill.category}</span>
+                                                </div>
+                                            </div>
+                                            <h3 className={g.cardTitle} style={{ fontSize: '1.75rem' }}>{skill.title}</h3>
+                                            <p className={g.cardDesc} style={{ fontSize: '1.1rem', flex: 1 }}>{skill.description}</p>
+                                            
+                                            <div className={g.tagList} style={{ marginBottom: 24 }}>
+                                                {skill.tags.map(tag => <span key={tag} className={g.tag}>{tag}</span>)}
+                                            </div>
+                                            
+                                            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, marginBottom: 24, textAlign: 'center' }}>
+                                                {skillUser?.name ? (
+                                                    <div style={{ fontFamily: 'var(--font-space)', fontWeight: 700 }}>{skillUser.name} {skillUser.branch && `(${skillUser.branch})`}</div>
+                                                ) : 'Unknown User'}
+                                            </div>
+
+                                            <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+                                                <button className={g.btn} style={{ flex: 1, padding: 16, color: '#ef4444', borderColor: '#ef4444', fontSize: '1.2rem', display: 'flex', justifyContent: 'center' }} onClick={() => setSwipeIndex(s => s + 1)}>
+                                                    <IconX size={28} /> PASS
+                                                </button>
+                                                <button className={`${g.btn} ${g.btnPrimary}`} style={{ flex: 1, padding: 16, fontSize: '1.2rem', display: 'flex', justifyContent: 'center', background: '#22c55e', color: '#000', borderColor: '#22c55e' }} onClick={() => { setSelectedSkill(skill); setContactOpened(true); setSwipeIndex(s => s + 1); }}>
+                                                    <IconHeart size={28} /> CONNECT
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })()
+                        ) : (
+                            <div className={g.empty} style={{ padding: 60, textAlign: 'center' }}>
+                                <IconCards size={48} style={{ opacity: 0.2, marginBottom: 16, display: 'inline-block' }} />
+                                <h2>You're all caught up!</h2>
+                                <p style={{ color: 'var(--text-muted)' }}>Check back later for more skills.</p>
+                                <button className={g.btn} style={{ marginTop: 24, display: 'inline-flex', gap: 8 }} onClick={() => setSwipeIndex(0)}>
+                                    <IconRefresh size={18} /> Restart Deck
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 ) : (
                     <div className={g.grid}>
                         {skills.map((skill) => {
@@ -245,7 +306,7 @@ export default function SkillsPage() {
                             <button className={g.closeBtn} onClick={() => setContactOpened(false)}><IconX size={24} /></button>
                         </div>
                         <div className={g.modalBody}>
-                            <p style={{fontFamily: 'var(--font-dm)', fontSize: '0.9rem', color: 'var(--text-muted)'}}>
+                            <p style={{fontFamily: 'var(--font-space)', fontSize: '0.9rem', color: 'var(--text-muted)'}}>
                                 Choose how you want to contact <strong>{typeof selectedSkill.userId === 'object' && selectedSkill.userId?.name ? selectedSkill.userId.name : 'the user'}</strong>:
                             </p>
                             

@@ -6,10 +6,29 @@ import { IUser } from '@/models/User';
 import { usePathname, useRouter } from 'next/navigation';
 import { getAuthHeaders } from '@/lib/api';
 
+/**
+ * Returns true when all mandatory profile fields are filled in.
+ * These are the same fields checked in OnboardingGate so they stay in sync.
+ */
+export function isProfileComplete(profile: IUser | null): boolean {
+    if (!profile) return false;
+    const p = profile as any;
+    return !!(
+        profile.name?.trim() &&
+        p.college?.trim() &&
+        profile.branch?.trim() &&
+        profile.year &&
+        profile.acceptedGuidelines &&
+        profile.verified
+    );
+}
+
 interface AuthContextType {
     user: any | null;
     profile: IUser | null;
     loading: boolean;
+    /** True when the user has filled in all mandatory profile fields */
+    profileComplete: boolean;
     refreshProfile: () => Promise<void>;
 }
 
@@ -17,6 +36,7 @@ const AuthContext = createContext<AuthContextType>({
     user: null,
     profile: null,
     loading: true,
+    profileComplete: false,
     refreshProfile: async () => {},
 });
 
@@ -69,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const uid = (session?.user as any)?.id;
             if (uid) {
                 if (!mounted) return;
-                            const suser = (session?.user as any) || {};
+                const suser = (session?.user as any) || {};
                 setUser({ ...suser, uid: suser.id, photoURL: suser.image || suser.photoURL || null });
                 await fetchProfile(uid);
             } else {
@@ -83,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => { mounted = false; };
     }, [session, status]);
 
-    // Protect routes
+    // Protect routes — redirect unauthenticated users to /login
     useEffect(() => {
         if (loading) return;
 
@@ -102,6 +122,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 else if (!profile.acceptedGuidelines && !isPublic && pathname !== '/login') {
                     router.replace('/login');
                 }
+                // Note: profile incompleteness is handled by OnboardingGate (overlay),
+                // NOT by a redirect, so users stay on their current URL.
             }
         }
     }, [loading, user, profile, pathname, router]);
@@ -112,8 +134,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const profileComplete = isProfileComplete(profile);
+
     return (
-        <AuthContext.Provider value={{ user, profile, loading, refreshProfile }}>
+        <AuthContext.Provider value={{ user, profile, loading, profileComplete, refreshProfile }}>
             {children}
         </AuthContext.Provider>
     );

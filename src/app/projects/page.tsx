@@ -142,7 +142,7 @@ export default function ProjectsPage() {
         </div>
 
         {loading ? (
-          <div className={g.spinner} />
+          <div className="squareSpinner" />
         ) : (
           <div className={g.grid}>
             {projects.map((project) => (

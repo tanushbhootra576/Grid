@@ -33,6 +33,19 @@ export interface IUser extends Document {
   profileLocked: boolean;
   verified: boolean;
   acceptedGuidelines: boolean;
+  /**
+   * A deterministic hash derived from the verified student ID card content
+   * (name + college, lowercased and salted). Used to detect when the same
+   * physical student tries to create a second account with a different Gmail.
+   */
+  studentIdHash?: string;
+  /**
+   * SHA-256 hash of the ID card image uploaded during verification.
+   * Prevents the exact same image file from being used on multiple accounts.
+   */
+  studentIdImageHash?: string;
+  /** Timestamp when the mandatory onboarding (profile completion) was finished. */
+  profileCompletedAt?: Date;
   blockedUsers: string[];
   dmLastRead?: Record<string, Date>;
   pinnedDms?: string[];
@@ -95,6 +108,19 @@ const UserSchema: Schema<IUser> = new Schema({
     type: Boolean,
     default: false,
   },
+  studentIdHash: {
+    type: String,
+    unique: true,    // DB-level enforcement: one hash per account
+    sparse: true,    // sparse = null values are allowed (unverified users)
+    index: true,
+  },
+  studentIdImageHash: {
+    type: String,
+    unique: true,    // DB-level enforcement: one photo per account
+    sparse: true,
+    index: true,
+  },
+  profileCompletedAt: { type: Date },
   blockedUsers: [{ type: String }],
   dmLastRead: {
     type: Map,

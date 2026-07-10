@@ -171,7 +171,7 @@ export default function ResourcesPage() {
       <>
         <Navbar />
         <div className={g.container} style={{ textAlign: 'center', marginTop: 100 }}>
-          <div className={g.spinner} style={{ margin: 'auto' }} />
+          <div className="squareSpinner" style={{ margin: 'auto' }} />
         </div>
       </>
     );
@@ -246,7 +246,7 @@ export default function ResourcesPage() {
         </div>
 
         {loading ? (
-          <div className={g.spinner} style={{ margin: '100px auto' }} />
+          <div className="squareSpinner" style={{ margin: '100px auto' }} />
         ) : (
           <>
             {activeTab && DRIVE_LINKS[activeTab] && (

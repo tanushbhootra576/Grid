@@ -156,7 +156,7 @@
 }
 
 .heroSub {
-  font-family: var(--font-dm), sans-serif;
+  font-family: var(--font-space), sans-serif;
   font-size: clamp(0.95rem, 1.4vw, 1.05rem);
   line-height: 1.7;
   color: var(--text-muted);
@@ -228,7 +228,7 @@
   border: 2px solid var(--bg);
 }
 .socialText {
-  font-family: var(--font-dm), sans-serif;
+  font-family: var(--font-space), sans-serif;
   font-size: 0.82rem;
   color: var(--text-muted);
 }
@@ -282,7 +282,7 @@
   white-space: nowrap;
 }
 .trustCollege {
-  font-family: var(--font-dm), sans-serif;
+  font-family: var(--font-space), sans-serif;
   font-size: 0.82rem;
   font-weight: 500;
   color: var(--text-muted);
@@ -320,7 +320,7 @@
 }
 .sectionSub {
   margin-top: 14px;
-  font-family: var(--font-dm), sans-serif;
+  font-family: var(--font-space), sans-serif;
   font-size: 1rem;
   color: var(--text-muted);
 }
@@ -394,7 +394,7 @@
   letter-spacing: -0.01em;
 }
 .featureDesc {
-  font-family: var(--font-dm), sans-serif;
+  font-family: var(--font-space), sans-serif;
   font-size: 0.855rem;
   color: var(--text-muted);
   line-height: 1.65;
@@ -440,7 +440,7 @@
   margin-bottom: 10px;
 }
 .stepDesc {
-  font-family: var(--font-dm), sans-serif;
+  font-family: var(--font-space), sans-serif;
   font-size: 0.845rem;
   color: var(--text-muted);
   line-height: 1.65;
@@ -455,7 +455,7 @@
 }
 .swapLeft { position: sticky; top: 80px; }
 .swapCopy {
-  font-family: var(--font-dm), sans-serif;
+  font-family: var(--font-space), sans-serif;
   font-size: 0.94rem;
   color: var(--text-muted);
   line-height: 1.7;
@@ -472,7 +472,7 @@
   line-height: 1;
 }
 .swapMetaLabel {
-  font-family: var(--font-dm), sans-serif;
+  font-family: var(--font-space), sans-serif;
   font-size: 0.68rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -520,7 +520,7 @@
 }
 .swapDone { background: var(--accent) !important; backdrop-filter: none !important; }
 .doneTitle { font-family: var(--font-space), sans-serif; font-size: 1.05rem; font-weight: 700; margin-top: 8px; }
-.doneSub   { font-family: var(--font-dm), sans-serif; font-size: 0.82rem; opacity: 0.8; }
+.doneSub   { font-family: var(--font-space), sans-serif; font-size: 0.82rem; opacity: 0.8; }
 .spinnerRing {
   width: 36px; height: 36px;
   border: 3px solid rgba(255,255,255,0.2);
@@ -554,8 +554,8 @@
 .swapInfo strong { font-family: var(--font-space), sans-serif; font-size: 0.88rem; font-weight: 700; color: var(--text); }
 .swapInfo span   { font-size: 0.72rem; color: var(--text-muted); }
 .swapBadges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
-.bRed    { padding: 2px 7px; border: 1px solid var(--accent);   color: var(--accent);   font-family: var(--font-dm), sans-serif; font-size: 0.66rem; font-weight: 600; }
-.bYellow { padding: 2px 7px; border: 1px solid var(--accent-2); color: var(--accent-2); font-family: var(--font-dm), sans-serif; font-size: 0.66rem; font-weight: 600; }
+.bRed    { padding: 2px 7px; border: 1px solid var(--accent);   color: var(--accent);   font-family: var(--font-space), sans-serif; font-size: 0.66rem; font-weight: 600; }
+.bYellow { padding: 2px 7px; border: 1px solid var(--accent-2); color: var(--accent-2); font-family: var(--font-space), sans-serif; font-size: 0.66rem; font-weight: 600; }
 .swapBtn {
   padding: 9px 16px;
   background: var(--accent); color: #fff;
@@ -583,7 +583,7 @@
   letter-spacing: -0.03em;
 }
 .statBigLabel {
-  font-family: var(--font-dm), sans-serif;
+  font-family: var(--font-space), sans-serif;
   font-size: 0.78rem; color: var(--text-muted);
   letter-spacing: 0.06em; text-transform: uppercase;
 }
@@ -618,7 +618,7 @@
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .feedBody {
-  font-family: var(--font-dm), sans-serif;
+  font-family: var(--font-space), sans-serif;
   font-size: 0.82rem; color: var(--text); line-height: 1.5;
   display: flex; flex-direction: column; gap: 3px;
 }
@@ -642,7 +642,7 @@
 .testimonialCard:hover { background: var(--bg-2); }
 .tAccent { width: 100%; height: 3px; margin-bottom: 28px; }
 .tText {
-  font-family: var(--font-dm), sans-serif;
+  font-family: var(--font-space), sans-serif;
   font-size: 0.94rem; color: var(--text);
   line-height: 1.75; margin-bottom: 28px;
   font-style: italic;
@@ -654,7 +654,7 @@
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .tName  { display: block; font-family: var(--font-space), sans-serif; font-size: 0.88rem; font-weight: 700; color: var(--text); }
-.tRole  { display: block; font-family: var(--font-dm), sans-serif; font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+.tRole  { display: block; font-family: var(--font-space), sans-serif; font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
 
 /* ─── FAQ ───────────────────────────────────────────────────── */
 .faqLayout {
@@ -689,7 +689,7 @@
 .faqBodyOpen { max-height: 220px; }
 .faqAns {
   padding: 0 24px 22px;
-  font-family: var(--font-dm), sans-serif;
+  font-family: var(--font-space), sans-serif;
   font-size: 0.875rem; color: var(--text-muted); line-height: 1.7;
 }
 
@@ -720,7 +720,7 @@
   margin-bottom: 18px;
 }
 .ctaSub {
-  font-family: var(--font-dm), sans-serif;
+  font-family: var(--font-space), sans-serif;
   font-size: 1rem; color: rgba(255,255,255,0.78);
   line-height: 1.65; max-width: 480px; margin-bottom: 34px;
 }
@@ -767,7 +767,7 @@
   margin-bottom: 14px;
 }
 .footerTagline {
-  font-family: var(--font-dm), sans-serif;
+  font-family: var(--font-space), sans-serif;
   font-size: 0.845rem; color: var(--text-muted); line-height: 1.65;
 }
 .footerCol { display: flex; flex-direction: column; gap: 10px; }
@@ -778,14 +778,14 @@
   color: var(--text); margin-bottom: 4px;
 }
 .footerLink {
-  font-family: var(--font-dm), sans-serif;
+  font-family: var(--font-space), sans-serif;
   font-size: 0.845rem; color: var(--text-muted);
   text-decoration: none; transition: color 0.15s;
 }
 .footerLink:hover { color: var(--accent); }
 .footerBottom {
   display: flex; align-items: center; gap: 20px;
-  font-family: var(--font-dm), sans-serif;
+  font-family: var(--font-space), sans-serif;
   font-size: 0.72rem; color: var(--text-muted);
 }
 .footerRule { flex-grow: 1; height: 1px; background: var(--border); }

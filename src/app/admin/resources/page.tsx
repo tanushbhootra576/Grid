@@ -148,7 +148,7 @@ export default function AdminResourcesPage() {
                 <h2 style={{ fontFamily: 'var(--font-space)', fontSize: '2rem', marginBottom: 32 }}>Pending Resource Approvals</h2>
                 
                 {loading ? (
-                    <div className={g.spinner} style={{ margin: '40px auto' }} />
+                    <div className="squareSpinner" style={{ margin: '40px auto' }} />
                 ) : items.length === 0 ? (
                     <div className={g.card} style={{ height: 'auto', border: '1px solid var(--border)', padding: 32, textAlign: 'center' }}>
                         <p style={{ color: 'var(--text-muted)' }}>No pending resources found.</p>

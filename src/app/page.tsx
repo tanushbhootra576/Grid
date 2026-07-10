@@ -111,7 +111,7 @@ function HeroIllustration() {
           MATCH FOUND
         </text>
         <text x="422" y="102" textAnchor="middle" fill="rgba(255,255,255,0.75)"
-          style={{ fontFamily: "var(--font-dm)", fontSize: 9 }}>
+          style={{ fontFamily: "var(--font-space)", fontSize: 9 }}>
           React.js ↔ Python
         </text>
         {/* Checkmark */}
@@ -126,7 +126,7 @@ function HeroIllustration() {
           A+
         </text>
         <text x="85" y="373" textAnchor="middle" fill="var(--text-muted)"
-          style={{ fontFamily: "var(--font-dm)", fontSize: 8, letterSpacing: "0.08em" }}>
+          style={{ fontFamily: "var(--font-space)", fontSize: 8, letterSpacing: "0.08em" }}>
           GRADE
         </text>
       </g>
@@ -500,7 +500,7 @@ export default function Home() {
                 <div className={s.swapCards}>
                   {swapStatus === "loading" && (
                     <div className={s.swapOverlay}>
-                      <div className={s.spinnerRing} />
+                      <div className="squareSpinner" />
                       <p>Finding best match...</p>
                     </div>
                   )}

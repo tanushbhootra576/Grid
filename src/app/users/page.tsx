@@ -11,7 +11,9 @@ import {
   IconBrandYahoo,
   IconMessage,
   IconX,
+  IconShieldCheck,
 } from "@tabler/icons-react";
+
 import Link from "next/link";
 import { getAuthHeaders } from "@/lib/api";
 import {
@@ -30,11 +32,13 @@ interface ListedUser {
   skills: string[];
   interests: string[];
   role: string;
+  verified?: boolean;
   collaborationStatus?: {
     level: CollaborationLevel;
     visible: boolean;
   };
 }
+
 
 interface UsersResponse {
   users: ListedUser[];
@@ -110,7 +114,7 @@ export default function UsersDirectoryPage() {
   return (
     <>
       <Navbar />
-      <Suspense fallback={<div className={g.spinner} />}>
+      <Suspense fallback={<div className="squareSpinner" />}>
         <div className={g.container}>
           <div className={g.headerRow}>
             <h1 className={g.title}>
@@ -169,7 +173,7 @@ export default function UsersDirectoryPage() {
             </div>
 
           {loading ? (
-            <div className={g.spinner} />
+            <div className="squareSpinner" />
           ) : (
             <div className={g.grid}>
               {data?.users && data.users.map((u) => (
@@ -182,8 +186,23 @@ export default function UsersDirectoryPage() {
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-                          <h3 className={g.cardTitle} style={{ marginBottom: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.name}</h3>
-                          <span className={g.badge} style={{ borderColor: 'var(--text-muted)', color: 'var(--text)' }}>{u.role}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flex: 1 }}>
+                            <h3 className={g.cardTitle} style={{ marginBottom: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.name}</h3>
+                            {u.verified && (
+                              <span
+                                title="Student ID Verified"
+                                style={{
+                                  display: 'inline-flex', alignItems: 'center', gap: 2,
+                                  fontSize: '0.65rem', fontWeight: 700, color: '#22c55e',
+                                  border: '1px solid #22c55e', padding: '1px 5px',
+                                  flexShrink: 0, lineHeight: 1.4,
+                                }}
+                              >
+                                <IconShieldCheck size={10} stroke={3} /> ID
+                              </span>
+                            )}
+                          </div>
+                          <span className={g.badge} style={{ borderColor: 'var(--text-muted)', color: 'var(--text)', flexShrink: 0, marginLeft: 8 }}>{u.role}</span>
                         </div>
                         <p className={g.cardDesc} style={{ marginBottom: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {u.branch ? `${u.branch}${u.year ? " • Year " + u.year : ""}` : "Branch not set"}

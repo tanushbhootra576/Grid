@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
         .skip(skip)
         .limit(limit)
         .select(
-          "publicId name email branch year college city verified skills interests bio role collaborationStatus"
+          "publicId name email branch year college city verified skills interests bio role collaborationStatus verified"
         ),
       User.countDocuments(query),
     ]);

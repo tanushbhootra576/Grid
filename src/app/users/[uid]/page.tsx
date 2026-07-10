@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
-import { IconMessage, IconMail, IconExternalLink } from "@tabler/icons-react";
+import { IconMessage, IconMail, IconExternalLink, IconShieldCheck } from "@tabler/icons-react";
 import { getAuthHeaders } from "@/lib/api";
 import { CollaborationStatus, CollaborationLevel } from "@/components/CollaborationStatus";
 import g from "../../grid.module.css";
+
 
 interface UserDetail {
   _id: string;
@@ -18,6 +19,7 @@ interface UserDetail {
   bio?: string;
   skills: string[];
   interests: string[];
+  verified?: boolean;
   socialLinks?: {
     github?: string;
     linkedin?: string;
@@ -35,6 +37,7 @@ interface UserDetail {
     endorsements: string[];
   }[];
 }
+
 
 export default function UserProfileView() {
   const params = useParams();
@@ -66,7 +69,7 @@ export default function UserProfileView() {
     <>
       <Navbar />
       <div className={g.container}>
-        {loading && <div className={g.spinner} style={{ margin: 'auto', marginTop: 100 }} />}
+        {loading && <div className="squareSpinner" style={{ margin: 'auto', marginTop: 100 }} />}
         {!loading && !user && <p style={{ color: 'red', textAlign: 'center', marginTop: 100 }}>User not found.</p>}
         {!loading && user && (
           <div className={g.card} style={{ height: 'auto', border: '1px solid var(--border)', marginTop: 40, marginBottom: 40 }}>
@@ -78,7 +81,18 @@ export default function UserProfileView() {
                     {user.name?.[0]}
                   </div>
                   <div>
-                    <h1 style={{ fontFamily: 'var(--font-space)', fontSize: '2rem', marginBottom: 4 }}>{user.name}</h1>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 4 }}>
+                      <h1 style={{ fontFamily: 'var(--font-space)', fontSize: '2rem', margin: 0 }}>{user.name}</h1>
+                      {user.verified && (
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                          fontSize: '0.75rem', fontWeight: 700, color: '#22c55e',
+                          border: '1px solid #22c55e', padding: '2px 10px',
+                        }}>
+                          <IconShieldCheck size={13} /> VERIFIED
+                        </span>
+                      )}
+                    </div>
                     <p style={{ color: 'var(--text-muted)', marginBottom: 4 }}>{user.email}</p>
                     <p style={{ fontWeight: 'bold', color: 'var(--text-muted)' }}>
                       {user.branch ? `${user.branch}${user.year ? " • Year " + user.year : ""}` : "Branch not set"}

@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@google/genai": "^2.10.0",
     "@mantine/core": "^8.3.8",
     "@mantine/hooks": "^8.3.8",
     "@mantine/modals": "^8.3.8",
@@ -25,19 +24,24 @@
     "mongoose": "^8.20.0",
     "next": "16.0.10",
     "next-auth": "^4.24.14",
+    "ollama": "^0.6.3",
+    "pdf-parse": "^2.4.5",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-markdown": "^10.1.0",
     "react-toastify": "^11.0.5",
     "recharts": "^3.9.2",
-    "socket.io-client": "^4.7.5"
+    "socket.io-client": "^4.7.5",
+    "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "^16.0.7",
+    "mongodb": "^7.5.0",
     "postcss": "^8.5.6",
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",

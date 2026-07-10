@@ -18,6 +18,7 @@ export interface IMessage extends Document {
         emoji: string;
     }[];
     sticker?: string;
+    senderVerified?: boolean;
     createdAt: Date;
 }
 
@@ -59,7 +60,11 @@ const MessageSchema: Schema<IMessage> = new Schema({
         userId: { type: Schema.Types.ObjectId, ref: 'User' },
         emoji: String
     }],
-    sticker: String
+    sticker: String,
+    senderVerified: {
+        type: Boolean,
+        default: false
+    }
 }, {
     timestamps: true,
 });

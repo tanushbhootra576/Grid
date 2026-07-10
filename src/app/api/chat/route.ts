@@ -325,6 +325,7 @@ export async function POST(req: NextRequest) {
       content: content || "",
       senderId,
       senderName: type === 'blind' ? 'Anonymous' : sender.name,
+      senderVerified: sender.verified || false,
       type,
       branch: type === "branch" ? branch : undefined,
       year: type === "year" ? year : undefined,

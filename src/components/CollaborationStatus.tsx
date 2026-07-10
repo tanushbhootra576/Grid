@@ -103,10 +103,10 @@ export function CollaborationStatus({
             <Icon size={20} />
           </ThemeIcon>
           <div>
-            <Text size="sm" fw={700} c={`${currentStatus.color}.8`}>
+            <Text size="sm" fw={700} c={`${currentStatus.color}.8`} style={{ fontFamily: "var(--font-space)" }}>
               {currentStatus.label}
             </Text>
-            <Text size="xs" c="dimmed">
+            <Text size="xs" c="dimmed" style={{ fontFamily: "var(--font-space)" }}>
               {currentStatus.description}
             </Text>
           </div>
@@ -118,7 +118,7 @@ export function CollaborationStatus({
   return (
     <Card withBorder padding="lg" radius="md">
       <Group justify="space-between" mb="md">
-        <Text fw={600} size="sm">
+        <Text fw={600} size="sm" style={{ fontFamily: "var(--font-space)" }}>
           Collaboration Status
         </Text>
         <Switch
@@ -126,6 +126,7 @@ export function CollaborationStatus({
           size="xs"
           checked={visible}
           onChange={(e) => onChange(level, e.currentTarget.checked)}
+          styles={{ label: { fontFamily: "var(--font-space)" } }}
         />
       </Group>
 
@@ -157,10 +158,10 @@ export function CollaborationStatus({
           <Icon size={22} />
         </ThemeIcon>
         <div>
-          <Text fw={700} size="md" c={`${currentStatus.color}.9`}>
+          <Text fw={700} size="md" c={`${currentStatus.color}.9`} style={{ fontFamily: "var(--font-space)" }}>
             {currentStatus.label}
           </Text>
-          <Text size="sm" c="dimmed" lh={1.4}>
+          <Text size="sm" c="dimmed" lh={1.4} style={{ fontFamily: "var(--font-space)" }}>
             {currentStatus.description}
           </Text>
         </div>

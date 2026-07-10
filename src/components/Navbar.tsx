@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   useMantineColorScheme,
@@ -24,7 +24,11 @@ import {
   IconSun,
   IconMoon,
   IconSearch,
+  IconShieldCheck,
+  IconBell,
+  IconMessage
 } from "@tabler/icons-react";
+
 import { useRouter } from "next/navigation";
 import cx from "clsx";
 import classes from "./Navbar.module.css";
@@ -60,6 +64,24 @@ export function Navbar() {
   const router = useRouter();
   const { setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme("dark", { getInitialValueInEffect: true });
+
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    const sse = new EventSource("/api/notifications/stream");
+    sse.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (data.type === "notification") {
+          setNotifications(data.notifications || []);
+          setUnreadCount(data.unreadCount || 0);
+        }
+      } catch (err) {}
+    };
+    return () => sse.close();
+  }, [user]);
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/" });
@@ -102,6 +124,40 @@ export function Navbar() {
             </ActionIcon>
           )}
 
+          {user && (
+            <Menu shadow="md" width={320} position="bottom-end" withinPortal>
+              <Menu.Target>
+                <ActionIcon className={classes.iconBtn} aria-label="Notifications" title="Notifications" style={{ position: "relative" }}>
+                  <IconBell size={18} />
+                  {unreadCount > 0 && (
+                    <div style={{ position: "absolute", top: 4, right: 4, width: 8, height: 8, background: "#ef4444", borderRadius: "50%", boxShadow: "0 0 8px #ef4444" }} />
+                  )}
+                </ActionIcon>
+              </Menu.Target>
+              <Menu.Dropdown style={{ borderRadius: 0, border: "1px solid var(--border)", padding: 0 }}>
+                <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)", fontFamily: "var(--font-space)", fontWeight: 700 }}>
+                  Notifications
+                </div>
+                <ScrollArea.Autosize mah={300} style={{ padding: 8 }}>
+                  {notifications.length === 0 ? (
+                    <div style={{ padding: "20px", textAlign: "center", color: "var(--text-muted)", fontSize: "0.85rem" }}>
+                      No new notifications
+                    </div>
+                  ) : (
+                    notifications.map(n => (
+                      <Menu.Item key={n.id} component={Link} href={n.link} leftSection={<IconMessage size={16} style={{ color: "var(--accent)" }}/>}>
+                        <div style={{ fontSize: "0.85rem", fontWeight: 600 }}>{n.message}</div>
+                        <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginTop: 4 }}>
+                          {new Date(n.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </Menu.Item>
+                    ))
+                  )}
+                </ScrollArea.Autosize>
+              </Menu.Dropdown>
+            </Menu>
+          )}
+
           {/* Theme toggle */}
           <ActionIcon
             onClick={toggleTheme}
@@ -117,16 +173,34 @@ export function Navbar() {
             <Menu shadow="md" width={200} position="bottom-end">
               <Menu.Target>
                 <UnstyledButton className={classes.userBtn}>
-                  <Avatar
-                    src={user.photoURL}
-                    alt={user.displayName || ""}
-                    size={28}
-                    radius={0}
-                    color="orange"
-                    style={{ border: "1px solid var(--border)" }}
-                  >
-                    {(profile?.name?.[0] || user.email?.[0] || "U").toUpperCase()}
-                  </Avatar>
+                  {/* Avatar with verification badge overlay */}
+                  <div style={{ position: "relative", flexShrink: 0 }}>
+                    <Avatar
+                      src={user.photoURL}
+                      alt={user.displayName || ""}
+                      size={28}
+                      radius={0}
+                      color="orange"
+                      style={{ border: `1px solid ${profile?.verified ? "#22c55e" : "var(--border)"}`, transition: "border-color 0.3s" }}
+                    >
+                      {(profile?.name?.[0] || user.email?.[0] || "U").toUpperCase()}
+                    </Avatar>
+                    {profile?.verified && (
+                      <span
+                        title="Student ID Verified"
+                        style={{
+                          position: "absolute", bottom: -4, right: -4,
+                          width: 14, height: 14,
+                          background: "#22c55e",
+                          borderRadius: 0,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          border: "1.5px solid var(--bg)",
+                        }}
+                      >
+                        <IconShieldCheck size={9} color="#fff" stroke={3} />
+                      </span>
+                    )}
+                  </div>
                   <span className={classes.userName}>
                     {profile?.name?.split(" ")[0] || "You"}
                   </span>
@@ -141,6 +215,7 @@ export function Navbar() {
                   leftSection={<IconUser style={{ width: rem(14) }} />}
                   component={Link}
                   href="/profile"
+                  style={{ fontFamily: "var(--font-space)" }}
                 >
                   Profile
                 </Menu.Item>
@@ -149,6 +224,7 @@ export function Navbar() {
                   color="red"
                   leftSection={<IconLogout style={{ width: rem(14) }} />}
                   onClick={handleLogout}
+                  style={{ fontFamily: "var(--font-space)" }}
                 >
                   Logout
                 </Menu.Item>

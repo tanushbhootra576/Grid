@@ -3,7 +3,7 @@
 import { createTheme } from '@mantine/core';
 
 export const theme = createTheme({
-  fontFamily: 'var(--font-dm), system-ui, sans-serif',
+  fontFamily: 'var(--font-space), system-ui, sans-serif',
   headings: {
     fontFamily: 'var(--font-space), system-ui, sans-serif',
     sizes: {

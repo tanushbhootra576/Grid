@@ -10,11 +10,12 @@ import {
   IconMoodSad, IconFlame, IconSearch, IconArrowDown, IconHash, IconBuilding,
   IconCalendar, IconMessage, IconUserPlus, IconBan, IconDotsVertical,
   IconArrowLeft, IconEye, IconPinned, IconPinnedOff, IconStarFilled,
-  IconBell, IconBellRinging
+  IconBell, IconBellRinging, IconShieldCheck
 } from "@tabler/icons-react";
 import { showError, showSuccess, showInfo } from "@/lib/error-handling";
 import { getAuthHeaders } from "@/lib/api";
 import g from "../grid.module.css";
+import c from "./chat.module.css";
 
 interface Reaction { userId: string; emoji: string; }
 interface Message {
@@ -22,6 +23,7 @@ interface Message {
   type: "universal" | "branch" | "year" | "dm" | "blind"; branch?: string; year?: number;
   createdAt: string; replyTo?: { _id: string; content: string; senderName: string; };
   reactions: Reaction[]; sticker?: string;
+  senderVerified?: boolean;
 }
 interface ConversationSummary {
   _id: string; publicId?: string; name: string; photoURL?: string;
@@ -63,6 +65,8 @@ function ChatPageContent() {
   const [recentDms, setRecentDms] = useState<ConversationSummary[]>([]);
   const [totalDmUnread, setTotalDmUnread] = useState(0);
   
+  const [stickerPanelOpen, setStickerPanelOpen] = useState(false);
+  
   const dmUnreadSnapshot = useRef<Record<string, number>>({});
   const dmSnapshotReady = useRef(false);
   const messagesHashRef = useRef("");
@@ -87,6 +91,9 @@ function ChatPageContent() {
   const [userSearchQuery, setUserSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [blockedUsers, setBlockedUsers] = useState<string[]>([]);
+  
+  const [contextMenuMsg, setContextMenuMsg] = useState<string | null>(null);
+  const [contextMenuDm, setContextMenuDm] = useState<string | null>(null);
 
   const [showSidebar, setShowSidebar] = useState(true);
   const [supportsNotifications, setSupportsNotifications] = useState(true);
@@ -251,6 +258,8 @@ function ChatPageContent() {
     if (action === "pin" && pinnedCount >= 3) { showError({ message: "You can pin up to 3 conversations." }, "Pin Limit"); return; }
     if (action === "delete" && !confirm("Delete this conversation for both participants?")) return;
 
+    setContextMenuDm(null);
+
     try {
       const res = await fetch("/api/chat/preferences", {
         method: "POST",
@@ -394,6 +403,8 @@ function ChatPageContent() {
     const type = activeTab;
     const branch = profile.role === "admin" ? adminBranch : profile.branch;
     const year = profile.role === "admin" ? adminYear : profile.year;
+    
+    setStickerPanelOpen(false);
 
     try {
       const res = await fetch("/api/chat", {
@@ -427,11 +438,14 @@ function ChatPageContent() {
 
   const handleDeleteMessage = async (msgId: string) => {
     if (!confirm("Delete this message?")) return;
+    setContextMenuMsg(null);
     try {
       const res = await fetch(`/api/chat/${msgId}?userId=${profile?._id}`, { method: "DELETE", headers: getAuthHeaders() });
       if (res.ok) fetchMessages();
     } catch (error) {}
   };
+  
+  const isBlockedUser = dmRecipientId && blockedUsers.includes(dmRecipientId);
 
   if (!user) {
     return (
@@ -444,195 +458,382 @@ function ChatPageContent() {
     );
   }
 
-
   return (
     <>
       <Navbar />
-      <div style={{ display: 'flex', height: 'calc(100vh - 80px)', background: 'var(--bg)', borderTop: '1px solid var(--border)' }}>
+      <div className={c.chatWrap}>
         
         {/* Sidebar */}
-        <div style={{ width: showSidebar ? 320 : 0, transition: 'width 0.3s', borderRight: '1px solid var(--border)', background: 'var(--bg)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '20px' }}>
-            <h3 style={{ fontFamily: 'var(--font-space)', fontSize: '1rem', marginBottom: 16 }}>Channels</h3>
+        <div className={`${c.sidebar} ${!showSidebar ? c.sidebarHidden : ''}`}>
+          <div className={c.sidebarTop}>
+            <div className={c.sidebarTitle}>Channels</div>
+            <div className={c.channelList}>
+              <button className={`${c.channelBtn} ${activeTab === 'universal' ? c.channelBtnActive : ''}`} onClick={() => setActiveTab('universal')}>
+                <IconHash size={18} className={c.channelIcon} /> Universal
+              </button>
+              <button 
+                className={`${c.channelBtn} ${activeTab === 'branch' ? c.channelBtnActive : ''}`} 
+                onClick={() => setActiveTab('branch')} 
+                disabled={!profile?.branch && profile?.role !== 'admin'}
+                style={{ opacity: (!profile?.branch && profile?.role !== 'admin') ? 0.5 : 1 }}
+              >
+                <IconBuilding size={18} className={c.channelIcon} /> 
+                {profile?.role === 'admin' ? adminBranch || 'Branch (Admin)' : profile?.branch || 'Branch'}
+              </button>
+              <button 
+                className={`${c.channelBtn} ${activeTab === 'year' ? c.channelBtnActive : ''}`} 
+                onClick={() => setActiveTab('year')} 
+                disabled={!profile?.year && profile?.role !== 'admin'}
+                style={{ opacity: (!profile?.year && profile?.role !== 'admin') ? 0.5 : 1 }}
+              >
+                <IconCalendar size={18} className={c.channelIcon} /> 
+                {profile?.role === 'admin' ? (adminYear ? `Year ${adminYear} (Admin)` : 'Year (Admin)') : (profile?.year ? `Year ${profile.year}` : 'Year')}
+              </button>
+              <button className={`${c.channelBtn} ${activeTab === 'blind' ? c.channelBtnActive : ''}`} onClick={() => setActiveTab('blind')}>
+                <IconEye size={18} className={c.channelIcon} /> Blind Insights
+              </button>
+            </div>
+          </div>
+          
+          <div className={c.dmSection}>
+            <div className={c.dmSectionHeader}>
+              <div className={c.dmSectionTitle}>Direct Messages</div>
+              <button className={c.iconBtn} onClick={() => setSearchModalOpen(true)}>
+                <IconUserPlus size={16} />
+              </button>
+            </div>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <button className={g.btn} style={{ justifyContent: 'flex-start', background: activeTab === 'universal' ? 'var(--accent)' : 'transparent', color: activeTab === 'universal' ? '#fff' : 'var(--text)', border: 'none' }} onClick={() => setActiveTab('universal')}>
-                <IconHash size={16} /> Universal
-              </button>
-              <button className={g.btn} style={{ justifyContent: 'flex-start', background: activeTab === 'branch' ? 'var(--accent)' : 'transparent', color: activeTab === 'branch' ? '#fff' : 'var(--text)', border: 'none' }} onClick={() => setActiveTab('branch')} disabled={!profile?.branch && profile?.role !== 'admin'}>
-                <IconBuilding size={16} /> {profile?.role === 'admin' ? adminBranch || 'Branch (Admin)' : profile?.branch || 'Branch'}
-              </button>
-              <button className={g.btn} style={{ justifyContent: 'flex-start', background: activeTab === 'year' ? 'var(--accent)' : 'transparent', color: activeTab === 'year' ? '#fff' : 'var(--text)', border: 'none' }} onClick={() => setActiveTab('year')} disabled={!profile?.year && profile?.role !== 'admin'}>
-                <IconCalendar size={16} /> {profile?.role === 'admin' ? (adminYear ? `Year ${adminYear} (Admin)` : 'Year (Admin)') : (profile?.year ? `Year ${profile.year}` : 'Year')}
-              </button>
-              <button className={g.btn} style={{ justifyContent: 'flex-start', background: activeTab === 'blind' ? 'var(--accent)' : 'transparent', color: activeTab === 'blind' ? '#fff' : 'var(--text)', border: 'none' }} onClick={() => setActiveTab('blind')}>
-                <IconEye size={16} /> Anonymous / Blind
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 32, marginBottom: 16 }}>
-              <h3 style={{ fontFamily: 'var(--font-space)', fontSize: '1rem', margin: 0 }}>Direct Messages</h3>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button className={g.btn} style={{ padding: 4, border: 'none' }} onClick={() => setSearchModalOpen(true)}>
-                  <IconUserPlus size={16} />
-                </button>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto' }}>
+            <div className={c.dmList}>
               {recentDms.map(dm => {
                 const isActive = activeTab === 'dm' && dmRecipientId === dm._id;
                 return (
-                  <button key={dm._id} className={g.btn} style={{ justifyContent: 'space-between', background: isActive ? 'var(--accent-2)' : 'transparent', color: 'var(--text)', border: 'none', padding: '8px 12px' }} onClick={() => router.push(`/chat?dm=${dm._id}`)}>
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: 'bold' }}>{dm.name?.[0]}</div>
-                      <span style={{ fontWeight: isActive ? 'bold' : 'normal' }}>{dm.name}</span>
-                    </div>
-                    {(dm.unreadCount ?? 0) > 0 && <span className={g.badge} style={{ background: 'red', color: 'white', padding: '2px 6px', fontSize: '0.7rem' }}>{dm.unreadCount}</span>}
-                  </button>
-                )
+                  <div key={dm._id} style={{ position: 'relative' }}>
+                    <button 
+                      className={`${c.dmItem} ${isActive ? c.dmItemActive : ''}`} 
+                      onClick={() => router.push(`/chat?dm=${dm._id}`)}
+                    >
+                      <div className={`${c.dmAvatar} ${dm.isPinned ? c.dmAvatarPinned : ''}`}>
+                        {dm.name?.[0]?.toUpperCase()}
+                      </div>
+                      <div className={c.dmInfo}>
+                        <div className={c.dmName}>{dm.name}</div>
+                        <div className={c.dmPreview}>{dm.lastMessagePreview || "New conversation"}</div>
+                      </div>
+                      {(dm.unreadCount ?? 0) > 0 && <div className={c.dmBadge}>{dm.unreadCount}</div>}
+                    </button>
+                    
+                    <button 
+                      className={c.iconBtn} 
+                      style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', opacity: contextMenuDm === dm._id ? 1 : 0 }}
+                      onClick={(e) => { e.stopPropagation(); setContextMenuDm(contextMenuDm === dm._id ? null : dm._id); }}
+                    >
+                      <IconDotsVertical size={16} />
+                    </button>
+                    
+                    {contextMenuDm === dm._id && (
+                      <div className={c.contextMenu} style={{ right: 8, top: '100%', zIndex: 100 }}>
+                        <button className={c.contextMenuItem} onClick={() => handleConversationAction(dm._id, dm.isPinned ? "unpin" : "pin")}>
+                          {dm.isPinned ? <><IconPinnedOff size={16} /> Unpin</> : <><IconPinned size={16} /> Pin (Max 3)</>}
+                        </button>
+                        <div className={c.contextMenuDivider} />
+                        <button className={`${c.contextMenuItem} ${c.contextMenuDanger}`} onClick={() => handleConversationAction(dm._id, "delete")}>
+                          <IconTrash size={16} /> Delete Chat
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
               })}
             </div>
           </div>
         </div>
 
-        {/* Chat Area */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-          {/* Header */}
-          <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-2)' }}>
-            <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-              {!showSidebar && <button className={g.btn} style={{ padding: 4, border: 'none' }} onClick={() => setShowSidebar(true)}><IconArrowLeft size={20} /></button>}
-              <h2 style={{ fontFamily: 'var(--font-space)', fontSize: '1.2rem', margin: 0 }}>
-                {activeTab === 'universal' && '# Universal Chat'}
-                {activeTab === 'branch' && `# ${profile?.branch} Chat`}
-                {activeTab === 'year' && `# Year ${profile?.year} Chat`}
-                {activeTab === 'blind' && `# Blind Insights`}
+        {/* Main Area */}
+        <div className={c.main}>
+          <div className={c.header}>
+            <div className={c.headerLeft}>
+              {!showSidebar && (
+                <button className={c.iconBtn} onClick={() => setShowSidebar(true)}>
+                  <IconArrowLeft size={20} />
+                </button>
+              )}
+              <h2 className={c.headerTitle}>
+                {activeTab === 'universal' && '# Universal'}
+                {activeTab === 'branch' && `# ${profile?.branch || adminBranch}`}
+                {activeTab === 'year' && `# Year ${profile?.year || adminYear}`}
+                {activeTab === 'blind' && '# Blind Insights'}
                 {activeTab === 'dm' && `@ ${dmUser?.name || 'User'}`}
               </h2>
-              {activeTab !== 'dm' && <span className={g.badge} style={{ background: 'var(--bg-3)', color: 'var(--text)' }}>{onlineCount} Online</span>}
+              {activeTab === 'dm' && dmUser && (
+                <button 
+                  className={c.iconBtn} 
+                  title={isBlockedUser ? "Unblock User" : "Block User"} 
+                  onClick={handleBlockUser}
+                  style={{ color: isBlockedUser ? '#ef4444' : 'var(--text-muted)' }}
+                >
+                  <IconBan size={18} />
+                </button>
+              )}
             </div>
-            <input className={g.input} style={{ width: 200, padding: '6px 12px', border: '1px solid var(--border)' }} placeholder="Search messages..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+            
+            <div className={c.headerMeta}>
+              {activeTab !== 'dm' && (
+                <div className={c.onlinePill}>
+                  <div className={c.onlineDot} />
+                  {onlineCount} Online
+                </div>
+              )}
+              <button 
+                className={c.iconBtn} 
+                onClick={toggleNotifications}
+                title={notificationsEnabled ? "Disable Notifications" : "Enable Notifications"}
+              >
+                {notificationsEnabled ? <IconBell size={18} /> : <IconBellRinging size={18} style={{ opacity: 0.5 }} />}
+              </button>
+              <div className={c.searchBar}>
+                <IconSearch size={16} color="var(--text-muted)" />
+                <input 
+                  className={c.searchInput} 
+                  placeholder="Search messages..." 
+                  value={searchQuery} 
+                  onChange={e => setSearchQuery(e.target.value)} 
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Messages */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '24px', position: 'relative' }} ref={viewport} onScroll={onScrollPositionChange}>
-            {isMessagesLoading && messages.length === 0 ? <div className={g.spinner} style={{ margin: 'auto' }} /> : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {filteredMessages.map(msg => {
+          <div className={c.messages} ref={viewport} onScroll={onScrollPositionChange}>
+            {isMessagesLoading && messages.length === 0 ? (
+              <div className={c.messagesLoading}>
+                <div className="squareSpinner" />
+                <div>Loading messages...</div>
+              </div>
+            ) : filteredMessages.length === 0 ? (
+              <div className={c.emptyState}>
+                <IconMessage size={48} className={c.emptyIcon} />
+                <div className={c.emptyTitle}>No messages yet</div>
+                <div>Be the first to say hello!</div>
+              </div>
+            ) : (
+              <>
+                {filteredMessages.map((msg, idx) => {
                   const isMe = msg.senderId === String(profile?._id);
+                  const isBlind = activeTab === 'blind';
+                  const showDateDivider = idx === 0 || new Date(filteredMessages[idx-1].createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
+                  
                   return (
-                    <div key={msg._id} style={{ display: 'flex', gap: 12, alignItems: 'flex-end', alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '75%' }}>
-                      {!isMe && <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--accent-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>{msg.senderName === 'Anonymous' ? <IconEye size={16} /> : msg.senderName?.[0]}</div>}
+                    <div key={msg._id} style={{ display: 'flex', flexDirection: 'column' }}>
+                      {showDateDivider && (
+                        <div className={c.dayDivider}>
+                          <div className={c.dayDividerLine} />
+                          {new Date(msg.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                          <div className={c.dayDividerLine} />
+                        </div>
+                      )}
                       
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
-                        {!isMe && <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 4, marginLeft: 4 }}>{msg.senderName} • {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
-                        {isMe && <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 4, marginRight: 4 }}>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
-                        
-                        {msg.replyTo && (
-                          <div style={{ fontSize: '0.8rem', background: 'var(--bg-3)', padding: '6px 10px', borderRadius: 4, marginBottom: 4, borderLeft: '3px solid var(--accent)', color: 'var(--text-muted)' }}>
-                            <strong style={{ color: 'var(--text)' }}>{msg.replyTo.senderName}</strong>: {msg.replyTo.content.substring(0, 40)}...
+                      <div className={`${c.msgRow} ${isMe ? c.msgRowMe : ''}`}>
+                        {!isMe && (
+                          <div className={c.msgAvatar}>
+                            {isBlind ? <IconEye size={18} /> : msg.senderName?.[0]?.toUpperCase()}
                           </div>
                         )}
                         
-                        {msg.sticker ? (
-                          <img src={msg.sticker} alt="sticker" style={{ width: 120, height: 120, objectFit: 'contain' }} />
-                        ) : (
-                          <div style={{ 
-                            padding: '10px 16px', 
-                            background: isMe ? 'var(--accent)' : 'var(--bg-2)', 
-                            color: isMe ? '#fff' : 'var(--text)', 
-                            border: isMe ? 'none' : '1px solid var(--border)',
-                            borderBottomRightRadius: isMe ? 0 : 16,
-                            borderBottomLeftRadius: !isMe ? 0 : 16,
-                            borderTopLeftRadius: 16,
-                            borderTopRightRadius: 16,
-                            fontSize: '0.95rem',
-                            lineHeight: 1.4
-                          }}>
-                            {msg.content}
-                          </div>
-                        )}
+                        <div className={c.msgBody}>
+                          {!isMe && (
+                            <div className={c.msgMeta}>
+                              <span className={c.msgSender}>{isBlind ? 'Anonymous' : msg.senderName}</span>
+                              {msg.senderVerified && !isBlind && (
+                                <IconShieldCheck size={14} className={c.verifiedBadge} title="Verified Student" />
+                              )}
+                              <span className={c.msgTime}>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                          )}
+                          {isMe && (
+                            <div className={c.msgMeta}>
+                              <span className={c.msgTime}>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                          )}
+                          
+                          {msg.replyTo && (
+                            <div className={c.replyQuote}>
+                              <div className={c.replyQuoteText}>
+                                <strong>{msg.replyTo.senderName}</strong>: {msg.replyTo.content}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {msg.sticker ? (
+                            <img src={msg.sticker} alt="sticker" className={c.sticker} />
+                          ) : (
+                            <div className={`${c.bubble} ${isMe ? c.bubbleMe : c.bubbleOther} ${isBlind ? c.bubbleBlind : ''}`}>
+                              {msg.content}
+                            </div>
+                          )}
+                          
+                          {msg.reactions?.length > 0 && (
+                            <div className={c.reactions}>
+                              {Array.from(new Set(msg.reactions.map(r => r.emoji))).map(emoji => (
+                                <button 
+                                  key={emoji} 
+                                  className={`${c.reactionChip} ${msg.reactions.some(r => r.emoji === emoji && String(r.userId) === String(profile?._id)) ? c.reactionChipActive : ''}`} 
+                                  onClick={() => handleReaction(msg._id, emoji)}
+                                >
+                                  {emoji} {msg.reactions.filter(r => r.emoji === emoji).length}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
 
-                        <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-                          {msg.reactions?.length > 0 && Array.from(new Set(msg.reactions.map(r => r.emoji))).map(emoji => (
-                            <span key={emoji} className={g.badge} style={{ cursor: 'pointer', background: 'var(--bg-3)', padding: '2px 6px', fontSize: '0.75rem', border: '1px solid var(--border)' }} onClick={() => handleReaction(msg._id, emoji)}>
-                              {emoji} {msg.reactions.filter(r => r.emoji === emoji).length}
-                            </span>
-                          ))}
-                          <button className={g.btn} style={{ padding: 2, border: 'none', background: 'transparent' }} onClick={() => setReplyingTo(msg)}><IconArrowBackUp size={14} /></button>
-                          {(isMe || profile?.role === 'admin') && <button className={g.btn} style={{ padding: 2, border: 'none', background: 'transparent' }} onClick={() => handleDeleteMessage(msg._id)}><IconTrash size={14} /></button>}
+                        {/* Hover Actions */}
+                        <div className={c.msgActions}>
+                          <div className={c.reactionPicker}>
+                            {['👍', '❤️', '😂', '😮'].map(emoji => (
+                              <button key={emoji} className={c.reactionBtn} onClick={() => handleReaction(msg._id, emoji)}>
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                          <div style={{ width: 1, height: 16, background: 'var(--border)', margin: '0 4px' }} />
+                          <button className={c.actionBtn} onClick={() => setReplyingTo(msg)} title="Reply">
+                            <IconArrowBackUp size={16} />
+                          </button>
+                          {(isMe || profile?.role === 'admin') && (
+                            <button className={c.actionBtn} onClick={() => handleDeleteMessage(msg._id)} title="Delete">
+                              <IconTrash size={16} />
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
                   );
                 })}
-              </div>
+              </>
             )}
+            
             {showScrollButton && (
-              <button className={`${g.btn} ${g.btnPrimary}`} style={{ position: 'absolute', bottom: 24, right: 24, borderRadius: '50%', width: 48, height: 48, padding: 0, justifyContent: 'center' }} onClick={scrollToBottom}>
+              <button className={c.scrollBtn} onClick={scrollToBottom}>
                 <IconArrowDown size={20} />
               </button>
             )}
           </div>
 
-          {/* Input Area */}
-          <div style={{ padding: 24, borderTop: '1px solid var(--border)', background: 'var(--bg-2)' }}>
-            {replyingTo && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-3)', padding: '8px 16px', borderLeft: '4px solid var(--accent)', marginBottom: 12 }}>
-                <div>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Replying to {replyingTo.senderName}</div>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{replyingTo.content.substring(0, 60)}</div>
-                </div>
-                <button className={g.btn} style={{ padding: 4, border: 'none' }} onClick={() => setReplyingTo(null)}><IconX size={16} /></button>
-              </div>
-            )}
-            
-            <div style={{ display: 'flex', gap: 12 }}>
-              <input 
-                className={g.input} 
-                style={{ flex: 1, border: '1px solid var(--border)', fontSize: '1rem', padding: '12px 16px' }} 
-                placeholder="Type a message..." 
-                value={newMessage} 
-                onChange={e => setNewMessage(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-              />
-              <button className={`${g.btn} ${g.btnPrimary}`} style={{ padding: '0 24px' }} onClick={() => handleSendMessage()} disabled={!newMessage.trim()}>
-                <IconSend size={20} />
-              </button>
+          {isBlockedUser && (
+            <div className={c.blockedNotice}>
+              <IconBan size={20} />
+              You have blocked this user. Messages won't be sent or received.
             </div>
-          </div>
+          )}
+
+          {!isBlockedUser && (
+            <div className={c.inputArea}>
+              {replyingTo && (
+                <div className={c.replyBar}>
+                  <div className={c.replyBarText}>
+                    Replying to <strong>{replyingTo.senderName}</strong>: {replyingTo.content}
+                  </div>
+                  <button className={c.iconBtn} onClick={() => setReplyingTo(null)}>
+                    <IconX size={16} />
+                  </button>
+                </div>
+              )}
+              
+              <div className={c.inputRow}>
+                <textarea 
+                  className={c.inputBox}
+                  placeholder={activeTab === 'blind' ? "Type an anonymous message..." : "Type a message..."}
+                  value={newMessage}
+                  onChange={e => setNewMessage(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  rows={1}
+                />
+                
+                <div className={c.inputActions}>
+                  <div style={{ position: 'relative' }}>
+                    <button 
+                      className={c.iconBtn} 
+                      onClick={() => setStickerPanelOpen(!stickerPanelOpen)}
+                      style={{ width: 44, height: 44, borderRadius: '50%', background: stickerPanelOpen ? 'var(--bg-3)' : 'transparent' }}
+                    >
+                      <IconSticker size={24} />
+                    </button>
+                    
+                    {stickerPanelOpen && (
+                      <div className={c.stickerPanel}>
+                        {STICKERS.map((sticker, idx) => (
+                          <button key={idx} className={c.stickerBtn} onClick={() => handleSendMessage(sticker)}>
+                            <img src={sticker} alt="Sticker" className={c.stickerImg} />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <button 
+                    className={c.sendBtn} 
+                    onClick={() => handleSendMessage()} 
+                    disabled={!newMessage.trim() && !stickerPanelOpen}
+                    style={{ borderRadius: '50%' }}
+                  >
+                    <IconSend size={20} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* New DM Search Modal */}
+      {/* Search Modal */}
       {searchModalOpen && (
-        <div className={g.modalBackdrop}>
-          <div className={g.modal} style={{ maxWidth: 500 }}>
-            <div className={g.modalHeader}>
-              <h2 className={g.modalTitle}>New Message</h2>
-              <button className={g.closeBtn} onClick={() => setSearchModalOpen(false)}><IconX size={24} /></button>
+        <div className={c.modalOverlay} onClick={() => setSearchModalOpen(false)}>
+          <div className={c.modal} onClick={e => e.stopPropagation()}>
+            <div className={c.modalHeader}>
+              <h2 className={c.modalTitle}>New Direct Message</h2>
+              <button className={c.iconBtn} onClick={() => setSearchModalOpen(false)}>
+                <IconX size={20} />
+              </button>
             </div>
-            <div className={g.modalBody}>
-              <input className={g.input} style={{ width: '100%', marginBottom: 16, border: '1px solid var(--border)' }} placeholder="Search users by name..." value={userSearchQuery} onChange={e => handleSearchUsers(e.target.value)} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {searchResults.map(u => (
-                  <div key={u._id} className={g.card} style={{ height: 'auto', padding: 12, cursor: 'pointer', border: '1px solid var(--border)' }} onClick={() => startDm(u._id)}>
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                      <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--accent-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>{u.name[0]}</div>
-                      <div>
-                        <div style={{ fontWeight: 'bold' }}>{u.name}</div>
-                        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{u.branch} • Year {u.year}</div>
+            
+            <div className={c.modalSearch}>
+              <input 
+                className={c.modalSearchInput} 
+                placeholder="Search users by name..." 
+                value={userSearchQuery} 
+                onChange={e => handleSearchUsers(e.target.value)} 
+                autoFocus
+              />
+            </div>
+            
+            <div className={c.modalResults}>
+              {searchResults.length > 0 ? (
+                searchResults.map(u => (
+                  <div key={u._id} className={c.userResult} onClick={() => startDm(u._id)}>
+                    <div className={c.userResultAvatar}>
+                      {u.name[0]?.toUpperCase()}
+                    </div>
+                    <div>
+                      <div className={c.userResultName}>{u.name}</div>
+                      <div className={c.userResultMeta}>
+                        {u.branch} • Year {u.year}
                       </div>
                     </div>
                   </div>
-                ))}
-                {userSearchQuery.length >= 2 && searchResults.length === 0 && <div style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: 16 }}>No users found</div>}
-              </div>
+                ))
+              ) : userSearchQuery.length >= 2 ? (
+                <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>
+                  No users found matching "{userSearchQuery}"
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>
+                  Type at least 2 characters to search
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -643,8 +844,9 @@ function ChatPageContent() {
 
 export default function ChatPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<div className="squareSpinner" style={{ margin: '100px auto' }} />}>
       <ChatPageContent />
     </Suspense>
   );
 }
+

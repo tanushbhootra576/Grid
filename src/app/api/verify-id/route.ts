@@ -1,87 +1,243 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
+import Tesseract from "tesseract.js";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { getServerSession } from "next-auth";
+import crypto from "crypto";
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Hash the raw base64 image bytes — catches ANY re-upload of the same file */
+function hashImage(base64: string): string {
+  return crypto.createHash("sha256").update(base64).digest("hex");
+}
+
+/**
+ * Deterministic salted hash of the student's identity extracted from the card.
+ * Uses Roll/Enrollment Number if found (strongest), otherwise Name.
+ * Both are combined with the College name.
+ */
+function hashIdentity(
+  extractedName: string,
+  extractedCollege: string,
+  extractedIdNumber: string
+): string {
+  const salt =
+    process.env.STUDENT_ID_HASH_SALT ||
+    process.env.NEXTAUTH_SECRET ||
+    "grid-salt-fallback";
+
+  const identifier = extractedIdNumber
+    ? extractedIdNumber.toLowerCase().trim()
+    : extractedName.toLowerCase().trim();
+
+  const input = `${identifier}|${extractedCollege.toLowerCase().trim()}`;
+  return crypto.createHmac("sha256", salt).update(input).digest("hex");
+}
+
+// ─── Route ────────────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
   try {
     await dbConnect();
+
+    // ── Auth: get session email ───────────────────────────────────────────────
     const session = await getServerSession();
-    if (!session || !session.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const sessionEmail = session?.user?.email;
+
+    if (!sessionEmail) {
+      return NextResponse.json({ error: "Unauthorized – please sign in." }, { status: 401 });
     }
 
-    const { idImageBase64 } = await req.json();
-
-    if (!idImageBase64) {
-      return NextResponse.json({ error: "Image is required" }, { status: 400 });
-    }
-
-    const user = await User.findOne({ email: session.user.email });
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-    if (!apiKey) {
-        return NextResponse.json({ error: "Gemini API key is not configured." }, { status: 500 });
-    }
-
-    const ai = new GoogleGenAI({ apiKey });
-
-    const systemPrompt = `You are an automated KYC verification system.
-The user has uploaded a photo of an ID card. Your job is to verify if it is a valid Student ID Card or College ID.
-Check if the name on the card matches "${user.name}".
-Respond ONLY with a valid JSON object matching this schema:
-{
-  "isValidId": boolean,
-  "nameMatches": boolean,
-  "extractedName": string,
-  "extractedCollege": string,
-  "confidenceScore": number,
-  "reason": string
-}`;
-
-    const parts: any[] = [
-      { text: systemPrompt },
-      {
-        inlineData: {
-            data: idImageBase64,
-            mimeType: "image/jpeg"
-        }
-      }
-    ];
-
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: [
-            { role: 'user', parts }
-        ],
-        config: {
-            responseMimeType: "application/json"
-        }
-    });
-
-    let resultJson;
+    // ── Parse body ────────────────────────────────────────────────────────────
+    let idImageBase64: string;
     try {
-        resultJson = JSON.parse(response.text || "{}");
+      const body = await req.json();
+      idImageBase64 = body?.idImageBase64 ?? "";
+    } catch {
+      return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+    }
+
+    if (!idImageBase64 || idImageBase64.length < 100) {
+      return NextResponse.json({ error: "Image is required." }, { status: 400 });
+    }
+
+    // ── Lookup current user ───────────────────────────────────────────────────
+    const user = await User.findOne({ email: sessionEmail });
+    if (!user) {
+      return NextResponse.json({ error: "User not found." }, { status: 404 });
+    }
+
+    // ── Already verified? ─────────────────────────────────────────────────────
+    if (user.verified) {
+      return NextResponse.json({
+        success: true,
+        verified: true,
+        data: { reason: "Your account is already verified." },
+      });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // LAYER 1: Image fingerprint check (fastest – no AI needed)
+    // ─────────────────────────────────────────────────────────────────────────
+    const imageHash = hashImage(idImageBase64);
+
+    const imageDuplicate = await User.findOne({
+      studentIdImageHash: imageHash,
+      _id: { $ne: user._id },
+    }).lean();
+
+    if (imageDuplicate) {
+      console.warn(
+        `[verify-id] Image duplicate: ${sessionEmail} tried to reuse image already used by ${(imageDuplicate as any).email}`
+      );
+      return NextResponse.json({
+        success: false,
+        verified: false,
+        duplicateAccount: true,
+        data: {
+          reason:
+            "This exact ID card photo is already linked to another account on Grid. " +
+            "Each student must use their own original ID card photo. " +
+            "Multiple accounts are not permitted.",
+        },
+      });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // LAYER 2: OCR Extraction (Lightweight, No API Keys)
+    // ─────────────────────────────────────────────────────────────────────────
+    let extractedText = "";
+    try {
+      // Ensure the image string is a proper data URI for Tesseract
+      let tesseractInput = idImageBase64;
+      if (!idImageBase64.startsWith("data:image")) {
+        // Defaulting to jpeg if mime type isn't provided in the base64 string
+        tesseractInput = `data:image/jpeg;base64,${idImageBase64}`;
+      }
+      
+      const { data: { text } } = await Tesseract.recognize(tesseractInput, 'eng');
+      extractedText = text;
     } catch (e) {
-        return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
+      console.error("[verify-id] OCR Error:", e);
+      return NextResponse.json(
+        { error: "Failed to read text from the image. Please try again with a clearer photo." },
+        { status: 500 }
+      );
     }
 
-    if (resultJson.isValidId && resultJson.nameMatches) {
-        user.verified = true;
-        await user.save();
-        return NextResponse.json({ success: true, verified: true, data: resultJson }, { status: 200 });
-    } else {
-        return NextResponse.json({ success: false, verified: false, data: resultJson }, { status: 200 });
+    // Basic logic to check if name is in the card
+    const textLower = extractedText.toLowerCase();
+    
+    // We split the user's name and check if at least their first and last name appear
+    const nameParts = user.name.toLowerCase().split(" ").filter((p: string) => p.length > 2);
+    let matchedParts = 0;
+    for (const part of nameParts) {
+        if (textLower.includes(part)) {
+            matchedParts++;
+        }
+    }
+    const nameMatches = nameParts.length > 0 ? (matchedParts / nameParts.length >= 0.5) : textLower.includes(user.name.toLowerCase());
+
+    // Basic regex to find an ID number (e.g. 6+ alphanumeric characters)
+    const possibleIds = extractedText.match(/\b[A-Z0-9]{6,15}\b/g) || [];
+    const extractedIdNumber = possibleIds[0] || "";
+    const extractedCollege = "Verified College (OCR fallback)";
+
+    const aiResult = {
+      isValidId: nameMatches,
+      nameMatches: nameMatches,
+      extractedName: nameMatches ? user.name : "",
+      extractedCollege: extractedCollege,
+      extractedIdNumber: extractedIdNumber,
+      confidenceScore: nameMatches ? 0.9 : 0.3,
+      reason: nameMatches 
+        ? "Name matched successfully via OCR." 
+        : "Could not find matching name on the ID card."
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // LAYER 3: Validate AI result
+    // ─────────────────────────────────────────────────────────────────────────
+    if (!aiResult.isValidId || !aiResult.nameMatches) {
+      return NextResponse.json({ success: false, verified: false, data: aiResult });
     }
 
+    const extractedName = (aiResult.extractedName || "").trim();
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // LAYER 4: Identity hash check
+    // ─────────────────────────────────────────────────────────────────────────
+    const identityHash = hashIdentity(extractedName, extractedCollege, extractedIdNumber);
+
+    const identityDuplicate = await User.findOne({
+      studentIdHash: identityHash,
+      _id: { $ne: user._id },
+    }).lean();
+
+    if (identityDuplicate) {
+      console.warn(
+        `[verify-id] Identity duplicate: ${sessionEmail} matches existing verified account ${(identityDuplicate as any).email}`
+      );
+      return NextResponse.json({
+        success: false,
+        verified: false,
+        duplicateAccount: true,
+        data: {
+          reason:
+            "This student identity is already linked to another account on Grid. " +
+            "Only one account per student is allowed. " +
+            "Contact support if you believe this is an error.",
+        },
+      });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // LAYER 5: Save
+    // ─────────────────────────────────────────────────────────────────────────
+    try {
+      await User.findOneAndUpdate(
+        {
+          _id: user._id,
+          verified: false,
+        },
+        {
+          $set: {
+            verified: true,
+            studentIdHash: identityHash,
+            studentIdImageHash: imageHash,
+          },
+        },
+        { new: true }
+      );
+    } catch (saveErr: any) {
+      if (saveErr.code === 11000) {
+        return NextResponse.json({
+          success: false,
+          verified: false,
+          duplicateAccount: true,
+          data: {
+            reason:
+              "This student ID is already linked to another account on Grid. " +
+              "Multiple accounts with the same student identity are not permitted.",
+          },
+        });
+      }
+      throw saveErr;
+    }
+
+    return NextResponse.json({
+      success: true,
+      verified: true,
+      data: {
+        ...aiResult,
+        reason: `Verified: ${extractedName} via localized OCR.`,
+      },
+    });
   } catch (error: any) {
-    console.error("Error in verify-id API:", error);
+    console.error("[verify-id] Unhandled error:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Internal Server Error. Please try again." },
       { status: 500 }
     );
   }

@@ -498,12 +498,12 @@ export default function ProfilePage() {
                       <div style={{ width: 20, height: 20, border: item.done ? "none" : "2px solid var(--border)", background: item.done ? "#22c55e" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                         {item.done && <IconCheck size={13} color="#fff" />}
                       </div>
-                      <span style={{ color: item.done ? "var(--text)" : "var(--text-muted)", textDecoration: item.done ? "none" : "none" }}>{item.label}</span>
+                      <span style={{ fontFamily: "var(--font-space)", color: item.done ? "var(--text)" : "var(--text-muted)", textDecoration: item.done ? "none" : "none" }}>{item.label}</span>
                     </div>
                   ))}
                 </div>
                 {!isVerified && (
-                  <div style={{ marginTop: 24, padding: 12, background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.2)", fontSize: "0.82rem", color: "var(--text-muted)" }}>
+                  <div style={{ fontFamily: "var(--font-space)", marginTop: 24, padding: 12, background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.2)", fontSize: "0.82rem", color: "var(--text-muted)" }}>
                     <IconAlertTriangle size={14} style={{ color: "#ef4444", verticalAlign: "middle", marginRight: 6 }} />
                     Verify your ID to unlock Chat and PoW endorsements.
                   </div>
@@ -517,7 +517,7 @@ export default function ProfilePage() {
         {activeTab === "verification" && (
           <div style={{ maxWidth: 620 }}>
             <h3 style={{ fontFamily: "var(--font-space)", fontSize: "1.25rem", marginBottom: 8 }}>Student ID Verification</h3>
-            <p style={{ color: "var(--text-muted)", marginBottom: 40, lineHeight: 1.6 }}>
+            <p style={{ fontFamily: "var(--font-space)", color: "var(--text-muted)", marginBottom: 40, lineHeight: 1.6 }}>
               Upload a clear photo of your college ID card. Our AI will read it and cross-check your name against your profile.
               Verification unlocks <strong>Universal Chat</strong> and <strong>PoW Endorsements</strong>.
             </p>
@@ -527,7 +527,7 @@ export default function ProfilePage() {
                 <IconShieldCheck size={48} color="#22c55e" />
                 <div style={{ textAlign: "center" }}>
                   <div style={{ fontFamily: "var(--font-space)", fontSize: "1.25rem", fontWeight: 700, color: "#22c55e" }}>Verified</div>
-                  <div style={{ color: "var(--text-muted)", marginTop: 4 }}>Your student identity has been confirmed.</div>
+                  <div style={{ fontFamily: "var(--font-space)", color: "var(--text-muted)", marginTop: 4 }}>Your student identity has been confirmed.</div>
                 </div>
               </div>
             ) : (
@@ -538,7 +538,7 @@ export default function ProfilePage() {
                       {verifyResult.success ? <IconShieldCheck size={24} color="#22c55e" /> : <IconShieldX size={24} color="#ef4444" />}
                       <strong style={{ color: verifyResult.success ? "#22c55e" : "#ef4444" }}>{verifyResult.message}</strong>
                     </div>
-                    {verifyResult.reason && <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", margin: 0 }}>{verifyResult.reason}</p>}
+                    {verifyResult.reason && <p style={{ fontFamily: "var(--font-space)", color: "var(--text-muted)", fontSize: "0.9rem", margin: 0 }}>{verifyResult.reason}</p>}
                     {!verifyResult.success && (
                       <button className={g.btn} style={{ marginTop: 16, fontSize: "0.85rem" }} onClick={() => { setVerifyResult(null); idFileInputRef.current?.click(); }}>
                         Try Again
@@ -561,7 +561,7 @@ export default function ProfilePage() {
                       <>
                         <IconUpload size={48} style={{ color: "var(--text-muted)", marginBottom: 16, opacity: 0.4 }} />
                         <div style={{ fontFamily: "var(--font-space)", fontWeight: 600, fontSize: "1.1rem" }}>Upload ID Card Photo</div>
-                        <div style={{ color: "var(--text-muted)", marginTop: 8, fontSize: "0.9rem" }}>JPG, PNG or WebP · Max 5MB</div>
+                        <div style={{ fontFamily: "var(--font-space)", color: "var(--text-muted)", marginTop: 8, fontSize: "0.9rem" }}>JPG, PNG or WebP · Max 5MB</div>
                         <div style={{ marginTop: 24 }}>
                           <span className={g.btn} style={{ pointerEvents: "none" }}>Browse Files</span>
                         </div>
@@ -570,7 +570,7 @@ export default function ProfilePage() {
                   </div>
                 )}
 
-                <div style={{ marginTop: 24, padding: 16, background: "var(--bg-2)", border: "1px solid var(--border)", fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
+                <div style={{ marginTop: 24, padding: 16, background: "var(--bg-2)", border: "1px solid var(--border)", fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.6, fontFamily: "var(--font-space)" }}>
                   <strong style={{ color: "var(--text)" }}>Tips for successful verification:</strong>
                   <ul style={{ marginTop: 8, paddingLeft: 20 }}>
                     <li>Ensure the name on the card matches your profile name exactly</li>
@@ -618,6 +618,7 @@ export default function ProfilePage() {
 
             <div style={{ border: "1px solid var(--border)", padding: 24, background: "var(--bg-2)" }}>
               <h4 style={{ fontFamily: "var(--font-space)", marginTop: 0, marginBottom: 20 }}>Add a Project</h4>
+              <button className={`${g.btn} ${g.btnPrimary}`} style={{marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8}} onClick={async () => { setLoading(true); try { const res = await fetch('/api/users/sync-github', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: formData.github ? formData.github.split('github.com/')[1] : '' }) }); const data = await res.json(); if (res.ok) { setFormData(f => ({ ...f, powProjects: data.powProjects })); alert(`Successfully synced ${data.addedCount} projects!`); } else alert(data.error || 'Sync failed'); } catch (e) { alert('Error syncing'); } setLoading(false); }}> <IconBrandGithub size={18} /> Auto-Sync GitHub Repos </button>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr auto", gap: 12, alignItems: "end" }}>
                 <div className={g.formGroup} style={{ margin: 0 }}>
                   <label className={g.label}>Project Name</label>

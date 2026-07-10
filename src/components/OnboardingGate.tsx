@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/components/AuthProvider";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { INDIAN_COLLEGES, findCollege } from "@/data/colleges";
 import { getAuthHeaders } from "@/lib/api";
 import { showError, showSuccess } from "@/lib/error-handling";
@@ -10,26 +10,42 @@ import {
   IconUser, IconBuildingCommunity,
   IconCalendar, IconCheck, IconChevronRight, IconChevronLeft,
   IconBrandLinkedin, IconBrandGithub, IconShieldCheck, IconShieldX,
-  IconUpload
+  IconUpload, IconLock, IconAlertTriangle,
 } from "@tabler/icons-react";
 import g from "@/app/grid.module.css";
 
+/**
+ * Routes where we never show the onboarding overlay.
+ * Login handles its own guidelines-acceptance flow.
+ */
 const SKIP_ROUTES = ["/login", "/signup", "/", "/guidelines", "/privacy", "/terms"];
-const BRANCHES = ["CSE", "ECE", "EEE", "MECH", "CIVIL", "IT", "CPS", "AIML", "Ai-R", "BDS", "BPS", "CHEMICAL", "FASHION", "MBA", "MCA", "Other"];
+
+const BRANCHES = [
+  "CSE", "ECE", "EEE", "MECH", "CIVIL", "IT", "CPS", "AIML",
+  "Ai-R", "BDS", "BPS", "CHEMICAL", "FASHION", "MBA", "MCA", "Other",
+];
 const YEARS = [1, 2, 3, 4, 5];
 
 interface StepProps { formData: any; setFormData: (d: any) => void; }
 
-// ── Step 1: Name ─────────────────────────────────────────────────────────────
+// ── Step 1: Name ──────────────────────────────────────────────────────────────
 function Step1({ formData, setFormData }: StepProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div style={{ textAlign: "center", marginBottom: 8 }}>
-        <div style={{ width: 64, height: 64, background: "var(--accent)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+        <div style={{
+          width: 64, height: 64, background: "var(--accent)", color: "#000",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          margin: "0 auto 16px",
+        }}>
           <IconUser size={32} />
         </div>
-        <h2 style={{ fontFamily: "var(--font-space)", fontSize: "1.5rem", margin: 0 }}>What's your name?</h2>
-        <p style={{ color: "var(--text-muted)", marginTop: 8, fontSize: "0.9rem" }}>This is how others will see you on Grid.</p>
+        <h2 style={{ fontFamily: "var(--font-space)", fontSize: "1.5rem", margin: 0 }}>
+          What's your name?
+        </h2>
+        <p style={{ color: "var(--text-muted)", marginTop: 8, fontSize: "0.9rem" }}>
+          This is how others will see you on Grid.
+        </p>
       </div>
       <div className={g.formGroup}>
         <label className={g.label}>Full Name *</label>
@@ -68,11 +84,19 @@ function Step2({ formData, setFormData }: StepProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div style={{ textAlign: "center", marginBottom: 8 }}>
-        <div style={{ width: 64, height: 64, background: "var(--accent)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+        <div style={{
+          width: 64, height: 64, background: "var(--accent)", color: "#000",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          margin: "0 auto 16px",
+        }}>
           <IconBuildingCommunity size={32} />
         </div>
-        <h2 style={{ fontFamily: "var(--font-space)", fontSize: "1.5rem", margin: 0 }}>Which college?</h2>
-        <p style={{ color: "var(--text-muted)", marginTop: 8, fontSize: "0.9rem" }}>Search from all Indian colleges. Creates your college community.</p>
+        <h2 style={{ fontFamily: "var(--font-space)", fontSize: "1.5rem", margin: 0 }}>
+          Which college?
+        </h2>
+        <p style={{ color: "var(--text-muted)", marginTop: 8, fontSize: "0.9rem" }}>
+          Search from all Indian colleges. Creates your college community.
+        </p>
       </div>
       <div className={g.formGroup} style={{ position: "relative" }}>
         <label className={g.label}>College Name *</label>
@@ -86,15 +110,25 @@ function Step2({ formData, setFormData }: StepProps) {
           autoFocus
         />
         {open && filtered.length > 0 && (
-          <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "var(--bg)", border: "1px solid var(--border)", zIndex: 100, maxHeight: 260, overflowY: "auto" }}>
+          <div style={{
+            position: "absolute", top: "100%", left: 0, right: 0,
+            background: "var(--bg)", border: "1px solid var(--border)",
+            zIndex: 100, maxHeight: 260, overflowY: "auto",
+          }}>
             {filtered.map(c => (
               <button
                 key={c.name}
-                style={{ display: "flex", flexDirection: "column", width: "100%", padding: "12px 16px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left", borderBottom: "1px solid var(--border)" }}
+                style={{
+                  display: "flex", flexDirection: "column", width: "100%",
+                  padding: "12px 16px", background: "transparent", border: "none",
+                  cursor: "pointer", textAlign: "left", borderBottom: "1px solid var(--border)",
+                }}
                 onMouseDown={() => selectCollege(c.name)}
               >
                 <div style={{ fontWeight: 600, color: "var(--text)" }}>{c.name}</div>
-                <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: 2 }}>{c.city}, {c.state} · {c.type}</div>
+                <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: 2 }}>
+                  {c.city}, {c.state} · {c.type}
+                </div>
               </button>
             ))}
           </div>
@@ -104,11 +138,21 @@ function Step2({ formData, setFormData }: StepProps) {
         <div style={{ display: "flex", gap: 12 }}>
           <div className={g.formGroup} style={{ flex: 1 }}>
             <label className={g.label}>City</label>
-            <input className={g.input} style={{ border: "1px solid var(--border)" }} value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} />
+            <input
+              className={g.input}
+              style={{ border: "1px solid var(--border)" }}
+              value={formData.city}
+              onChange={e => setFormData({ ...formData, city: e.target.value })}
+            />
           </div>
           <div className={g.formGroup} style={{ flex: 1 }}>
             <label className={g.label}>State</label>
-            <input className={g.input} style={{ border: "1px solid var(--border)" }} value={formData.state} onChange={e => setFormData({ ...formData, state: e.target.value })} />
+            <input
+              className={g.input}
+              style={{ border: "1px solid var(--border)" }}
+              value={formData.state}
+              onChange={e => setFormData({ ...formData, state: e.target.value })}
+            />
           </div>
         </div>
       )}
@@ -121,11 +165,19 @@ function Step3({ formData, setFormData }: StepProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div style={{ textAlign: "center", marginBottom: 8 }}>
-        <div style={{ width: 64, height: 64, background: "var(--accent)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+        <div style={{
+          width: 64, height: 64, background: "var(--accent)", color: "#000",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          margin: "0 auto 16px",
+        }}>
           <IconCalendar size={32} />
         </div>
-        <h2 style={{ fontFamily: "var(--font-space)", fontSize: "1.5rem", margin: 0 }}>Branch & Year</h2>
-        <p style={{ color: "var(--text-muted)", marginTop: 8, fontSize: "0.9rem" }}>These will be locked after setup. Choose carefully.</p>
+        <h2 style={{ fontFamily: "var(--font-space)", fontSize: "1.5rem", margin: 0 }}>
+          Branch & Year
+        </h2>
+        <p style={{ color: "var(--text-muted)", marginTop: 8, fontSize: "0.9rem" }}>
+          These will be locked after setup. Choose carefully.
+        </p>
       </div>
       <div className={g.formGroup}>
         <label className={g.label}>Branch / Department *</label>
@@ -152,7 +204,7 @@ function Step3({ formData, setFormData }: StepProps) {
                 background: formData.year === y ? "var(--text)" : "var(--bg-2)",
                 color: formData.year === y ? "var(--bg)" : "var(--text)",
                 fontFamily: "var(--font-space)", fontSize: "1.1rem", fontWeight: 700,
-                cursor: "pointer", transition: "all 0.15s"
+                cursor: "pointer", transition: "all 0.15s",
               }}
             >
               {y}
@@ -169,20 +221,35 @@ function Step4({ formData, setFormData }: StepProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div style={{ textAlign: "center", marginBottom: 8 }}>
-        <div style={{ width: 64, height: 64, background: "var(--accent)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+        <div style={{
+          width: 64, height: 64, background: "var(--accent)", color: "#000",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          margin: "0 auto 16px",
+        }}>
           <IconBrandLinkedin size={32} />
         </div>
-        <h2 style={{ fontFamily: "var(--font-space)", fontSize: "1.5rem", margin: 0 }}>Social Links</h2>
-        <p style={{ color: "var(--text-muted)", marginTop: 8, fontSize: "0.9rem" }}>Optional — but helps others connect with you.</p>
+        <h2 style={{ fontFamily: "var(--font-space)", fontSize: "1.5rem", margin: 0 }}>
+          Social Links
+        </h2>
+        <p style={{ color: "var(--text-muted)", marginTop: 8, fontSize: "0.9rem" }}>
+          Optional — but helps others connect with you.
+        </p>
       </div>
       {[
         { icon: <IconBrandLinkedin size={18} />, label: "LinkedIn URL", key: "linkedin" as const, placeholder: "https://linkedin.com/in/..." },
         { icon: <IconBrandGithub size={18} />, label: "GitHub URL", key: "github" as const, placeholder: "https://github.com/..." },
       ].map(({ icon, label, key, placeholder }) => (
-        <div key={key} style={{ display: "flex", alignItems: "center", gap: 12, border: "1px solid var(--border)", padding: "0 16px" }}>
+        <div
+          key={key}
+          style={{ display: "flex", alignItems: "center", gap: 12, border: "1px solid var(--border)", padding: "0 16px" }}
+        >
           <span style={{ color: "var(--text-muted)" }}>{icon}</span>
           <input
-            style={{ border: "none", background: "transparent", flex: 1, padding: "12px 0", color: "var(--text)", outline: "none", fontFamily: "var(--font-inter)" }}
+            style={{
+              border: "none", background: "transparent", flex: 1,
+              padding: "12px 0", color: "var(--text)", outline: "none",
+              fontFamily: "var(--font-inter)",
+            }}
             placeholder={placeholder}
             value={formData[key] || ""}
             onChange={e => setFormData({ ...formData, [key]: e.target.value })}
@@ -195,7 +262,7 @@ function Step4({ formData, setFormData }: StepProps) {
 
 // ── Step 5: ID Verification ───────────────────────────────────────────────────
 interface Step5Props extends StepProps {
-  verifyState: "idle" | "loading" | "success" | "fail";
+  verifyState: "idle" | "loading" | "success" | "fail" | "duplicate";
   verifyReason: string;
   onVerify: (file: File) => void;
 }
@@ -207,26 +274,49 @@ function Step5({ formData, verifyState, verifyReason, onVerify }: Step5Props) {
     if (e.target.files?.[0]) onVerify(e.target.files[0]);
   };
 
+  const isDuplicate = verifyState === "duplicate";
+  const isFail = verifyState === "fail" || isDuplicate;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div style={{ textAlign: "center", marginBottom: 8 }}>
-        <div style={{ width: 64, height: 64, background: verifyState === "success" ? "#22c55e" : "var(--accent)", color: verifyState === "success" ? "#fff" : "#000", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", transition: "background 0.3s" }}>
-          {verifyState === "success" ? <IconShieldCheck size={32} /> : <IconShieldCheck size={32} />}
+        <div style={{
+          width: 64, height: 64,
+          background: verifyState === "success" ? "#22c55e" : isDuplicate ? "#f97316" : "var(--accent)",
+          color: verifyState === "success" || isDuplicate ? "#fff" : "#000",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          margin: "0 auto 16px", transition: "background 0.3s",
+        }}>
+          {isDuplicate ? <IconLock size={32} /> : <IconShieldCheck size={32} />}
         </div>
-        <h2 style={{ fontFamily: "var(--font-space)", fontSize: "1.5rem", margin: 0 }}>Student ID Verification</h2>
+        <h2 style={{ fontFamily: "var(--font-space)", fontSize: "1.5rem", margin: 0 }}>
+          Student ID Verification
+        </h2>
         <p style={{ color: "var(--text-muted)", marginTop: 8, fontSize: "0.9rem" }}>
           Upload your college ID card. Unlocks <strong>Chat</strong> and <strong>PoW Endorsements</strong>.
-          <br /><span style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>You can also skip and verify later from your profile.</span>
         </p>
       </div>
 
       {verifyState === "success" ? (
         <div style={{ padding: 24, border: "2px solid #22c55e", textAlign: "center", background: "rgba(34,197,94,0.05)" }}>
           <IconShieldCheck size={40} color="#22c55e" style={{ marginBottom: 12 }} />
-          <div style={{ fontFamily: "var(--font-space)", fontWeight: 700, color: "#22c55e", fontSize: "1.1rem" }}>Verified!</div>
+          <div style={{ fontFamily: "var(--font-space)", fontWeight: 700, color: "#22c55e", fontSize: "1.1rem" }}>
+            Verified!
+          </div>
           <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: 4 }}>{verifyReason}</div>
         </div>
-      ) : verifyState === "fail" ? (
+      ) : isDuplicate ? (
+        <div style={{ padding: 20, border: "2px solid #f97316", background: "rgba(249,115,22,0.05)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <IconAlertTriangle size={20} color="#f97316" />
+            <strong style={{ color: "#f97316" }}>Duplicate Account Detected</strong>
+          </div>
+          <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.6 }}>{verifyReason}</div>
+          <div style={{ marginTop: 12, fontSize: "0.8rem", color: "var(--text-muted)" }}>
+            Contact support if you believe this is an error.
+          </div>
+        </div>
+      ) : isFail ? (
         <div>
           <div style={{ padding: 20, border: "2px solid #ef4444", background: "rgba(239,68,68,0.05)", marginBottom: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
@@ -248,7 +338,10 @@ function Step5({ formData, verifyState, verifyReason, onVerify }: Step5Props) {
         </div>
       ) : (
         <div
-          style={{ border: "2px dashed var(--border)", padding: "40px 24px", textAlign: "center", cursor: "pointer", background: "var(--bg-2)", transition: "border-color 0.2s" }}
+          style={{
+            border: "2px dashed var(--border)", padding: "40px 24px", textAlign: "center",
+            cursor: "pointer", background: "var(--bg-2)", transition: "border-color 0.2s",
+          }}
           onClick={() => fileRef.current?.click()}
           onMouseOver={e => (e.currentTarget.style.borderColor = "var(--text)")}
           onMouseOut={e => (e.currentTarget.style.borderColor = "var(--border)")}
@@ -269,18 +362,17 @@ function Step5({ formData, verifyState, verifyReason, onVerify }: Step5Props) {
 
 // ── Steps config ──────────────────────────────────────────────────────────────
 const STEPS = [
-  { id: 1, label: "Name", required: (d: any) => !!d.name?.trim() },
+  { id: 1, label: "Name",    required: (d: any) => !!d.name?.trim() },
   { id: 2, label: "College", required: (d: any) => !!d.college },
-  { id: 3, label: "Branch", required: (d: any) => !!d.branch && !!d.year },
-  { id: 4, label: "Links", required: () => true },
-  { id: 5, label: "Verify", required: () => true },
+  { id: 3, label: "Branch",  required: (d: any) => !!d.branch && !!d.year },
+  { id: 4, label: "Links",   required: () => true },
+  { id: 5, label: "Verify",  required: () => true },
 ];
 
 // ── Main Gate ─────────────────────────────────────────────────────────────────
 export function OnboardingGate({ children }: { children: React.ReactNode }) {
   const { user, profile, refreshProfile } = useAuth();
   const pathname = usePathname();
-  const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -289,24 +381,32 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
     linkedin: "", github: "",
   });
 
-  // Once the user dismisses or completes, never show again this session
-  const modalDismissed = useRef(false);
-
   // Verification step state
-  const [verifyState, setVerifyState] = useState<"idle" | "loading" | "success" | "fail">("idle");
+  const [verifyState, setVerifyState] = useState<"idle" | "loading" | "success" | "fail" | "duplicate">("idle");
   const [verifyReason, setVerifyReason] = useState("");
 
+  /**
+   * Whether the current user's profile is "complete" for the purposes of
+   * unblocking the app. Must match isProfileComplete() in AuthProvider.
+   */
+  const isComplete = !!(
+    profile?.name?.trim() &&
+    (profile as any)?.college?.trim() &&
+    profile?.branch?.trim() &&
+    profile?.year &&
+    profile?.acceptedGuidelines &&
+    profile?.verified
+  );
+
   useEffect(() => {
-    // Already dismissed this session — NEVER re-trigger
-    if (modalDismissed.current) return;
     if (!user || !profile) return;
     if (SKIP_ROUTES.includes(pathname)) return;
     // Don't interfere with the login/guidelines flow
     if (!profile.acceptedGuidelines) return;
 
-    const p = profile as any;
-    const complete = !!(profile.name && p.college && profile.branch && profile.year);
-    if (!complete) {
+    if (!isComplete) {
+      // Pre-populate form with whatever the user already has
+      const p = profile as any;
       setFormData({
         name: profile.name || user.displayName || "",
         college: p.college || "",
@@ -322,14 +422,17 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
         setVerifyReason("You're already verified from your profile!");
       }
       setShowModal(true);
+    } else {
+      // Profile is now complete — hide the modal
+      setShowModal(false);
     }
-  // Only react to uid + acceptedGuidelines + pathname changes, NOT every profile refresh
+  // Re-evaluate when profile data or pathname changes
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid, (profile as any)?.acceptedGuidelines, pathname]);
+  }, [user?.uid, profile?.name, (profile as any)?.college, profile?.branch, profile?.year, profile?.acceptedGuidelines, pathname]);
 
   const canContinue = STEPS[step - 1]?.required(formData) ?? true;
 
-  // Save profile data (steps 1-4) then move to step 5
+  // Save profile data (steps 1–4) then move to step 5
   const saveAndContinueToVerify = async () => {
     if (!user) return;
     setSaving(true);
@@ -361,12 +464,30 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Final complete — mark dismissed, close modal, redirect
+  /**
+   * Final "Finish" — called from step 5.
+   * We save profileCompletedAt so the system knows onboarding is done.
+   * The modal will close only because isComplete will become true once
+   * the profile is refreshed.
+   */
   const handleComplete = async () => {
-    modalDismissed.current = true;  // prevent any re-trigger this session
-    showSuccess("Welcome to Grid! 🎉");
-    setShowModal(false);
-    router.push("/community");
+    if (!user) return;
+    setSaving(true);
+    try {
+      // Mark profile as completed
+      await fetch(`/api/users/${user.uid}`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ profileCompletedAt: new Date().toISOString() }),
+      });
+      await refreshProfile();
+      showSuccess("Welcome to Grid! 🎉");
+      // Modal will close automatically because isComplete will be true after refresh
+    } catch (e) {
+      showError(e, "Error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   // ID verification handler
@@ -387,13 +508,22 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
           body: JSON.stringify({ idImageBase64: base64 }),
         });
         const data = await res.json();
-        if (data.success) {
+        if (data.duplicateAccount) {
+          setVerifyState("duplicate");
+          setVerifyReason(
+            data.data?.reason ||
+            "This student ID is already linked to another Grid account. Multiple accounts are not permitted."
+          );
+        } else if (data.success) {
           setVerifyState("success");
           setVerifyReason(`Confirmed: ${data.data?.extractedName || "name matched"}`);
           refreshProfile();
         } else {
           setVerifyState("fail");
-          setVerifyReason(data.data?.reason || "Could not confirm this is a valid student ID matching your profile.");
+          setVerifyReason(
+            data.data?.reason ||
+            "Could not confirm this is a valid student ID matching your profile."
+          );
         }
       } catch {
         setVerifyState("fail");
@@ -406,16 +536,32 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
     <>
       {children}
       {showModal && (
-        <div style={{
-          position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          zIndex: 9999, padding: 24, backdropFilter: "blur(6px)"
-        }}>
-          <div style={{
-            background: "var(--bg)", width: "100%", maxWidth: 520,
-            border: "2px solid var(--border)", padding: 40,
-            boxShadow: "0 24px 80px rgba(0,0,0,0.5)"
-          }}>
+        <div
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            zIndex: 9999, padding: 24, backdropFilter: "blur(8px)",
+          }}
+          // Prevent closing on backdrop click — this is intentionally blocking
+        >
+          <div
+            style={{
+              background: "var(--bg)", width: "100%", maxWidth: 520,
+              border: "2px solid var(--border)", padding: 40,
+              boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+            }}
+          >
+            {/* Required badge */}
+            <div style={{
+              display: "flex", alignItems: "center", gap: 8,
+              marginBottom: 24, padding: "8px 14px",
+              background: "rgba(255,200,0,0.06)", border: "1px solid rgba(255,200,0,0.18)",
+              fontSize: "0.8rem", color: "var(--accent)",
+            }}>
+              <IconLock size={14} />
+              <span>Complete your profile to continue using Grid</span>
+            </div>
+
             {/* Progress stepper */}
             <div style={{ display: "flex", gap: 0, justifyContent: "center", marginBottom: 40, alignItems: "center" }}>
               {STEPS.map((s, i) => (
@@ -426,12 +572,16 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
                     color: step >= s.id ? "var(--bg)" : "var(--text-muted)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: "0.8rem", fontWeight: 700, flexShrink: 0,
-                    transition: "background 0.2s"
+                    transition: "background 0.2s",
                   }}>
                     {step > s.id ? <IconCheck size={16} /> : s.id}
                   </div>
                   {i < STEPS.length - 1 && (
-                    <div style={{ width: 24, height: 2, background: step > s.id ? "#22c55e" : "var(--border)", transition: "background 0.2s" }} />
+                    <div style={{
+                      width: 24, height: 2,
+                      background: step > s.id ? "#22c55e" : "var(--border)",
+                      transition: "background 0.2s",
+                    }} />
                   )}
                 </div>
               ))}
@@ -462,13 +612,17 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
                 </button>
               ) : <div />}
 
-              {/* Steps 1–3: Continue (required) */}
+              {/* Steps 1–3: Continue (required fields must be filled) */}
               {step < 4 && (
                 <button
                   className={`${g.btn} ${g.btnPrimary}`}
                   onClick={() => setStep(s => s + 1)}
                   disabled={!canContinue}
-                  style={{ display: "flex", alignItems: "center", gap: 6, background: "var(--text)", color: "var(--bg)", opacity: canContinue ? 1 : 0.4 }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6,
+                    background: "var(--text)", color: "var(--bg)",
+                    opacity: canContinue ? 1 : 0.4,
+                  }}
                 >
                   Continue <IconChevronRight size={16} />
                 </button>
@@ -477,7 +631,12 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
               {/* Step 4: Save + go to verification */}
               {step === 4 && (
                 <div style={{ display: "flex", gap: 12 }}>
-                  <button className={g.btn} onClick={saveAndContinueToVerify} disabled={saving} style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
+                  <button
+                    className={g.btn}
+                    onClick={saveAndContinueToVerify}
+                    disabled={saving}
+                    style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}
+                  >
                     {saving ? "Saving..." : "Skip links"}
                   </button>
                   <button
@@ -491,28 +650,32 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
                 </div>
               )}
 
-              {/* Step 5: Finish (verify optional) */}
+              {/* Step 5: Finish (verify required) */}
               {step === 5 && (
                 <div style={{ display: "flex", gap: 12 }}>
-                  {verifyState !== "success" && (
-                    <button className={g.btn} onClick={handleComplete} style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                      Skip for now
+                  {/* Show "All done" button only when verified */}
+                  {verifyState !== "duplicate" && (
+                    <button
+                      className={`${g.btn} ${g.btnPrimary}`}
+                      onClick={handleComplete}
+                      disabled={saving || verifyState !== "success"}
+                      style={{
+                        background: verifyState === "success" ? "#22c55e" : "var(--text)",
+                        color: "var(--bg)", display: "flex", alignItems: "center", gap: 6,
+                        opacity: verifyState === "success" ? 1 : 0.4
+                      }}
+                    >
+                      <IconCheck size={16} />
+                      {saving ? "Finishing..." : verifyState === "success" ? "All done! →" : "Verify ID to Finish"}
                     </button>
                   )}
-                  <button
-                    className={`${g.btn} ${g.btnPrimary}`}
-                    onClick={handleComplete}
-                    style={{ background: verifyState === "success" ? "#22c55e" : "var(--text)", color: "var(--bg)", display: "flex", alignItems: "center", gap: 6 }}
-                  >
-                    <IconCheck size={16} /> {verifyState === "success" ? "All done! →" : "Finish Setup →"}
-                  </button>
                 </div>
               )}
             </div>
 
             <div style={{ textAlign: "center", marginTop: 20, fontSize: "0.8rem", color: "var(--text-muted)" }}>
               Step {step} of {STEPS.length}
-              {step === 5 && " — Verification can be done later from Profile"}
+              {step === 5 && " — ID verification is required to use Grid"}
             </div>
           </div>
         </div>
