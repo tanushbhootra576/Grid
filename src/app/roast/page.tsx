@@ -80,7 +80,7 @@ export default function RoastPage() {
 
       // 2. Load WebLLM (Downloads Llama 3 directly into the browser Cache)
       setLoadingText("Initializing AI Engine (this may take a few minutes the first time)...");
-      const engine = await CreateMLCEngine("Llama-3.2-1B-Instruct-q4f16_1-MLC", {
+      const engine = await CreateMLCEngine("Llama-3.2-1B-Instruct-q4f32_1-MLC", {
         initProgressCallback: (info) => {
           setLoadingText(info.text);
         }
