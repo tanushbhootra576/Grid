@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import Tesseract from "tesseract.js";
+import { createWorker, Worker } from "tesseract.js";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { getServerSession } from "next-auth";
 import crypto from "crypto";
+
+const globalForTesseract = globalThis as unknown as {
+  tesseractWorker: Worker | null;
+};
+
+async function getWorker() {
+  if (!globalForTesseract.tesseractWorker) {
+    globalForTesseract.tesseractWorker = await createWorker("eng");
+  }
+  return globalForTesseract.tesseractWorker;
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -116,7 +127,8 @@ export async function POST(req: NextRequest) {
         tesseractInput = `data:image/jpeg;base64,${idImageBase64}`;
       }
       
-      const { data: { text } } = await Tesseract.recognize(tesseractInput, 'eng');
+      const worker = await getWorker();
+      const { data: { text } } = await worker.recognize(tesseractInput);
       extractedText = text;
     } catch (e) {
       console.error("[verify-id] OCR Error:", e);
