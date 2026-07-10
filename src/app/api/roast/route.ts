@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PDFParse } from "pdf-parse";
+import pdfParse from "pdf-parse";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { getServerSession } from "next-auth";
@@ -24,8 +24,7 @@ export async function POST(req: NextRequest) {
       try {
         const cleanBase64 = pdfBase64.replace(/^data:application\/pdf;base64,/, "");
         const buffer = Buffer.from(cleanBase64, 'base64');
-        const pdfParser = new PDFParse({ data: buffer });
-        const pdfData = await pdfParser.getText();
+        const pdfData = await pdfParse(buffer);
         finalResumeText = pdfData.text;
       } catch (err) {
         console.error("PDF Parsing Error:", err);
