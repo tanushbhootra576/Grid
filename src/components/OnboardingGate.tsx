@@ -353,7 +353,7 @@ function Step5({ formData, verifyState, verifyReason, onVerify }: Step5Props) {
         </div>
       )}
 
-      <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", padding: "12px 16px", background: "var(--bg-2)", border: "1px solid var(--border)" }}>
+      <div style={{ fontFamily: "var(--font-space)", fontSize: "0.85rem", color: "var(--text-muted)", padding: "12px 16px", background: "var(--bg-2)", border: "1px solid var(--border)" }}>
         💡 <strong>Tip:</strong> Your name on Grid is <strong>{formData.name}</strong>. Make sure your ID shows the same name.
       </div>
     </div>
@@ -497,17 +497,43 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
       return;
     }
     setVerifyState("loading");
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = async () => {
+    
+    // Resize image on the client to make OCR extremely fast
+    const img = document.createElement("img");
+    const url = URL.createObjectURL(file);
+    
+    img.onload = async () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement("canvas");
+      let { width, height } = img;
+      const MAX_DIM = 800; // Shrink to 800px max for fast OCR
+
+      if (width > MAX_DIM || height > MAX_DIM) {
+        if (width > height) {
+          height = Math.round(height * (MAX_DIM / width));
+          width = MAX_DIM;
+        } else {
+          width = Math.round(width * (MAX_DIM / height));
+          height = MAX_DIM;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx?.drawImage(img, 0, 0, width, height);
+      
+      // Compress to 80% JPEG quality
+      const base64 = canvas.toDataURL("image/jpeg", 0.8).split(",")[1];
+
       try {
-        const base64 = (reader.result as string).split(",")[1];
         const res = await fetch("/api/verify-id", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ idImageBase64: base64 }),
         });
         const data = await res.json();
+        
         if (data.duplicateAccount) {
           setVerifyState("duplicate");
           setVerifyReason(
@@ -530,6 +556,14 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
         setVerifyReason("Server error. Please try again.");
       }
     };
+    
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      setVerifyState("fail");
+      setVerifyReason("Invalid image file.");
+    };
+    
+    img.src = url;
   };
 
   return (
