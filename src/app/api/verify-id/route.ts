@@ -4,6 +4,7 @@ import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { getServerSession } from "next-auth";
 import crypto from "crypto";
+import path from "path";
 
 const globalForTesseract = globalThis as unknown as {
   tesseractWorker: Worker | null;
@@ -11,7 +12,14 @@ const globalForTesseract = globalThis as unknown as {
 
 async function getWorker() {
   if (!globalForTesseract.tesseractWorker) {
-    globalForTesseract.tesseractWorker = await createWorker("eng");
+    const workerPath = path.join(process.cwd(), "node_modules", "tesseract.js", "src", "worker-script", "node", "index.js");
+    // Explicitly defining corePath is often required for Next.js bundled environments
+    // to prevent the __dirname to /ROOT bug.
+    const corePath = path.join(process.cwd(), "node_modules", "tesseract.js-core");
+    globalForTesseract.tesseractWorker = await createWorker("eng", 1, {
+      workerPath,
+      corePath,
+    });
   }
   return globalForTesseract.tesseractWorker;
 }
