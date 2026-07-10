@@ -17,9 +17,13 @@ async function getWorker() {
     // Explicitly defining corePath is often required for Next.js bundled environments
     // to prevent the __dirname to /ROOT bug.
     const corePath = path.join(process.cwd(), "node_modules", "tesseract.js-core");
+    // Bundle the language data locally to avoid Vercel network timeout errors
+    const langPath = path.join(process.cwd(), "public", "tessdata");
+    
     globalForTesseract.tesseractWorker = await createWorker("eng", 1, {
       workerPath,
       corePath,
+      langPath,
       cachePath: os.tmpdir(), // Fixes read-only filesystem errors on Vercel deployments
     });
   }
