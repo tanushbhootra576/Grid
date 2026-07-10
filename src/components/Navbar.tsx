@@ -63,7 +63,7 @@ export function Navbar() {
   const { user, profile } = useAuth();
   const router = useRouter();
   const { setColorScheme } = useMantineColorScheme();
-  const computedColorScheme = useComputedColorScheme("dark", { getInitialValueInEffect: true });
+  const computedColorScheme = useComputedColorScheme("light", { getInitialValueInEffect: true });
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);

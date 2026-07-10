@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { CreateMLCEngine } from "@mlc-ai/web-llm";
 import { Navbar } from "@/components/Navbar";
 import { IconFlame, IconUpload, IconFileText, IconAlertTriangle, IconCheck, IconTarget, IconChartRadar, IconRefresh } from "@tabler/icons-react";
 import ReactMarkdown from "react-markdown";
@@ -20,6 +21,7 @@ export default function RoastPage() {
   const [resumeText, setResumeText] = useState("");
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("");
   const [roastData, setRoastData] = useState<RoastData | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -55,6 +57,7 @@ export default function RoastPage() {
   const handleRoast = async () => {
     if (!resumeText.trim() && !pdfFile) return;
     setLoading(true);
+    setLoadingText("Extracting text...");
     setRoastData(null);
     
     try {
@@ -63,6 +66,7 @@ export default function RoastPage() {
         pdfBase64 = await getBase64(pdfFile);
       }
 
+      // 1. Extract text using our lightweight API route
       const res = await fetch("/api/roast", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -70,13 +74,56 @@ export default function RoastPage() {
       });
       
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to get roasted");
+      if (!res.ok) throw new Error(data.error || "Failed to extract resume text");
       
-      setRoastData(data);
+      const finalResumeText = data.extractedText;
+
+      // 2. Load WebLLM (Downloads Llama 3 directly into the browser Cache)
+      setLoadingText("Initializing AI Engine (this may take a few minutes the first time)...");
+      const engine = await CreateMLCEngine("Llama-3.2-1B-Instruct-q4f16_1-MLC", {
+        initProgressCallback: (info) => {
+          setLoadingText(info.text);
+        }
+      });
+
+      setLoadingText("Roasting your resume with WebAssembly...");
+
+      const systemPrompt = `You are a ruthless, highly experienced Y Combinator partner and tech recruiter. 
+A college student has just handed you their resume. Your job is to ROAST IT.
+Do NOT sugarcoat anything. Be brutally honest.
+
+You MUST respond ONLY with a valid JSON object with the following schema, and absolutely no other text, markdown, or backticks:
+{
+  "score": 65,
+  "metrics": ["Red flag 1", "Red flag 2", "Red flag 3"],
+  "roast": "Brutal markdown roast here...",
+  "fixes": ["Fix 1", "Fix 2", "Fix 3"],
+  "skillsMap": [
+    { "subject": "Frontend", "A": 90, "fullMark": 100 }
+  ]
+}`;
+
+      const response = await engine.chat.completions.create({
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: `Here is the resume:\n${finalResumeText}` }
+        ],
+        response_format: { type: "json_object" }
+      });
+      
+      let resultJson;
+      try {
+          resultJson = JSON.parse(response.choices[0].message.content || "{}");
+      } catch (e) {
+          resultJson = { roast: response.choices[0].message.content };
+      }
+      
+      setRoastData(resultJson);
     } catch (error) {
       showError(error, "Roast Failed");
     } finally {
       setLoading(false);
+      setLoadingText("");
     }
   };
 
@@ -194,9 +241,14 @@ export default function RoastPage() {
                 className={`${g.btn} ${g.btnPrimary}`} 
                 onClick={handleRoast} 
                 disabled={loading || (!resumeText.trim() && !pdfFile)}
-                style={{ width: '100%', justifyContent: 'center', padding: '16px', fontSize: '1.05rem', background: 'var(--text)', color: 'var(--bg)' }}
+                style={{ width: '100%', justifyContent: 'center', padding: '16px', fontSize: '1.05rem', background: 'var(--text)', color: 'var(--bg)', display: 'flex', flexDirection: 'column', gap: 4 }}
               >
-                {loading ? "Analyzing..." : "Generate Roast"}
+                <div>{loading ? "Analyzing..." : "Generate Roast (WebAssembly)"}</div>
+                {loadingText && (
+                  <div style={{ fontSize: '0.75rem', fontWeight: 'normal', opacity: 0.8 }}>
+                    {loadingText}
+                  </div>
+                )}
               </button>
             </div>
           </div>

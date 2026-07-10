@@ -168,7 +168,11 @@ export async function POST(req: NextRequest) {
             matchedParts++;
         }
     }
-    const nameMatches = nameParts.length > 0 ? (matchedParts / nameParts.length >= 0.5) : textLower.includes(user.name.toLowerCase());
+    
+    // 🔥 SECURITY FIX: Require 100% match for names with 1 or 2 parts. 
+    // Prevents friends from hiding half the name to reuse the same ID.
+    const requiredMatches = nameParts.length <= 2 ? nameParts.length : Math.ceil(nameParts.length * 0.75);
+    const nameMatches = nameParts.length > 0 ? (matchedParts >= requiredMatches) : textLower.includes(user.name.toLowerCase());
 
     // Basic regex to find an ID number (e.g. 6+ alphanumeric characters)
     const possibleIds = extractedText.match(/\b[A-Z0-9]{6,15}\b/g) || [];
