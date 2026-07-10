@@ -5,6 +5,7 @@ import User from "@/models/User";
 import { getServerSession } from "next-auth";
 import crypto from "crypto";
 import path from "path";
+import os from "os";
 
 const globalForTesseract = globalThis as unknown as {
   tesseractWorker: Worker | null;
@@ -19,6 +20,7 @@ async function getWorker() {
     globalForTesseract.tesseractWorker = await createWorker("eng", 1, {
       workerPath,
       corePath,
+      cachePath: os.tmpdir(), // Fixes read-only filesystem errors on Vercel deployments
     });
   }
   return globalForTesseract.tesseractWorker;
