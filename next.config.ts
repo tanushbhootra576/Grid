@@ -11,7 +11,13 @@ const nextConfig: NextConfig = {
     "is-plain-obj",
     "trough",
   ],
-  serverExternalPackages: ["mongoose", "puppeteer-core", "@sparticuz/chromium"],
+  serverExternalPackages: [
+    "mongoose", 
+    "puppeteer-core", 
+    "@sparticuz/chromium",
+    "tesseract.js",
+    "tesseract.js-core"
+  ],
 };
 
 export default nextConfig;
