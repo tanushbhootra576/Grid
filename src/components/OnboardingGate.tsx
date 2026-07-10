@@ -125,8 +125,8 @@ function Step2({ formData, setFormData }: StepProps) {
                 }}
                 onMouseDown={() => selectCollege(c.name)}
               >
-                <div style={{ fontWeight: 600, color: "var(--text)" }}>{c.name}</div>
-                <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: 2 }}>
+                <div style={{ fontWeight: 600, color: "var(--text)", fontFamily: "var(--font-space)", fontSize: "0.95rem" }}>{c.name}</div>
+                <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: 4, fontFamily: "var(--font-space)" }}>
                   {c.city}, {c.state} · {c.type}
                 </div>
               </button>
@@ -590,7 +590,7 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
               display: "flex", alignItems: "center", gap: 8,
               marginBottom: 24, padding: "8px 14px",
               background: "rgba(255,200,0,0.06)", border: "1px solid rgba(255,200,0,0.18)",
-              fontSize: "0.8rem", color: "var(--accent)",
+              fontSize: "0.8rem", color: "var(--accent)", fontFamily: "var(--font-space)"
             }}>
               <IconLock size={14} />
               <span>Complete your profile to continue using Grid</span>
