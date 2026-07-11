@@ -13,7 +13,7 @@ export default function GuidelinesPage() {
         <Stack gap="lg">
           <Title order={1}>Community Guidelines</Title>
           <Text size="lg">
-            To keep CollegeConnect a safe and helpful place for everyone, we ask
+            To keep Grid a safe and helpful place for everyone, we ask
             that you follow these guidelines.
           </Text>
 

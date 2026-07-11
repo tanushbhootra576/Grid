@@ -1,0 +1,205 @@
+/* Senior Developer Clean CSS */
+
+.layout {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-space), sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.layout h1, .layout h2, .layout h3, .layout h4 {
+  font-family: var(--font-space), system-ui, sans-serif;
+}
+
+.header {
+  padding: 60px 40px 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-2);
+}
+
+.profileInfo {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.name {
+  font-family: var(--font-space), sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  margin: 0 0 8px 0;
+  line-height: 1;
+}
+
+.bio {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  max-width: 600px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 16px;
+  vertical-align: middle;
+}
+
+.tabs {
+  display: flex;
+  gap: 32px;
+}
+
+.tab {
+  padding: 0 0 16px 0;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  position: relative;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tabActive {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.tabActive::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+}
+
+.content {
+  padding: 40px;
+  flex: 1;
+}
+
+/* CARDS */
+.bentoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cardCol2 {
+  grid-column: span 2;
+}
+
+.cardCol3 {
+  grid-column: span 3;
+}
+
+@media (max-width: 1024px) {
+  .cardCol2, .cardCol3 {
+    grid-column: span 1;
+  }
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.cardTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bigStat {
+  font-family: var(--font-space), sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.statSub {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.listRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.listRow:last-child {
+  border-bottom: none;
+}
+
+.listCol {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.listText {
+  font-size: 0.95rem;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.listSub {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-family: var(--font-space), monospace;
+}

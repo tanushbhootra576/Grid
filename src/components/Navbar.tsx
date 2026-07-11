@@ -48,7 +48,7 @@ function GridLogo() {
 }
 
 const NAV_LINKS = [
-  { href: "/skills",      label: "Skills" },
+  { href: "/pow",         label: "PoW Graph" },
   { href: "/projects",    label: "Projects" },
   { href: "/discussions", label: "Discuss" },
   { href: "/events",      label: "Events" },

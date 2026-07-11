@@ -622,7 +622,7 @@ export default function ProfilePage() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr auto", gap: 12, alignItems: "end" }}>
                 <div className={g.formGroup} style={{ margin: 0 }}>
                   <label className={g.label}>Project Name</label>
-                  <input className={g.input} style={{ border: "1px solid var(--border)" }} placeholder="e.g. CollegeConnect" value={powInputTitle} onChange={e => setPowInputTitle(e.target.value)} />
+                  <input className={g.input} style={{ border: "1px solid var(--border)" }} placeholder="e.g. Grid" value={powInputTitle} onChange={e => setPowInputTitle(e.target.value)} />
                 </div>
                 <div className={g.formGroup} style={{ margin: 0 }}>
                   <label className={g.label}>GitHub or Demo URL</label>

@@ -153,7 +153,7 @@ You MUST respond ONLY with a valid JSON object with the following schema, and ab
             Resume Roast
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginTop: 16, maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}>
-            Upload your resume. Our AI acts as a ruthless, YC-backed tech recruiter. Get a real ATS score, skills map, and brutal feedback.
+            Upload your resume. Our AI acts as an expert tech recruiter to give you an ATS score, skills map, and constructive feedback.
           </p>
         </div>
 

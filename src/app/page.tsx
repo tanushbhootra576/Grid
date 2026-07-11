@@ -197,6 +197,27 @@ function FeatureIcon({ type }: { type: string }) {
         <rect x="8" y="20" width="8" height="3" fill="white" opacity={0.4} />
       </svg>
     ),
+    roast: (
+      <svg viewBox="0 0 44 44" fill="none">
+        <path d="M22 4C22 4 14 16 14 26C14 34 22 40 22 40C22 40 30 34 30 26C30 16 22 4 22 4Z" fill="var(--accent)" />
+        <circle cx="22" cy="28" r="4" fill="var(--bg)" />
+      </svg>
+    ),
+    pow: (
+      <svg viewBox="0 0 44 44" fill="none">
+        <path d="M22 6 L36 14 L36 30 L22 38 L8 30 L8 14 Z" fill="none" stroke="var(--accent)" strokeWidth="2.5" />
+        <circle cx="22" cy="22" r="3" fill="var(--accent-2)" />
+        <path d="M22 6 L22 22 M36 14 L22 22 M8 14 L22 22 M36 30 L22 22 M8 30 L22 22" stroke="var(--accent)" strokeWidth="1.5" opacity="0.6" />
+      </svg>
+    ),
+    community: (
+      <svg viewBox="0 0 44 44" fill="none">
+        <circle cx="22" cy="14" r="6" fill="var(--accent)" />
+        <path d="M12 36C12 28 32 28 32 36" stroke="var(--accent-2)" strokeWidth="4" strokeLinecap="round" />
+        <circle cx="12" cy="18" r="4" fill="var(--accent-2)" opacity="0.6" />
+        <circle cx="32" cy="18" r="4" fill="var(--accent-2)" opacity="0.6" />
+      </svg>
+    ),
   };
   return <div className={s.featureIconWrap}>{map[type] ?? map.skills}</div>;
 }
@@ -207,6 +228,82 @@ const TESTIMONIALS = [
   { name: "Arjun R.", role: "Final Year, IT", text: "Built my capstone project team entirely on Grid. Four people, four skill sets, one week.", initials: "AR", col: "spark" },
   { name: "Sneha V.", role: "2nd Year, Design", text: "The discussion forum answered my elective questions better than any advisor ever did.", initials: "SV", col: "ember" },
 ];
+
+/* ── Animated Feature Card (Bento) ── */
+function AnimatedFeatureCard({ feature, index }: { feature: any, index: number }) {
+  const ref = React.useRef<HTMLAnchorElement>(null);
+  const [isVisible, setIsVisible] = React.useState(false);
+  const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
+
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+        obs.disconnect(); // Animate only once when it enters viewport
+      }
+    }, { threshold: 0.1, rootMargin: "0px 0px -40px 0px" });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  };
+
+  // Group delays by row for a more natural staggered entrance
+  const delay = (index % 4) * 80;
+
+  return (
+    <Link 
+      href={feature.href} 
+      ref={ref}
+      className={`${s.featureCard} ${isVisible ? s.cardVisible : ''}`}
+      onMouseMove={handleMouseMove}
+      style={{ 
+        "--card-delay": `${delay}ms`,
+        "--mouse-x": `${mousePos.x}px`,
+        "--mouse-y": `${mousePos.y}px`,
+      } as React.CSSProperties}
+    >
+      <div className={s.cardGlow} />
+      {feature.tag && <span className={s.featureTag}>{feature.tag}</span>}
+      
+      <div style={{ position: 'relative', zIndex: 10 }}>
+        <FeatureIcon type={feature.type} />
+        <h3 className={s.featureTitle}>{feature.title}</h3>
+        <p className={s.featureDesc}>{feature.desc}</p>
+        <span className={s.featureArrow}>
+          <svg viewBox="0 0 20 20" fill="none" width="18" height="18">
+            <line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" strokeWidth="2" />
+            <polyline points="12,5 17,10 12,15" stroke="currentColor" strokeWidth="2" />
+          </svg>
+        </span>
+      </div>
+
+      {index === 0 && (
+        <div style={{ position: 'absolute', right: 40, bottom: 40, width: 220, display: 'flex', flexDirection: 'column', gap: 16, opacity: 0.9, pointerEvents: 'none', zIndex: 5 }}>
+           <div style={{ background: 'var(--bg-3)', border: '1px solid var(--border)', padding: 16, borderRadius: 12, transform: 'rotate(-4deg) translateX(20px)', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}>
+             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: 6, fontFamily: 'var(--font-space)', fontWeight: 600 }}>OFFERING</div>
+             <div style={{ color: 'var(--accent)', fontWeight: 600, fontSize: '0.9rem' }}>React.js Mentorship</div>
+           </div>
+           <div style={{ display: 'flex', justifyContent: 'center' }}>
+             <svg viewBox="0 0 24 24" width={24} height={24} stroke="var(--text-muted)" strokeWidth={2} fill="none"><path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"/></svg>
+           </div>
+           <div style={{ background: 'var(--bg-3)', border: '1px solid var(--border)', padding: 16, borderRadius: 12, transform: 'rotate(2deg) translateX(-10px)', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}>
+             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: 6, fontFamily: 'var(--font-space)', fontWeight: 600 }}>SEEKING</div>
+             <div style={{ color: 'var(--accent-2)', fontWeight: 600, fontSize: '0.9rem' }}>Python API Help</div>
+           </div>
+        </div>
+      )}
+
+      <span className={s.cardCorner} />
+    </Link>
+  );
+}
 
 /* ── Main Page ── */
 export default function Home() {
@@ -242,10 +339,13 @@ export default function Home() {
   const features = [
     { type: "skills",   title: "Skill Marketplace", desc: "Teach what you know. Learn what you need. Direct peer-to-peer exchange, zero middlemen.",         href: "/skills",      tag: "CORE" },
     { type: "discuss",  title: "Discussion Forums",  desc: "Course questions, elective advice, senior mentors. Your academic network, organised.",              href: "/discussions", tag: "POPULAR" },
-    { type: "events",   title: "Events & Hackathons",desc: "Club drives, workshops, inter-college hackathons. One calendar for everything campus.",             href: "/events",      tag: "" },
-    { type: "quiz",     title: "Study Quizzes",      desc: "Test yourself, track growth, climb the campus scoreboard. Know exactly where you stand.",           href: "/quizzes",     tag: "" },
+    { type: "events",   title: "Events & Hackathons",desc: "Club drives, workshops, inter-college hackathons. One calendar for everything campus.",             href: "/events",      tag: "POPULAR" },
+    { type: "quiz",     title: "Study Quizzes",      desc: "Test yourself, track growth, climb the campus scoreboard. Know exactly where you stand.",           href: "/quizzes",     tag: "POPULAR" },
     { type: "projects", title: "Project Teams",      desc: "Post your idea, recruit by skill, build together. From college assignments to actual startups.",     href: "/projects",    tag: "HOT" },
-    { type: "chat",     title: "Real-time Chat",     desc: "DMs, group rooms, skill-session scheduling. Everything you need to coordinate in one thread.",       href: "/chat",        tag: "" },
+    { type: "chat",     title: "Real-time Chat",     desc: "DMs, group rooms, skill-session scheduling. Everything you need to coordinate in one thread.",       href: "/chat",        tag: "HOT" },
+    { type: "roast", title: "Resume Roast", desc: "Get constructive, brutal feedback on your resume from peers and alumni to land that internship.", href: "/roast", tag: "TRENDING" },
+    { type: "pow", title: "Cryptographic PoW", desc: "Resumes are dead. Grid connects to your GitHub & Figma, analyzing raw commits to generate an unfakeable, verified skill graph.", href: "/pow", tag: "NEXT-GEN" },
+    { type: "community", title: "Communities", desc: "Join dedicated groups for your batch, branch, or niche interests to network.", href: "/community", tag: "TRENDING" },
   ];
 
   const swapData = [
@@ -392,28 +492,17 @@ export default function Home() {
                 Built for how students<br />actually work
               </h2>
               <p className={s.sectionSub}>
-                Six tools. One platform. Zero bloat.
+                Nine tools. One platform. Zero bloat.
               </p>
             </div>
 
-            <div className={s.featuresGrid}>
-              {features.map((f, i) => (
-                <Link key={i} href={f.href}
-                  className={s.featureCard}
-                  style={{ "--card-delay": `${i * 80}ms` } as React.CSSProperties}>
-                  {f.tag && <span className={s.featureTag}>{f.tag}</span>}
-                  <FeatureIcon type={f.type} />
-                  <h3 className={s.featureTitle}>{f.title}</h3>
-                  <p className={s.featureDesc}>{f.desc}</p>
-                  <span className={s.featureArrow}>
-                    <svg viewBox="0 0 20 20" fill="none" width="18" height="18">
-                      <line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" strokeWidth="2" />
-                      <polyline points="12,5 17,10 12,15" stroke="currentColor" strokeWidth="2" />
-                    </svg>
-                  </span>
-                  <span className={s.cardCorner} />
-                </Link>
-              ))}
+            <div className={s.featuresGridWrap}>
+              <div className={s.featuresGlow} aria-hidden="true" />
+              <div className={s.featuresGrid}>
+                {features.map((f, i) => (
+                  <AnimatedFeatureCard key={i} feature={f} index={i} />
+                ))}
+              </div>
             </div>
           </Container>
         </div>
@@ -745,8 +834,8 @@ export default function Home() {
               </div>
             </div>
             {[
-              { label: "Platform", links: [{ t:"Skills",h:"/skills"},{t:"Projects",h:"/projects"},{t:"Discuss",h:"/discussions"},{t:"Quizzes",h:"/quizzes"}] },
-              { label: "Community",links: [{ t:"Events",h:"/events"},{t:"Chat",h:"/chat"},{t:"People",h:"/users"}] },
+              { label: "Platform", links: [{ t:"Skills",h:"/skills"},{t:"Projects",h:"/projects"},{t:"Discuss",h:"/discussions"},{t:"Quizzes",h:"/quizzes"},{t:"Roast",h:"/roast"}] },
+              { label: "Community",links: [{ t:"Events",h:"/events"},{t:"Chat",h:"/chat"},{t:"People",h:"/users"},{t:"Groups",h:"/community"}] },
               { label: "Legal",    links: [{ t:"Privacy",h:"/privacy"},{t:"Terms",h:"/terms"},{t:"Guidelines",h:"/guidelines"}] },
             ].map((col, i) => (
               <div key={i} className={s.footerCol}>

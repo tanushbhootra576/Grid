@@ -12,7 +12,7 @@ export default function PrivacyPage() {
         <Stack gap="lg">
           <Title order={1}>Privacy Policy</Title>
           <Text>
-            At CollegeConnect, we take your privacy seriously. This Privacy
+            At Grid, we take your privacy seriously. This Privacy
             Policy explains how we collect, use, and protect your personal
             information.
           </Text>
@@ -29,7 +29,7 @@ export default function PrivacyPage() {
           <Text>
             We use your information to provide, maintain, and improve our
             services, to communicate with you, and to personalize your
-            experience on CollegeConnect.
+            experience on Grid.
           </Text>
 
           <Title order={3}>3. Sharing of Information</Title>

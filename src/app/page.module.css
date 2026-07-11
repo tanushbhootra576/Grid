@@ -10,10 +10,6 @@
 .revealBlock.visible { opacity: 1; transform: translateY(0); }
 
 /* Stagger children */
-.revealBlock.visible .featureCard {
-  animation: cardIn 0.5s cubic-bezier(0.16,1,0.3,1) both;
-  animation-delay: var(--card-delay, 0ms);
-}
 .revealBlock.visible .stepCard {
   animation: cardIn 0.5s cubic-bezier(0.16,1,0.3,1) both;
   animation-delay: var(--step-delay, 0ms);
@@ -67,7 +63,9 @@
 /* ─── HERO ─────────────────────────────────────────────────── */
 .hero {
   position: relative;
-  background: var(--bg);
+  background: radial-gradient(circle at 15% 50%, rgba(249, 115, 22, 0.15), transparent 50%),
+              radial-gradient(circle at 85% 30%, rgba(251, 191, 36, 0.15), transparent 50%),
+              var(--bg);
   border-bottom: 1px solid var(--border);
   overflow: hidden;
 }
@@ -325,39 +323,91 @@
   color: var(--text-muted);
 }
 
-/* ─── Features ──────────────────────────────────────────────── */
+/* ─── Features (Bento Grid) ──────────────────────────────────────────────── */
 .featuresGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  border: 1px solid var(--border);
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
 }
+
 .featureCard {
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 40px 36px 34px;
-  border-right: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+  padding: 32px 32px 28px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
   text-decoration: none;
   color: var(--text);
-  background: var(--bg);
+  background: rgba(255, 255, 255, 0.015);
+  backdrop-filter: blur(12px);
   overflow: hidden;
-  transition: background 0.2s;
+  transition: background 0.3s ease, transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  
+  /* Initial state for new scroll animation */
+  opacity: 0;
+  transform: translateX(40px);
 }
-.featureCard:nth-child(3n)  { border-right: none; }
-.featureCard:nth-child(n+4) { border-bottom: none; }
-.featureCard:hover { background: var(--bg-2); }
+
+.cardVisible {
+  animation: cardSlideLeft 0.8s cubic-bezier(0.16,1,0.3,1) forwards;
+  animation-delay: var(--card-delay, 0ms);
+}
+
+@keyframes cardSlideLeft {
+  from { opacity: 0; transform: translateX(60px); filter: blur(4px); }
+  to   { opacity: 1; transform: translateX(0); filter: blur(0px); }
+}
+
+/* Mouse-follow glow effect */
+.cardGlow {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  background: radial-gradient(circle 350px at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(255, 255, 255, 0.04), transparent 80%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 0;
+}
+.featureCard:hover .cardGlow {
+  opacity: 1;
+}
+.featureCard:nth-child(1) { grid-column: span 2; grid-row: span 2; padding: 48px; } /* Skill Marketplace */
+.featureCard:nth-child(2) { grid-column: span 1; grid-row: span 1; }
+.featureCard:nth-child(3) { grid-column: span 1; grid-row: span 1; }
+.featureCard:nth-child(4) { grid-column: span 1; grid-row: span 1; }
+.featureCard:nth-child(5) { grid-column: span 1; grid-row: span 1; }
+.featureCard:nth-child(6) { grid-column: span 2; grid-row: span 1; } /* Chat */
+.featureCard:nth-child(7) { grid-column: span 2; grid-row: span 1; } /* Roast */
+.featureCard:nth-child(8) { grid-column: span 2; grid-row: span 1; padding: 40px; } /* PoW */
+.featureCard:nth-child(9) { grid-column: span 2; grid-row: span 1; } /* Communities */
+
+.featureCard > * { position: relative; z-index: 1; }
+
+.featureCard:nth-child(1) .featureIconWrap { transform: scale(1.3); transform-origin: left top; margin-bottom: 32px; }
+.featureCard:nth-child(1) .featureTitle { font-size: 1.5rem; }
+.featureCard:nth-child(1) .featureDesc { font-size: 1rem; max-width: 60%; }
+
+.featureCard:hover { 
+  background: rgba(255, 255, 255, 0.02); 
+  transform: translateY(-4px); 
+  border-color: rgba(255,255,255,0.2);
+  box-shadow: 0 16px 40px -10px rgba(0,0,0,0.4);
+}
 
 /* Ember sweep on top */
 .featureCard::before {
   content: '';
   position: absolute;
   top: 0; left: 0;
-  width: 0; height: 2px;
+  width: 0; height: 3px;
   background: var(--accent);
-  transition: width 0.3s ease;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-top-left-radius: 20px;
+  z-index: 2;
 }
-.featureCard:hover::before { width: 100%; }
+.featureCard:hover::before { width: 100%; border-top-right-radius: 20px; }
 
 /* Bottom-right corner accent */
 .cardCorner {
@@ -365,10 +415,12 @@
   bottom: 0; right: 0;
   width: 0; height: 0;
   background: var(--accent);
-  opacity: 0.1;
-  transition: width 0.25s ease, height 0.25s ease;
+  opacity: 0.15;
+  transition: width 0.3s ease, height 0.3s ease;
+  border-bottom-right-radius: 20px;
+  z-index: 0;
 }
-.featureCard:hover .cardCorner { width: 28px; height: 28px; }
+.featureCard:hover .cardCorner { width: 40px; height: 40px; }
 
 .featureTag {
   position: absolute;
@@ -696,7 +748,7 @@
 /* ─── CTA ───────────────────────────────────────────────────── */
 .ctaSection {
   padding: 110px 0;
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent) 0%, #D85500 100%);
   position: relative;
   overflow: hidden;
 }
@@ -809,7 +861,14 @@
   .ctaInner { flex-direction: column; gap: 28px; }
 }
 @media (max-width: 860px) {
-  .featuresGrid { grid-template-columns: repeat(2,1fr); }
+  .featuresGrid { grid-template-columns: repeat(2, 1fr); }
+  .featureCard:nth-child(n) { grid-column: span 1; grid-row: span 1; }
+  .featureCard:nth-child(1) { grid-column: span 2; grid-row: span 1; padding: 32px; }
+  .featureCard:nth-child(1) .featureDesc { max-width: 100%; }
+  .featureCard:nth-child(6) { grid-column: span 2; }
+  .featureCard:nth-child(7) { grid-column: span 2; }
+  .featureCard:nth-child(8) { grid-column: span 2; }
+  .featureCard:nth-child(9) { grid-column: span 2; }
   .featureCard:nth-child(2n)  { border-right: none; }
   .featureCard:nth-child(3n)  { border-right: 1px solid var(--border); }
   .testimonialsGrid { grid-template-columns: 1fr; }
@@ -821,6 +880,7 @@
   .section, .sectionAlt { padding: 70px 0; }
   .heroTitle { font-size: 2.2rem; }
   .featuresGrid { grid-template-columns: 1fr; }
+  .featureCard:nth-child(n) { grid-column: span 1; grid-row: span 1; }
   .featureCard  { border-right: none !important; }
   .featureCard:nth-child(n)  { border-bottom: 1px solid var(--border); }
   .featureCard:last-child    { border-bottom: none; }

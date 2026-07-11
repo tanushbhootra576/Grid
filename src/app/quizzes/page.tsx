@@ -22,7 +22,7 @@ export default function QuizzesPage() {
                             <div className={g.titleAccent} />
                             Quizzes
                         </h1>
-                        <p style={{ color: 'var(--text-muted)', marginTop: 8 }}>Test your knowledge and prepare for interviews.</p>
+                        <p style={{ color: 'var(--text-muted)', marginTop: 8, fontFamily: 'var(--font-space)' }}>Test your knowledge and prepare for interviews.</p>
                     </div>
                 </div>
 

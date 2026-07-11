@@ -300,10 +300,10 @@ export default function DiscussionsPage() {
             <Container size="xl" py="xl">
                 <Group justify="space-between" mb="xl">
                     <div>
-                        <Title>Discussions</Title>
+                        <Title style={{ fontFamily: 'var(--font-space)' }}>Discussions</Title>
                         {profile && (
-                            <Text size="xs" c="dimmed" mt={4}>
-                                Logged in as: <Text span fw={600}>{profile.name}</Text> ({profile.role === 'alumni' ? 'Alumni' : profile.role === 'admin' ? 'Admin' : 'Student'})
+                            <Text size="xs" c="dimmed" mt={4} style={{ fontFamily: 'var(--font-space)' }}>
+                                Logged in as: <Text span fw={600} style={{ fontFamily: 'var(--font-space)' }}>{profile.name}</Text> ({profile.role === 'alumni' ? 'Alumni' : profile.role === 'admin' ? 'Admin' : 'Student'})
                             </Text>
                         )}
                     </div>
@@ -317,7 +317,7 @@ export default function DiscussionsPage() {
                 <Group align="flex-start" style={{ position: 'relative' }}>
                     {/* Desktop Sidebar */}
                     <div style={{ width: 250, flexShrink: 0 }} className="hidden-mobile">
-                        <Text fw={700} mb="sm" size="sm" c="dimmed" tt="uppercase">Categories</Text>
+                        <Text fw={700} mb="sm" size="sm" c="dimmed" tt="uppercase" style={{ fontFamily: 'var(--font-space)' }}>Categories</Text>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                             {CATEGORIES.map(cat => (
                                 <Button
@@ -529,8 +529,8 @@ export default function DiscussionsPage() {
                                     <ThemeIcon size={60} radius="xl" color="gray" variant="light" mb="md">
                                         <IconMessage size={30} />
                                     </ThemeIcon>
-                                    <Text size="lg" fw={500} c="dimmed">No discussions found in this category.</Text>
-                                    <Text size="sm" c="dimmed">Be the first to start a conversation!</Text>
+                                    <Text size="lg" fw={500} c="dimmed" style={{ fontFamily: 'var(--font-space)' }}>No discussions found in this category.</Text>
+                                    <Text size="sm" c="dimmed" style={{ fontFamily: 'var(--font-space)' }}>Be the first to start a conversation!</Text>
                                 </div>
                             )}
                             {threadsQuery.data && threadsQuery.data.total > threadsQuery.data.pageSize && (
