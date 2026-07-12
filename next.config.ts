@@ -16,7 +16,8 @@ const nextConfig: NextConfig = {
     "puppeteer-core", 
     "@sparticuz/chromium",
     "tesseract.js",
-    "tesseract.js-core"
+    "tesseract.js-core",
+    "pdf-parse"
   ],
   outputFileTracingIncludes: {
     "/api/**/*": [
