@@ -219,9 +219,8 @@ function FeatureIcon({ type }: { type: string }) {
       </svg>
     ),
   };
-  return <div className={s.featureIconWrap}>{map[type] ?? map.skills}</div>;
+  return <div style={{ width: '100%', height: '100%' }}>{map[type] ?? map.skills}</div>;
 }
-
 /* ── Testimonials ── */
 const TESTIMONIALS = [
   { name: "Priya K.", role: "3rd Year, CSE", text: "Found a Python tutor in 20 minutes. Taught her React in return. This is how campus should work.", initials: "PK", col: "ember" },
@@ -229,11 +228,12 @@ const TESTIMONIALS = [
   { name: "Sneha V.", role: "2nd Year, Design", text: "The discussion forum answered my elective questions better than any advisor ever did.", initials: "SV", col: "ember" },
 ];
 
-/* ── Animated Feature Card (Bento) ── */
+
+/* ── Breathtaking Parallax Feature Card ── */
 function AnimatedFeatureCard({ feature, index }: { feature: any, index: number }) {
   const ref = React.useRef<HTMLAnchorElement>(null);
   const [isVisible, setIsVisible] = React.useState(false);
-  const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
+  const [mouse, setMouse] = React.useState({ x: 0, y: 0, px: 0, py: 0, isHovered: false });
 
   React.useEffect(() => {
     const el = ref.current;
@@ -241,9 +241,9 @@ function AnimatedFeatureCard({ feature, index }: { feature: any, index: number }
     const obs = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) {
         setIsVisible(true);
-        obs.disconnect(); // Animate only once when it enters viewport
+        obs.disconnect();
       }
-    }, { threshold: 0.1, rootMargin: "0px 0px -40px 0px" });
+    }, { threshold: 0.25, rootMargin: "0px 0px -100px 0px" });
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
@@ -251,56 +251,64 @@ function AnimatedFeatureCard({ feature, index }: { feature: any, index: number }
   const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!ref.current) return;
     const rect = ref.current.getBoundingClientRect();
-    setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Calculate parallax offsets (-1 to 1)
+    const px = (x / rect.width) * 2 - 1;
+    const py = (y / rect.height) * 2 - 1;
+
+    setMouse({ x, y, px, py, isHovered: true });
   };
 
-  // Group delays by row for a more natural staggered entrance
-  const delay = (index % 4) * 80;
+  const handleMouseLeave = () => {
+    setMouse(p => ({ ...p, px: 0, py: 0, isHovered: false }));
+  };
+
+  const delay = (index % 4) * 100;
 
   return (
     <Link 
       href={feature.href} 
       ref={ref}
-      className={`${s.featureCard} ${isVisible ? s.cardVisible : ''}`}
+      className={`${s.featureCard} ${isVisible ? s.cardVisible : ''} ${s[`bento_${index}`] || ''}`}
       onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       style={{ 
         "--card-delay": `${delay}ms`,
-        "--mouse-x": `${mousePos.x}px`,
-        "--mouse-y": `${mousePos.y}px`,
+        "--mouse-x": `${mouse.x}px`,
+        "--mouse-y": `${mouse.y}px`,
       } as React.CSSProperties}
     >
       <div className={s.cardGlow} />
-      {feature.tag && <span className={s.featureTag}>{feature.tag}</span>}
       
-      <div style={{ position: 'relative', zIndex: 10 }}>
-        <FeatureIcon type={feature.type} />
-        <h3 className={s.featureTitle}>{feature.title}</h3>
-        <p className={s.featureDesc}>{feature.desc}</p>
-        <span className={s.featureArrow}>
-          <svg viewBox="0 0 20 20" fill="none" width="18" height="18">
-            <line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" strokeWidth="2" />
-            <polyline points="12,5 17,10 12,15" stroke="currentColor" strokeWidth="2" />
-          </svg>
-        </span>
+      {/* Brutalist visual side with massive graphic */}
+      <div 
+        className={s.featureVisualWrap}
+        style={{ 
+          transform: mouse.isHovered ? `translate3d(${mouse.px * -15}px, ${mouse.py * -15}px, 0) scale(1.02)` : 'translate3d(0,0,0) scale(1)',
+          transition: mouse.isHovered ? 'transform 0.15s cubic-bezier(0.23, 1, 0.32, 1)' : 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+      >
+        <div className={s.hugeVisualNumber}>0{index + 1}</div>
+        <div className={s.hugeVisualIcon}><FeatureIcon type={feature.type} /></div>
       </div>
-
-      {index === 0 && (
-        <div style={{ position: 'absolute', right: 40, bottom: 40, width: 220, display: 'flex', flexDirection: 'column', gap: 16, opacity: 0.9, pointerEvents: 'none', zIndex: 5 }}>
-           <div style={{ background: 'var(--bg-3)', border: '1px solid var(--border)', padding: 16, borderRadius: 12, transform: 'rotate(-4deg) translateX(20px)', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}>
-             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: 6, fontFamily: 'var(--font-space)', fontWeight: 600 }}>OFFERING</div>
-             <div style={{ color: 'var(--accent)', fontWeight: 600, fontSize: '0.9rem' }}>React.js Mentorship</div>
-           </div>
-           <div style={{ display: 'flex', justifyContent: 'center' }}>
-             <svg viewBox="0 0 24 24" width={24} height={24} stroke="var(--text-muted)" strokeWidth={2} fill="none"><path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"/></svg>
-           </div>
-           <div style={{ background: 'var(--bg-3)', border: '1px solid var(--border)', padding: 16, borderRadius: 12, transform: 'rotate(2deg) translateX(-10px)', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}>
-             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: 6, fontFamily: 'var(--font-space)', fontWeight: 600 }}>SEEKING</div>
-             <div style={{ color: 'var(--accent-2)', fontWeight: 600, fontSize: '0.9rem' }}>Python API Help</div>
-           </div>
+      
+      {/* Foreground content with subtle parallax */}
+      <div 
+        className={s.featureContentWrap}
+        style={{ 
+          transform: mouse.isHovered ? `translate3d(${mouse.px * 8}px, ${mouse.py * 8}px, 0)` : 'translate3d(0,0,0)',
+          transition: mouse.isHovered ? 'transform 0.15s cubic-bezier(0.23, 1, 0.32, 1)' : 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+      >
+        {feature.tag && <span className={s.featureTag}>{feature.tag}</span>}
+        
+        <div className={s.featureTextWrap}>
+          <h3 className={s.featureTitle}>{feature.title}</h3>
+          <p className={s.featureDesc}>{feature.desc}</p>
         </div>
-      )}
-
-      <span className={s.cardCorner} />
+      </div>
     </Link>
   );
 }
@@ -375,104 +383,76 @@ export default function Home() {
     <>
       <Navbar />
 
-      {/* ─── HERO ─────────────────────────────────────────────── */}
-      <section className={s.hero}>
-        {/* Structural grid lines */}
-        <div className={s.gridOverlay} aria-hidden="true">
-          <div className={s.gridLine} style={{ top: "28%" }} />
-          <div className={s.gridLine} style={{ top: "70%" }} />
-          <div className={s.gridLineV} style={{ left: "55%" }} />
-        </div>
+      {/* ─── KILLER 3D INTERACTIVE HERO ─── */}
+      <section 
+        className={s.hero3D}
+        onMouseMove={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const x = (e.clientX - rect.left) / rect.width - 0.5;
+          const y = (e.clientY - rect.top) / rect.height - 0.5;
+          e.currentTarget.style.setProperty('--rotX', `${-y * 15}deg`);
+          e.currentTarget.style.setProperty('--rotY', `${x * 15}deg`);
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.setProperty('--rotX', '0deg');
+          e.currentTarget.style.setProperty('--rotY', '0deg');
+        }}
+      >
+        <div className={s.world3D}>
+          {/* Infinite Floor */}
+          <div className={s.gridFloor} />
 
-        {/* Ember glow spot */}
-        <div className={s.heroGlow} aria-hidden="true" />
+          {/* Massive Cyber Text */}
+          <div className={s.titleLayerBack}>GRID</div>
 
-        <Container size="xl" className={s.heroInner}>
-          <div className={s.heroLeft}>
-            {/* Status pill */}
-            <div className={s.heroPill}>
-              <span className={s.pillDot} />
-              <span>
-                {stats
-                  ? `${stats.users?.toLocaleString() ?? 0} students building together`
-                  : "Connecting students across India"}
-              </span>
-            </div>
+          {/* Advanced Orbital Rings */}
+          <div className={s.orbitalSystem}>
+            <div className={`${s.ring} ${s.ring1}`} />
+            <div className={`${s.ring} ${s.ring2}`} />
+            <div className={`${s.ring} ${s.ring3}`} />
+          </div>
 
-            <h1 className={s.heroTitle}>
-              Build skills.<br />
-              Ship projects.<br />
-              <span className={s.heroTitleAccent}>Own your campus.</span>
+          {/* Floating Nodes in 3D Space */}
+          <div className={s.node3D} style={{ '--tx': '-350px', '--ty': '-120px', '--tz': '150px', '--rx': '-10deg', '--ry': '15deg' } as React.CSSProperties}>
+            <span className={s.nodeTag}>CRYPTOGRAPHY</span>
+            <div className={s.nodeAvatar} style={{ background: 'var(--accent-2)' }} />
+            <span className={s.nodeTitle}>Unfakeable Proof</span>
+          </div>
+
+          <div className={s.node3D} style={{ '--tx': '180px', '--ty': '-180px', '--tz': '80px', '--rx': '5deg', '--ry': '-20deg' } as React.CSSProperties}>
+            <span className={s.nodeTag}>P2P NETWORK</span>
+            <div className={s.nodeAvatar} style={{ background: 'var(--accent)' }} />
+            <span className={s.nodeTitle}>Direct Skill Swap</span>
+          </div>
+
+          <div className={s.node3D} style={{ '--tx': '-280px', '--ty': '140px', '--tz': '250px', '--rx': '-15deg', '--ry': '10deg' } as React.CSSProperties}>
+            <span className={s.nodeTag}>STARTUPS</span>
+            <div className={s.nodeAvatar} style={{ background: '#fff' }} />
+            <span className={s.nodeTitle}>Project Teams</span>
+          </div>
+
+          <div className={s.node3D} style={{ '--tx': '240px', '--ty': '120px', '--tz': '300px', '--rx': '20deg', '--ry': '-15deg' } as React.CSSProperties}>
+            <span className={s.nodeTag}>VERIFIED</span>
+            <div className={s.nodeAvatar} style={{ background: 'var(--accent-2)' }} />
+            <span className={s.nodeTitle}>GitHub + Figma</span>
+          </div>
+
+          {/* Central Title */}
+          <div className={s.titleLayerFront}>
+            <h1 className={s.killerTitle}>
+              <span className={`${s.kWord} ${s.kWord1}`} style={{ '--z': '20px' } as React.CSSProperties}>Build </span>
+              <span className={`${s.kWord} ${s.kWord2}`} style={{ '--z': '50px' } as React.CSSProperties}>Ship</span>
+              <span className={`${s.kWord} ${s.kWord3}`} style={{ '--z': '80px' } as React.CSSProperties}>Dominate</span>
             </h1>
-
-            <p className={s.heroSub}>
-              Grid connects university students for peer skill exchange, project teams, and
-              campus collaboration. Like LinkedIn for your campus — but actually useful.
+            <p className={s.killerSub}>
+              Grid connects university students for peer skill exchange, project teams, and 
+              campus collaboration. Like LinkedIn—but actually useful.
             </p>
-
-            <div className={s.heroCta}>
-              {!user ? (
-                <>
-                  <Link href="/signup" className={s.btnPrimary} id="hero-join-btn">
-                    Start for free
-                    <svg viewBox="0 0 16 16" fill="none" width={14} height={14}>
-                      <line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" strokeWidth="2" />
-                      <polyline points="9,3 14,8 9,13" stroke="currentColor" strokeWidth="2" />
-                    </svg>
-                  </Link>
-                  <Link href="/skills" className={s.btnGhost} id="hero-skills-btn">
-                    Browse skills
-                  </Link>
-                </>
-              ) : (
-                <Link href="/profile" className={s.btnPrimary} id="hero-profile-btn">
-                  Go to dashboard
-                </Link>
-              )}
+            <div className={s.killerCta}>
+              <Link href="/signup" className={s.btnCyber}>
+                ENTER THE GRID
+              </Link>
             </div>
-
-            {/* Social proof avatars */}
-            <div className={s.socialProof}>
-              <div className={s.avatarStack}>
-                {["PK","RM","KS","DS","NJ"].map((initials, i) => (
-                  <div key={i} className={s.miniAvatar}
-                    style={{ background: i % 2 === 0 ? "var(--accent)" : "var(--accent-2)",
-                             color: i % 2 === 0 ? "#fff" : "#0D0C0B",
-                             marginLeft: i === 0 ? 0 : -10, zIndex: 5 - i }}>
-                    {initials[0]}
-                  </div>
-                ))}
-              </div>
-              <span className={s.socialText}>
-                <strong>
-                  {stats
-                    ? `${stats.users?.toLocaleString() ?? 0} students`
-                    : "Students"}
-                </strong>{" "}building together
-              </span>
-            </div>
-          </div>
-
-          <div className={s.heroRight}>
-            <HeroIllustration />
-          </div>
-        </Container>
-
-        {/* Marquee */}
-        <div className={s.marqueeWrap} aria-hidden="true">
-          <div className={s.marqueeTrack}>
-            {Array(8).fill(null).map((_, i) => (
-              <React.Fragment key={i}>
-                <span>SKILL SWAP</span>
-                <span className={s.mDot} style={{ color: "var(--accent)" }}>◆</span>
-                <span>PROJECT TEAMS</span>
-                <span className={s.mDot} style={{ color: "var(--accent-2)" }}>◆</span>
-                <span>PEER MENTORS</span>
-                <span className={s.mDot} style={{ color: "var(--accent)" }}>◆</span>
-                <span>GRID YOUR FUTURE</span>
-                <span className={s.mDot} style={{ color: "var(--accent-2)" }}>◆</span>
-              </React.Fragment>
-            ))}
           </div>
         </div>
       </section>

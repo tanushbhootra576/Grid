@@ -1,6 +1,6 @@
-# Grid: Academic Networking and Proof of Work Platform
+# collegeConnect: Academic Networking and Proof of Work Platform
 
-Grid is a scalable, Next.js based platform engineered for academic networking, portfolio verification, and hyper-local community management. The system leverages fully-local AI-driven KYC (Know Your Customer) processes to verify student identities securely without API keys, and isolates user bases into verified, college specific networks.
+collegeConnect is a scalable, Next.js based platform engineered for academic networking, portfolio verification, and hyper-local community management. The system leverages fully-local AI-driven KYC (Know Your Customer) processes to verify student identities securely without API keys, and isolates user bases into verified, college specific networks.
 
 ## System Architecture
 
@@ -12,8 +12,8 @@ graph TD
     NextJS[Next.js Application]
     Auth[NextAuth / Google OAuth]
     DB[(MongoDB Atlas)]
-    Tesseract[Local OCR - Tesseract.js]
-    Ollama[Local LLM - Ollama]
+    Tesseract[Local OCR: Tesseract.js]
+    Ollama[Local LLM: Ollama]
 
     Client -->|HTTP/WebSocket| NextJS
     Client -->|OAuth/Token| Auth
@@ -40,26 +40,26 @@ graph TD
 ### 1. Identity and Verification Pipeline
 The verification system ensures a high trust environment by algorithmically confirming student enrollment securely without third-party APIs.
 * Users upload institutional ID cards which are compressed client-side via HTML5 Canvas.
-* Images are processed instantly on the server via a cached `tesseract.js` worker.
+* Images are processed instantly on the server via a cached tesseract.js worker.
 * Extracted text is cross-referenced against user profile data (Name, College).
-* Successful validation modifies the user schema `verified` boolean, unlocking protected application tiers.
+* Successful validation modifies the user schema verified boolean, unlocking protected application tiers.
 
 ### 2. Community Routing System
 Users are dynamically partitioned into micro-communities based on their institutional affiliation.
 * Centralized dataset of 200+ Indian academic institutions.
-* Dedicated database indexing on the `college` field for O(1) query performance on community feeds.
+* Dedicated database indexing on the college field for O(1) query performance on community feeds.
 * Segregated project boards and discussion forums per institution.
 
 ### 3. Proof of Work (PoW) Infrastructure
-Grid replaces conventional resumes with a verifiable project portfolio.
+The platform replaces conventional resumes with a verifiable project portfolio.
 * Users log technical projects and deployments.
 * Peer endorsement system validates technical claims.
-* AI driven resume analysis module parses and critiques uploaded PDFs using local `ollama` endpoints.
+* AI driven resume analysis module parses and critiques uploaded PDFs using local ollama endpoints.
 
 ## Directory Structure
 
 ```text
-camp/
+collegeConnect/
   ├── public/              # Static assets and images
   ├── src/
   │   ├── app/             # Next.js App Router directory
@@ -78,7 +78,7 @@ camp/
 
 ## Environment Configuration
 
-Create a `.env.local` file in the project root with the following keys.
+Create a .env.local file in the project root with the following keys.
 
 | Variable Name | Required | Description |
 | :--- | :--- | :--- |
@@ -92,8 +92,8 @@ Create a `.env.local` file in the project root with the following keys.
 
 1. Clone the repository and install dependencies.
 ```bash
-git clone https://github.com/tanushbhootra576/camp.git
-cd camp
+git clone https://github.com/tanushbhootra576/collegeConnect.git
+cd collegeConnect
 npm install
 ```
 
@@ -115,10 +115,10 @@ npm start
 
 ## Deployment Notes
 
-This repository is optimized for deployment via Vercel. Ensure all environment variables listed in the configuration table are mapped exactly within the Vercel project settings prior to triggering a build. The default Next.js build command (`npm run build`) is automatically detected.
+This repository is optimized for deployment via Vercel. Ensure all environment variables listed in the configuration table are mapped exactly within the Vercel project settings prior to triggering a build. The default Next.js build command (npm run build) is automatically detected.
 
-**Note on Live Deployments (Ollama & Tesseract):** 
-- **Tesseract.js** is configured to write to `os.tmpdir()` to respect Vercel's read-only filesystem. ID Verification will work out of the box in production.
-- **Ollama Resume Roasting** requires a live, hosted Ollama endpoint (e.g. EC2, Railway, or external GPU service) when deployed to Vercel, since Vercel cannot hit your `localhost` Ollama. Set an `OLLAMA_BASE_URL` environment variable pointing to your hosted model for it to work in production.
+Note on Live Deployments (Ollama & Tesseract):
+* Tesseract.js is configured to write to os.tmpdir() to respect Vercel's read-only filesystem. ID Verification will work out of the box in production.
+* Ollama Resume Roasting requires a live, hosted Ollama endpoint (e.g. EC2, Railway, or external GPU service) when deployed to Vercel, since Vercel cannot hit your localhost Ollama. Set an OLLAMA_BASE_URL environment variable pointing to your hosted model for it to work in production.
 
 Developed by Tanush Bhootra.

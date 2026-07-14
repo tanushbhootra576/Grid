@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
-import { Space_Grotesk } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import "@mantine/core/styles.css";
 import React from "react";
 import { ColorSchemeScript } from "@mantine/core";
 import { Providers } from "./providers";
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space",
@@ -28,9 +33,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <ColorSchemeScript defaultColorScheme="dark" />
+        <ColorSchemeScript defaultColorScheme="light" />
       </head>
-      <body className={`${spaceGrotesk.variable}`}>
+      <body className={`${spaceGrotesk.variable} ${inter.variable}`}>
         <Providers>{children}</Providers>
       </body>
     </html>

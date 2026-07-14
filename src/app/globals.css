@@ -67,7 +67,7 @@ html {
 body {
   background-color: var(--bg);
   color: var(--text);
-  font-family: var(--font-space), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.6;
@@ -78,11 +78,11 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-space), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-weight: 700;
   color: var(--text);
   line-height: 1.05;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.04em;
 }
 
 a { color: inherit; text-decoration: none; }

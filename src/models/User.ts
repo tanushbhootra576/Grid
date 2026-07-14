@@ -30,6 +30,23 @@ export interface IUser extends Document {
     description?: string;
     endorsements: string[]; // array of user IDs
   }[];
+  powDesigns?: {
+    title: string;
+    type: string;
+    url: string;
+  }[];
+  powEndorsements?: {
+    authorName: string;
+    role: string;
+    text: string;
+    skills: string[];
+  }[];
+  powExperience?: {
+    role: string;
+    company: string;
+    duration: string;
+    description: string;
+  }[];
   profileLocked: boolean;
   verified: boolean;
   acceptedGuidelines: boolean;
@@ -95,6 +112,23 @@ const UserSchema: Schema<IUser> = new Schema({
     url: String,
     description: String,
     endorsements: [{ type: String }]
+  }],
+  powDesigns: [{
+    title: String,
+    type: String,
+    url: String
+  }],
+  powEndorsements: [{
+    authorName: String,
+    role: String,
+    text: String,
+    skills: [{ type: String }]
+  }],
+  powExperience: [{
+    role: String,
+    company: String,
+    duration: String,
+    description: String
   }],
   profileLocked: {
     type: Boolean,
