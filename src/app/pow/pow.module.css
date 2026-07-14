@@ -14,7 +14,7 @@
 }
 
 .header {
-  padding: 60px 40px 0;
+  padding: 100px 40px 0;
   border-bottom: 1px solid var(--border);
   background: var(--bg-2);
 }
@@ -117,7 +117,7 @@
 /* CARDS */
 .bentoGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
   gap: 24px;
 }
 
@@ -143,6 +143,51 @@
     grid-column: span 1;
   }
 }
+
+@media (max-width: 768px) {
+  .header {
+    padding: 40px 20px 0;
+  }
+  .profileInfo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .avatar {
+    width: 72px;
+    height: 72px;
+    font-size: 2rem;
+  }
+  .name {
+    font-size: 1.8rem;
+  }
+  .tabs {
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .content {
+    padding: 20px;
+  }
+  .bentoGrid {
+    grid-template-columns: 1fr;
+  }
+  .bigStat {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 100px 16px 0;
+  }
+  .content {
+    padding: 16px;
+  }
+  .name {
+    font-size: 1.5rem;
+  }
+}
+
 
 .cardHeader {
   display: flex;

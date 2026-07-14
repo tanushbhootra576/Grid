@@ -144,7 +144,7 @@ export default function AdminResourcesPage() {
     return (
         <>
             <Navbar />
-            <div className={g.container} style={{ paddingTop: 40, paddingBottom: 40 }}>
+            <div className={g.container} style={{ paddingTop: 100, paddingBottom: 40 }}>
                 <h2 style={{ fontFamily: 'var(--font-space)', fontSize: '2rem', marginBottom: 32 }}>Pending Resource Approvals</h2>
                 
                 {loading ? (

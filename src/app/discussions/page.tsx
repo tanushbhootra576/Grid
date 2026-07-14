@@ -297,7 +297,7 @@ export default function DiscussionsPage() {
     return (
         <>
             <Navbar />
-            <Container size="xl" py="xl">
+            <Container size="xl" pt={100} pb="xl">
                 <Group justify="space-between" mb="xl">
                     <div>
                         <Title style={{ fontFamily: 'var(--font-space)' }}>Discussions</Title>

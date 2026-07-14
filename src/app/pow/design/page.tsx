@@ -64,7 +64,7 @@ export default function DesignPage() {
       {isAdding && (
         <div className={s.card} style={{ padding: "24px", marginBottom: "24px", border: "1px dashed var(--accent)" }}>
           <h3 style={{ marginBottom: "16px", fontSize: "1.1rem" }}>Add New Design Asset</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))", gap: "16px", marginBottom: "16px" }}>
             <div>
               <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "8px", color: "var(--text-muted)" }}>Title</label>
               <input value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="e.g. Mobile App UI" style={{ width: "100%", padding: "10px", borderRadius: "4px", border: "1px solid var(--border)", background: "var(--bg)" }} />
@@ -90,7 +90,7 @@ export default function DesignPage() {
           <button onClick={() => setIsAdding(true)} style={{ color: "var(--accent)", fontWeight: 600, background: "none", border: "none", cursor: "pointer" }}>Add your first design</button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '24px' }}>
           {designs.map((file: any, i: number) => (
             <div key={i} className={s.card} style={{ padding: '0', overflow: 'hidden' }}>
               <div style={{ height: '180px', width: '100%', background: `linear-gradient(135deg, var(--bg-2), var(--bg-3))`, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>

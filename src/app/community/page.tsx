@@ -121,7 +121,7 @@ export default function CommunityPage() {
   return (
     <>
       <Navbar />
-      <div className={g.container} style={{ maxWidth: 1100, paddingTop: 40, paddingBottom: 80 }}>
+      <div className={g.container} style={{ maxWidth: 1100, paddingTop: 100, paddingBottom: 80 }}>
 
         {/* College Header */}
         <div style={{ marginBottom: 48 }}>
@@ -137,19 +137,19 @@ export default function CommunityPage() {
                 <IconMapPin size={16} />
                 <span>{city || "India"}</span>
               </div>
-              <p style={{ color: "var(--text-muted)", marginTop: 12, fontSize: "0.95rem" }}>
+              <p style={{ fontFamily: "var(--font-space)", color: "var(--text-muted)", marginTop: 12, fontSize: "0.95rem" }}>
                 Your college community on Grid. Connect with batchmates, find collaborators, and see what's happening on campus.
               </p>
             </div>
 
             {/* Stats strip */}
-            <div style={{ display: "flex", gap: 0, border: "1px solid var(--border)" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 0, border: "1px solid var(--border)", width: "100%", marginTop: 16 }}>
               {[
                 { label: "Members", value: members.length },
                 { label: "Verified", value: members.filter(m => m.verified).length },
                 { label: "Branches", value: [...new Set(members.map(m => m.branch).filter(Boolean))].length },
               ].map((stat, i) => (
-                <div key={stat.label} style={{ padding: "16px 24px", borderLeft: i > 0 ? "1px solid var(--border)" : "none", textAlign: "center" }}>
+                <div key={stat.label} style={{ flex: "1 1 100px", padding: "16px 12px", borderLeft: i > 0 ? "1px solid var(--border)" : "none", borderTop: i > 0 ? "none" : "none", textAlign: "center" }}>
                   <div style={{ fontFamily: "var(--font-space)", fontSize: "1.75rem", fontWeight: 800 }}>{stat.value}</div>
                   <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: 2 }}>{stat.label}</div>
                 </div>
@@ -159,7 +159,7 @@ export default function CommunityPage() {
         </div>
 
         {/* Tab Bar */}
-        <div style={{ display: "flex", gap: 0, borderBottom: "2px solid var(--border)", marginBottom: 40 }}>
+        <div style={{ display: "flex", gap: 0, borderBottom: "2px solid var(--border)", marginBottom: 40, overflowX: "auto" }}>
           {TABS.map(tab => (
             <button
               key={tab.id}
@@ -170,7 +170,7 @@ export default function CommunityPage() {
                 background: "transparent", border: "none", cursor: "pointer",
                 borderBottom: activeTab === tab.id ? "2px solid var(--text)" : "2px solid transparent",
                 marginBottom: -2, color: activeTab === tab.id ? "var(--text)" : "var(--text-muted)",
-                transition: "all 0.15s"
+                transition: "all 0.15s", whiteSpace: "nowrap", flexShrink: 0
               }}
             >
               {tab.icon} {tab.label}
@@ -206,7 +206,7 @@ export default function CommunityPage() {
                     <div style={{ fontSize: "0.85rem", marginTop: 8 }}>Share Grid with your batchmates!</div>
                   </div>
                 ) : (
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))", gap: 16 }}>
                     {filteredMembers.map(member => (
                       <Link key={member._id} href={`/users/${member._id}`} style={{ textDecoration: "none" }}>
                         <div

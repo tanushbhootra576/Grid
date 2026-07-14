@@ -289,7 +289,7 @@ export default function ProfilePage() {
   return (
     <>
       <Navbar />
-      <div className={g.container} style={{ maxWidth: 1100, paddingTop: 40, paddingBottom: 80 }}>
+      <div className={g.container} style={{ maxWidth: 1100, paddingTop: 100, paddingBottom: 80 }}>
         
         {/* Top Identity Strip */}
         <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 40, flexWrap: "wrap" }}>
@@ -324,7 +324,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Tab Bar */}
-        <div style={{ display: "flex", gap: 0, borderBottom: "2px solid var(--border)", marginBottom: 40 }}>
+        <div style={{ display: "flex", gap: 0, borderBottom: "2px solid var(--border)", marginBottom: 40, overflowX: "auto" }}>
           {TABS.map(tab => (
             <button
               key={tab.id}
@@ -345,11 +345,11 @@ export default function ProfilePage() {
 
         {/* TAB: PROFILE */}
         {activeTab === "profile" && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 32 }}>
-            <div>
+          <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: 32 }}>
+            <div style={{ flex: "1 1 300px", minWidth: 0 }}>
               <div style={{ marginBottom: 32 }}>
                 <h3 style={{ fontFamily: "var(--font-space)", fontSize: "1rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-muted)", marginBottom: 20 }}>Basic Info</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))", gap: 20, marginBottom: 20 }}>
                   <div className={g.formGroup}>
                     <label className={g.label}>Full Name</label>
                     <input className={g.input} style={{ border: "1px solid var(--border)" }} value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
@@ -489,7 +489,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Sidebar: completion checklist */}
-            <div>
+            <div style={{ flex: "1 1 250px", maxWidth: 400 }}>
               <div style={{ border: "1px solid var(--border)", padding: 24, background: "var(--bg-2)", position: "sticky", top: 80 }}>
                 <h4 style={{ fontFamily: "var(--font-space)", fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 20, marginTop: 0 }}>Profile Health</h4>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -619,12 +619,12 @@ export default function ProfilePage() {
             <div style={{ border: "1px solid var(--border)", padding: 24, background: "var(--bg-2)" }}>
               <h4 style={{ fontFamily: "var(--font-space)", marginTop: 0, marginBottom: 20 }}>Add a Project</h4>
               <button className={`${g.btn} ${g.btnPrimary}`} style={{marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8}} onClick={async () => { setLoading(true); try { const res = await fetch('/api/users/sync-github', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: formData.github ? formData.github.split('github.com/')[1] : '' }) }); const data = await res.json(); if (res.ok) { setFormData(f => ({ ...f, powProjects: data.powProjects })); alert(`Successfully synced ${data.addedCount} projects!`); } else alert(data.error || 'Sync failed'); } catch (e) { alert('Error syncing'); } setLoading(false); }}> <IconBrandGithub size={18} /> Auto-Sync GitHub Repos </button>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr auto", gap: 12, alignItems: "end" }}>
-                <div className={g.formGroup} style={{ margin: 0 }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "end" }}>
+                <div className={g.formGroup} style={{ margin: 0, flex: "1 1 200px" }}>
                   <label className={g.label}>Project Name</label>
                   <input className={g.input} style={{ border: "1px solid var(--border)" }} placeholder="e.g. Grid" value={powInputTitle} onChange={e => setPowInputTitle(e.target.value)} />
                 </div>
-                <div className={g.formGroup} style={{ margin: 0 }}>
+                <div className={g.formGroup} style={{ margin: 0, flex: "2 1 250px" }}>
                   <label className={g.label}>GitHub or Demo URL</label>
                   <input className={g.input} style={{ border: "1px solid var(--border)" }} placeholder="https://github.com/..." value={powInputUrl} onChange={e => setPowInputUrl(e.target.value)} />
                 </div>

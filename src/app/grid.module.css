@@ -4,7 +4,7 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 24px;
+  padding: 100px 24px 40px;
 }
 
 /* ── Header ── */
@@ -18,7 +18,7 @@
 }
 .title {
   font-family: var(--font-space), sans-serif;
-  font-size: 2.4rem;
+  font-size: clamp(1.5rem, 5vw, 2.4rem);
   font-weight: 700;
   color: var(--text);
   letter-spacing: -0.04em;
@@ -119,7 +119,7 @@
 /* ── Grid & Cards ── */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   gap: 24px;
 }
 .card {

@@ -8,6 +8,7 @@ import {
   IconSend, IconTrash, IconRefresh, IconMoodSmile, IconArrowBackUp, IconX,
   IconSticker, IconThumbUp, IconHeart, IconMoodHappy, IconMoodSurprised,
   IconMoodSad, IconFlame, IconSearch, IconArrowDown, IconHash, IconBuilding,
+  IconMenu2,
   IconCalendar, IconMessage, IconUserPlus, IconBan, IconDotsVertical,
   IconArrowLeft, IconEye, IconPinned, IconPinnedOff, IconStarFilled,
   IconBell, IconBellRinging, IconShieldCheck
@@ -463,10 +464,21 @@ function ChatPageContent() {
       <Navbar />
       <div className={c.chatWrap}>
         
+        {/* Mobile Sidebar Overlay */}
+        <div 
+          className={`${c.sidebarOverlay} ${showSidebar ? c.sidebarOverlayActive : ''}`}
+          onClick={() => setShowSidebar(false)}
+        />
+        
         {/* Sidebar */}
         <div className={`${c.sidebar} ${!showSidebar ? c.sidebarHidden : ''}`}>
           <div className={c.sidebarTop}>
-            <div className={c.sidebarTitle}>Channels</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className={c.sidebarTitle}>Channels</div>
+              <button className={`${c.iconBtn} ${c.closeSidebarBtn}`} onClick={() => setShowSidebar(false)}>
+                <IconX size={16} />
+              </button>
+            </div>
             <div className={c.channelList}>
               <button className={`${c.channelBtn} ${activeTab === 'universal' ? c.channelBtnActive : ''}`} onClick={() => setActiveTab('universal')}>
                 <IconHash size={18} className={c.channelIcon} /> Universal
@@ -554,7 +566,7 @@ function ChatPageContent() {
             <div className={c.headerLeft}>
               {!showSidebar && (
                 <button className={c.iconBtn} onClick={() => setShowSidebar(true)}>
-                  <IconArrowLeft size={20} />
+                  <IconMenu2 size={20} />
                 </button>
               )}
               <h2 className={c.headerTitle}>

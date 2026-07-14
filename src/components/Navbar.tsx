@@ -14,6 +14,8 @@ import { signOut } from "next-auth/react";
 import {
   IconSun,
   IconMoon,
+  IconMenu2,
+  IconX,
 } from "@tabler/icons-react";
 
 import cx from "clsx";
@@ -96,8 +98,7 @@ export function Navbar({ hideOnTop }: { hideOnTop?: boolean }) {
           <Link href="/" className={cx(classes.brand, drawerOpened && classes.brandOpen)} id="nav-brand" onClick={closeDrawer}>
             <GridLogo color={drawerOpened ? "#000" : "var(--accent)"} />
             <span className={classes.brandName}>Grid</span>
-            <span className={classes.brandBeta}>BETA</span>
-          </Link>
+                  </Link>
 
           {/* Right side actions */}
           <div className={classes.actions}>
@@ -116,10 +117,9 @@ export function Navbar({ hideOnTop }: { hideOnTop?: boolean }) {
               className={classes.burger}
               onClick={toggleDrawer}
               aria-label="Toggle menu"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: drawerOpened ? '#000' : 'var(--text)', cursor: 'pointer', zIndex: 1100 }}
             >
-              <span className={classes.burgerLine} style={{ transform: drawerOpened ? "translateY(8px) rotate(45deg)" : "" }} />
-              <span className={classes.burgerLine} style={{ opacity: drawerOpened ? 0 : 1 }} />
-              <span className={classes.burgerLine} style={{ transform: drawerOpened ? "translateY(-8px) rotate(-45deg)" : "" }} />
+              {drawerOpened ? <IconX size={28} stroke={2} /> : <IconMenu2 size={28} stroke={2} />}
             </button>
           </div>
         </Container>
@@ -127,6 +127,9 @@ export function Navbar({ hideOnTop }: { hideOnTop?: boolean }) {
 
       {/* Full Screen Overlay Menu */}
       <div className={cx(classes.fullMenu, drawerOpened && classes.fullMenuOpen)}>
+        <button className={classes.explicitCloseBtn} onClick={closeDrawer} aria-label="Close menu">
+          <IconX size={32} />
+        </button>
         <div className={classes.menuGraphic}>G</div>
         
         <div className={classes.menuContent}>

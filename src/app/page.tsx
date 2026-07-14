@@ -383,7 +383,7 @@ export default function Home() {
     <>
       <Navbar />
 
-      {/* ─── KILLER 3D INTERACTIVE HERO ─── */}
+      {/* ── Desktop Hero Section ── */}
       <section 
         className={s.hero3D}
         onMouseMove={(e) => {

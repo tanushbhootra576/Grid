@@ -67,7 +67,7 @@ export default function NetworkPage() {
       {isAdding && (
         <div className={s.card} style={{ padding: "24px", marginBottom: "24px", border: "1px dashed var(--accent)" }}>
           <h3 style={{ marginBottom: "16px", fontSize: "1.1rem" }}>Add a written endorsement</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 250px), 1fr))", gap: "16px", marginBottom: "16px" }}>
             <div>
               <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "8px", color: "var(--text-muted)" }}>Author Name</label>
               <input value={formData.authorName} onChange={e => setFormData({...formData, authorName: e.target.value})} placeholder="e.g. Priya Sharma" style={{ width: "100%", padding: "10px", borderRadius: "4px", border: "1px solid var(--border)", background: "var(--bg)" }} />
@@ -91,7 +91,7 @@ export default function NetworkPage() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '24px' }}>
           {endorsements.length === 0 && !isAdding ? (
             <div style={{ gridColumn: '1 / -1', padding: "40px", textAlign: "center", border: "1px dashed var(--border)", borderRadius: "8px" }}>
               <p style={{ color: "var(--text-muted)", marginBottom: "16px" }}>You haven't received any text endorsements yet.</p>
@@ -129,7 +129,7 @@ export default function NetworkPage() {
           )}
 
           {/* Global Network Stats */}
-          <div className={s.cardCol3} style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px', marginTop: '16px', gridColumn: '1 / -1' }}>
+          <div className={s.cardCol3} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '24px', marginTop: '16px', gridColumn: '1 / -1' }}>
             <div className={s.card} style={{ padding: '32px' }}>
               <div className={s.cardTitle}><IconUsers size={16} /> Verified Connections</div>
               <div className={s.bigStat} style={{ marginTop: 'auto' }}>{profile?.socialLinks ? 1 : 0}</div>

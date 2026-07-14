@@ -25,7 +25,7 @@ export default function ProjectsPage() {
           <Link href="/profile" style={{ color: "var(--accent)", fontWeight: 600 }}>Go to Profile to Add Projects</Link>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '24px' }}>
           {projects.map((repo: any, i: number) => (
             <div key={i} className={s.card} style={{ padding: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>

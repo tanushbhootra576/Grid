@@ -3,6 +3,7 @@
 /* Layout */
 .chatWrap {
   display: flex;
+  margin-top: 60px;
   height: calc(100vh - 60px);
   background: var(--bg);
   overflow: hidden;
@@ -796,10 +797,12 @@
   border: 1px solid var(--border);
   padding: 12px;
   display: grid;
-  grid-template-columns: repeat(6, 48px);
+  grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
+  width: max-content;
+  max-width: 90vw;
   gap: 8px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-  z-index: 50;
+  z-index: 30000;
   animation: popIn 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
@@ -831,7 +834,7 @@
   inset: 0;
   background: rgba(0,0,0,0.75);
   backdrop-filter: blur(6px);
-  z-index: 100;
+  z-index: 30000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -847,6 +850,19 @@
   display: flex;
   flex-direction: column;
   animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.sidebar {
+  width: 260px;
+  background: var(--bg-2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.closeSidebarBtn {
+  display: none;
 }
 
 @keyframes slideUp {
@@ -1023,6 +1039,13 @@
 
 /* ── Responsive ───────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
+  .chatWrap {
+    height: calc(100dvh - 60px);
+    position: relative;
+  }
+  .main {
+    width: 100%;
+  }
   .sidebar {
     position: absolute;
     top: 0;
@@ -1039,6 +1062,23 @@
 
   .msgBody { max-width: 85%; }
   .searchBar { display: none; }
+  .sidebarOverlay {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 15;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .sidebarOverlayActive {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .closeSidebarBtn { display: flex !important; }
 }
 
 /* ── Verified badge ───────────────────────────────────────────────────────── */
