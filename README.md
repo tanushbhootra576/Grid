@@ -1,6 +1,6 @@
-# collegeConnect: Academic Networking and Proof of Work Platform
+# Grid: Academic Networking and Proof of Work Platform
 
-collegeConnect is a scalable, Next.js based platform engineered for academic networking, portfolio verification, and hyper-local community management. The system leverages fully-local AI-driven KYC (Know Your Customer) processes to verify student identities securely without API keys, and isolates user bases into verified, college specific networks.
+Grid is a scalable, Next.js based platform engineered for academic networking, portfolio verification, and hyper-local community management. The system leverages fully-local AI-driven KYC (Know Your Customer) processes to verify student identities securely without API keys, and isolates user bases into verified, college specific networks.
 
 ## System Architecture
 
@@ -61,7 +61,7 @@ The platform replaces conventional resumes with a verifiable project portfolio.
 ## Directory Structure
 
 ```text
-collegeConnect/
+Grid/
   ├── public/              # Static assets and images
   ├── src/
   │   ├── app/             # Next.js App Router directory
@@ -94,8 +94,8 @@ Create a .env.local file in the project root with the following keys.
 
 1. Clone the repository and install dependencies.
 ```bash
-git clone https://github.com/tanushbhootra576/collegeConnect.git
-cd collegeConnect
+git clone https://github.com/tanushbhootra576/Grid.git
+cd Grid
 npm install
 ```
 
