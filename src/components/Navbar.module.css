@@ -80,43 +80,75 @@
   border: 1px solid var(--border);
   color: var(--text-muted);
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  transition: border-color 0.4s cubic-bezier(0.19, 1, 0.22, 1), color 0.4s cubic-bezier(0.19, 1, 0.22, 1);
   border-radius: 0 !important;
+  position: relative;
+  z-index: 1;
+}
+.iconBtn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  z-index: -1;
+  clip-path: circle(0% at 50% 50%);
+  transition: clip-path 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.iconBtn:hover::after {
+  clip-path: circle(150% at 50% 50%);
 }
 .iconBtn:hover {
   border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-dim);
+  color: #fff;
 }
 
-.icon { width: 16px; height: 16px; }
+.icon { 
+  width: 18px; 
+  height: 18px; 
+  position: absolute;
+  transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.6s ease;
+}
 
-.light { display: block; }
-.dark  { display: none; }
+.light { 
+  opacity: 1; 
+  transform: rotate(0deg) scale(1);
+}
+.dark { 
+  opacity: 0; 
+  transform: rotate(90deg) scale(0.5);
+}
 
-:global([data-mantine-color-scheme='dark']) .light { display: none; }
-:global([data-mantine-color-scheme='dark']) .dark  { display: block; }
+:global([data-mantine-color-scheme='dark']) .light { 
+  opacity: 0; 
+  transform: rotate(-90deg) scale(0.5);
+}
+:global([data-mantine-color-scheme='dark']) .dark { 
+  opacity: 1; 
+  transform: rotate(0deg) scale(1);
+}
 
 /* ── Mobile burger ── */
 .burger {
   display: flex;
-  flex-direction: column;
-  gap: 7px;
-  padding: 8px;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
+  color: var(--text);
   cursor: pointer;
+  z-index: 1100;
+  position: relative;
+  transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1), color 0.4s ease;
 }
-.burger:hover .burgerLine {
-  background: var(--accent);
-  box-shadow: 0 0 10px var(--accent);
+.burger:hover {
+  transform: scale(1.1);
+  color: var(--accent);
 }
-.burgerLine {
-  display: block;
-  width: 22px;
-  height: 2px;
-  background: var(--text);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+:global(body):has(.fullMenuOpen) .burger {
+  color: #000;
+}
+:global(body):has(.fullMenuOpen) .burger:hover {
+  color: rgba(0,0,0,0.6);
 }
 
 /* ── Full Screen Overlay Menu ── */
@@ -127,41 +159,24 @@
   z-index: 10000;
   display: grid;
   grid-template-columns: 1fr;
-  opacity: 0;
+  opacity: 1;
   pointer-events: none;
-  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  clip-path: circle(0% at calc(100% - 45px) 30px);
+  transition: clip-path 0.8s cubic-bezier(0.77, 0, 0.175, 1);
   overflow-y: auto;
-  padding: 140px 40px 40px;
+  padding: 80px 40px 40px;
 }
 @media (min-width: 768px) {
   .fullMenu {
     grid-template-columns: 1fr 1fr;
-    padding: 140px 80px 60px;
+    padding: 80px 80px 60px;
   }
 }
 
-.explicitCloseBtn {
-  position: absolute;
-  top: 16px;
-  right: 20px;
-  background: transparent;
-  border: none;
-  color: #000;
-  cursor: pointer;
-  z-index: 10001;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  opacity: 0.8;
-  transition: opacity 0.2s;
-}
-.explicitCloseBtn:hover {
-  opacity: 1;
-}
+
 
 .fullMenuOpen {
-  opacity: 1;
+  clip-path: circle(150% at calc(100% - 45px) 30px);
   pointer-events: auto;
 }
 
@@ -178,12 +193,12 @@
     font-weight: 900;
     line-height: 0.8;
     color: #000;
-    transform: translateY(40px);
+    transform: translateY(60px) skewY(2deg);
     opacity: 0;
-    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
+    transition: transform 1.2s cubic-bezier(0.19, 1, 0.22, 1), opacity 1.2s ease;
   }
   .fullMenuOpen .menuGraphic {
-    transform: translateY(0);
+    transform: translateY(0) skewY(0);
     opacity: 1;
   }
 }
@@ -191,7 +206,7 @@
 .menuContent {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .fullNavLinks {
@@ -206,6 +221,7 @@
   font-size: clamp(2rem, min(7.5vh, 9vw), 5rem);
   font-weight: 900;
   color: #000;
+  -webkit-text-stroke: 2px transparent;
   text-decoration: none;
   text-transform: uppercase;
   letter-spacing: -0.02em;
@@ -213,15 +229,29 @@
   text-align: left;
   padding: 0;
   margin-bottom: 0.2em;
-  transform: translateY(40px);
+  transform: translateY(60px) skewY(3deg);
   opacity: 0;
   position: relative;
   display: flex;
   align-items: flex-start;
   gap: 16px;
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-              color 0.2s, -webkit-text-stroke 0.2s;
+  transition: transform 0.9s cubic-bezier(0.19, 1, 0.22, 1),
+              opacity 0.9s cubic-bezier(0.19, 1, 0.22, 1),
+              color 0.4s ease,
+              -webkit-text-stroke 0.4s ease;
+}
+
+.fullNavLink::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  height: 6px;
+  background: #000;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .navNumber {
@@ -234,23 +264,28 @@
 .fullNavLink:hover {
   color: transparent;
   -webkit-text-stroke: 2px #000;
+  transform: translateX(20px);
+}
+.fullNavLink:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
 }
 
 .fullMenuOpen .fullNavLink {
-  transform: translateY(0);
+  transform: translateY(0) skewY(0);
   opacity: 1;
 }
 
 /* Staggering delay for nav links */
-.fullMenuOpen .fullNavLink:nth-child(1) { transition-delay: 0.1s; }
-.fullMenuOpen .fullNavLink:nth-child(2) { transition-delay: 0.13s; }
-.fullMenuOpen .fullNavLink:nth-child(3) { transition-delay: 0.16s; }
-.fullMenuOpen .fullNavLink:nth-child(4) { transition-delay: 0.19s; }
-.fullMenuOpen .fullNavLink:nth-child(5) { transition-delay: 0.22s; }
-.fullMenuOpen .fullNavLink:nth-child(6) { transition-delay: 0.25s; }
-.fullMenuOpen .fullNavLink:nth-child(7) { transition-delay: 0.28s; }
-.fullMenuOpen .fullNavLink:nth-child(8) { transition-delay: 0.31s; }
-.fullMenuOpen .fullNavLink:nth-child(9) { transition-delay: 0.34s; }
+.fullMenuOpen .fullNavLink:nth-child(1) { transition-delay: 0.10s; }
+.fullMenuOpen .fullNavLink:nth-child(2) { transition-delay: 0.15s; }
+.fullMenuOpen .fullNavLink:nth-child(3) { transition-delay: 0.20s; }
+.fullMenuOpen .fullNavLink:nth-child(4) { transition-delay: 0.25s; }
+.fullMenuOpen .fullNavLink:nth-child(5) { transition-delay: 0.30s; }
+.fullMenuOpen .fullNavLink:nth-child(6) { transition-delay: 0.35s; }
+.fullMenuOpen .fullNavLink:nth-child(7) { transition-delay: 0.40s; }
+.fullMenuOpen .fullNavLink:nth-child(8) { transition-delay: 0.45s; }
+.fullMenuOpen .fullNavLink:nth-child(9) { transition-delay: 0.50s; }
 
 .fullMenuFooter {
   display: flex;
@@ -281,10 +316,6 @@
 }
 
 /* Making burger and header elements black when menu open */
-:global(body):has(.fullMenuOpen) .burgerLine {
-  background: #000 !important;
-  box-shadow: none !important;
-}
 :global(body):has(.fullMenuOpen) .brandName {
   color: #000 !important;
 }
@@ -302,8 +333,8 @@
   .brand:active .brandName { color: var(--accent); text-shadow: 0 0 12px rgba(249,115,22,0.6); }
   .iconBtn:hover { border-color: var(--border); color: var(--text-muted); background: transparent; }
   .iconBtn:active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
-  .burger:hover .burgerLine { background: var(--text); box-shadow: none; }
-  .burger:active .burgerLine { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+  .burger:hover { transform: none; color: var(--text); }
+  .burger:active { transform: scale(1.1); color: var(--accent); }
   .fullNavLink:hover { color: #000; -webkit-text-stroke: 0; }
   .fullNavLink:active { color: transparent; -webkit-text-stroke: 2px #000; }
   .overlayActionBtn:hover { opacity: 1; }

@@ -413,25 +413,25 @@ export default function Home() {
           </div>
 
           {/* Floating Nodes in 3D Space */}
-          <div className={s.node3D} style={{ '--tx': '-350px', '--ty': '-120px', '--tz': '150px', '--rx': '-10deg', '--ry': '15deg' } as React.CSSProperties}>
+          <div className={s.node3D} style={{ '--tx': '-420px', '--ty': '-200px', '--tz': '150px', '--rx': '-10deg', '--ry': '15deg' } as React.CSSProperties}>
             <span className={s.nodeTag}>CRYPTOGRAPHY</span>
             <div className={s.nodeAvatar} style={{ background: 'var(--accent-2)' }} />
             <span className={s.nodeTitle}>Unfakeable Proof</span>
           </div>
 
-          <div className={s.node3D} style={{ '--tx': '180px', '--ty': '-180px', '--tz': '80px', '--rx': '5deg', '--ry': '-20deg' } as React.CSSProperties}>
+          <div className={s.node3D} style={{ '--tx': '240px', '--ty': '-240px', '--tz': '80px', '--rx': '5deg', '--ry': '-20deg' } as React.CSSProperties}>
             <span className={s.nodeTag}>P2P NETWORK</span>
             <div className={s.nodeAvatar} style={{ background: 'var(--accent)' }} />
             <span className={s.nodeTitle}>Direct Skill Swap</span>
           </div>
 
-          <div className={s.node3D} style={{ '--tx': '-280px', '--ty': '140px', '--tz': '250px', '--rx': '-15deg', '--ry': '10deg' } as React.CSSProperties}>
+          <div className={s.node3D} style={{ '--tx': '-440px', '--ty': '20px', '--tz': '250px', '--rx': '-15deg', '--ry': '10deg' } as React.CSSProperties}>
             <span className={s.nodeTag}>STARTUPS</span>
             <div className={s.nodeAvatar} style={{ background: '#fff' }} />
             <span className={s.nodeTitle}>Project Teams</span>
           </div>
 
-          <div className={s.node3D} style={{ '--tx': '240px', '--ty': '120px', '--tz': '300px', '--rx': '20deg', '--ry': '-15deg' } as React.CSSProperties}>
+          <div className={s.node3D} style={{ '--tx': '260px', '--ty': '40px', '--tz': '300px', '--rx': '20deg', '--ry': '-15deg' } as React.CSSProperties}>
             <span className={s.nodeTag}>VERIFIED</span>
             <div className={s.nodeAvatar} style={{ background: 'var(--accent-2)' }} />
             <span className={s.nodeTitle}>GitHub + Figma</span>
@@ -445,8 +445,9 @@ export default function Home() {
               <span className={`${s.kWord} ${s.kWord3}`} style={{ '--z': '80px' } as React.CSSProperties}>Dominate</span>
             </h1>
             <p className={s.killerSub}>
-              Grid connects university students for peer skill exchange, project teams, and 
-              campus collaboration. Like LinkedIn—but actually useful.
+              Trade skills, assemble high-impact project teams, and build your reputation. 
+              Grid is the ultimate professional network for university students, 
+              engineered for real collaboration without the noise.
             </p>
             <div className={s.killerCta}>
               <Link href="/signup" className={s.btnCyber}>

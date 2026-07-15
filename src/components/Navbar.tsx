@@ -79,8 +79,47 @@ export function Navbar({ hideOnTop }: { hideOnTop?: boolean }) {
     closeDrawer();
   };
 
-  const toggleTheme = () =>
-    setColorScheme(computedColorScheme === "light" ? "dark" : "light");
+  const toggleTheme = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const isDark = computedColorScheme === "dark";
+    const isAppearanceTransition =
+      typeof document !== "undefined" &&
+      "startViewTransition" in document &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (!isAppearanceTransition) {
+      setColorScheme(isDark ? "light" : "dark");
+      return;
+    }
+
+    const x = event.clientX;
+    const y = event.clientY;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const transition = (document as any).startViewTransition(() => {
+      setColorScheme(isDark ? "light" : "dark");
+    });
+
+    transition.ready.then(() => {
+      const clipPath = [
+        `circle(0px at ${x}px ${y}px)`,
+        `circle(${endRadius}px at ${x}px ${y}px)`,
+      ];
+
+      document.documentElement.animate(
+        {
+          clipPath: clipPath,
+        },
+        {
+          duration: 600,
+          easing: "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+          pseudoElement: "::view-transition-new(root)",
+        }
+      );
+    });
+  };
 
   return (
     <>
@@ -117,7 +156,6 @@ export function Navbar({ hideOnTop }: { hideOnTop?: boolean }) {
               className={classes.burger}
               onClick={toggleDrawer}
               aria-label="Toggle menu"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: drawerOpened ? '#000' : 'var(--text)', cursor: 'pointer', zIndex: 1100 }}
             >
               {drawerOpened ? <IconX size={28} stroke={2} /> : <IconMenu2 size={28} stroke={2} />}
             </button>
@@ -127,9 +165,6 @@ export function Navbar({ hideOnTop }: { hideOnTop?: boolean }) {
 
       {/* Full Screen Overlay Menu */}
       <div className={cx(classes.fullMenu, drawerOpened && classes.fullMenuOpen)}>
-        <button className={classes.explicitCloseBtn} onClick={closeDrawer} aria-label="Close menu">
-          <IconX size={32} />
-        </button>
         <div className={classes.menuGraphic}>G</div>
         
         <div className={classes.menuContent}>

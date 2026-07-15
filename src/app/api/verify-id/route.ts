@@ -174,27 +174,80 @@ export async function POST(req: NextRequest) {
     const requiredMatches = nameParts.length <= 2 ? nameParts.length : Math.ceil(nameParts.length * 0.75);
     const nameMatches = nameParts.length > 0 ? (matchedParts >= requiredMatches) : textLower.includes(user.name.toLowerCase());
 
+    // 🔥 SECURITY FIX: Verify the college on the ID matches the selected college in the profile.
+    const userCollege = user.college || "";
+    const userCollegeLower = userCollege.toLowerCase();
+    const INDIAN_COLLEGES = require("@/data/colleges").INDIAN_COLLEGES;
+    const collegeObj = INDIAN_COLLEGES.find((c: any) => c.name === userCollege);
+    
+    let collegeMatches = false;
+    let antiSpoofingFailed = false;
+
+    if (userCollege) {
+      const words = userCollegeLower.split(/[\s,.-]+/).filter((w: string) => w.length > 3 && !['institute', 'technology', 'engineering', 'college', 'university', 'national', 'indian', 'deemed', 'science'].includes(w));
+      
+      if (textLower.includes(userCollegeLower)) {
+        collegeMatches = true;
+      } else {
+        const shortName = (collegeObj?.short || "").toLowerCase();
+        if (shortName && textLower.includes(shortName)) {
+           collegeMatches = true;
+        } else if (words.length > 0) {
+           collegeMatches = words.some((word: string) => textLower.includes(word));
+        } else {
+           collegeMatches = textLower.includes(userCollegeLower.split(' ')[0]);
+        }
+      }
+
+      // --- Campus Anti-Spoofing Check ---
+      // Prevents using an ID from a different campus (e.g. VIT Chennai ID for VIT Vellore)
+      if (collegeMatches && collegeObj) {
+         const siblingColleges = INDIAN_COLLEGES.filter((c: any) => 
+            c.name !== collegeObj.name && 
+            ((c.short && c.short === collegeObj.short) || (words.length > 0 && c.name.toLowerCase().includes(words[0])))
+         );
+         
+         for (const sibling of siblingColleges) {
+            const siblingCity = (sibling.city || "").toLowerCase();
+            const ourCity = (collegeObj.city || "").toLowerCase();
+            
+            // If the ID card explicitly names a different campus city, and NOT our city, it's a mismatch.
+            if (siblingCity && siblingCity !== ourCity && siblingCity.length > 3 && textLower.includes(siblingCity)) {
+               if (!ourCity || !textLower.includes(ourCity)) {
+                  antiSpoofingFailed = true;
+                  break;
+               }
+            }
+         }
+      }
+    }
+
+    if (antiSpoofingFailed) {
+      collegeMatches = false;
+    }
+
     // Basic regex to find an ID number (e.g. 6+ alphanumeric characters)
     const possibleIds = extractedText.match(/\b[A-Z0-9]{6,15}\b/g) || [];
     const extractedIdNumber = possibleIds[0] || "";
-    const extractedCollege = "Verified College (OCR fallback)";
+    const extractedCollege = collegeMatches ? userCollege : "Verified College (OCR fallback)";
 
     const aiResult = {
-      isValidId: nameMatches,
+      isValidId: nameMatches && collegeMatches,
       nameMatches: nameMatches,
+      collegeMatches: collegeMatches,
       extractedName: nameMatches ? user.name : "",
       extractedCollege: extractedCollege,
       extractedIdNumber: extractedIdNumber,
-      confidenceScore: nameMatches ? 0.9 : 0.3,
-      reason: nameMatches 
-        ? "Name matched successfully via OCR." 
-        : "Could not find matching name on the ID card."
+      confidenceScore: (nameMatches && collegeMatches) ? 0.9 : 0.3,
+      reason: (nameMatches && collegeMatches)
+        ? "Name and College matched successfully via OCR." 
+        : (!nameMatches ? "Could not find matching name on the ID card." : "ID card does not appear to belong to your selected college.")
     };
 
     // ─────────────────────────────────────────────────────────────────────────
     // LAYER 3: Validate AI result
     // ─────────────────────────────────────────────────────────────────────────
-    if (!aiResult.isValidId || !aiResult.nameMatches) {
+    if (!aiResult.isValidId || !aiResult.nameMatches || !aiResult.collegeMatches) {
       return NextResponse.json({ success: false, verified: false, data: aiResult });
     }
 

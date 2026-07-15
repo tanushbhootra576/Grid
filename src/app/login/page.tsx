@@ -63,7 +63,7 @@ export default function LoginPage() {
         setPendingUid(user.uid);
         setGuidelinesOpen(true);
       } else {
-        router.replace('/');
+        router.replace('/profile');
       }
     }
   }, [user, profile, authLoading, router]);
@@ -89,7 +89,7 @@ export default function LoginPage() {
       });
       await refreshProfile();
       setGuidelinesOpen(false);
-      router.push('/');
+      router.push('/profile');
     } catch {
       showError({ message: 'Failed to process. Please try again.' }, 'Guidelines');
       setLoading(false);

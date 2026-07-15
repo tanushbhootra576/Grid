@@ -428,7 +428,7 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
     }
   // Re-evaluate when profile data or pathname changes
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid, profile?.name, (profile as any)?.college, profile?.branch, profile?.year, profile?.acceptedGuidelines, pathname]);
+  }, [user?.uid, profile?.name, (profile as any)?.college, profile?.branch, profile?.year, profile?.acceptedGuidelines, profile?.verified, pathname]);
 
   const canContinue = STEPS[step - 1]?.required(formData) ?? true;
 
