@@ -4,8 +4,7 @@ export interface IMessage extends Document {
     content: string;
     senderId: mongoose.Types.ObjectId;
     senderName: string;
-    type: 'universal' | 'branch' | 'year' | 'dm';
-    branch?: string;
+    type: 'universal' | 'year' | 'dm';
     year?: number;
     recipientId?: mongoose.Types.ObjectId;
     replyTo?: {
@@ -38,11 +37,8 @@ const MessageSchema: Schema<IMessage> = new Schema({
     },
     type: {
         type: String,
-        // enum: ['universal', 'branch', 'year', 'dm'],
+        // enum: ['universal', 'year', 'dm'],
         required: true,
-    },
-    branch: {
-        type: String,
     },
     year: {
         type: Number,

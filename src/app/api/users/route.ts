@@ -8,7 +8,6 @@ export async function GET(req: NextRequest) {
     await dbConnect();
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search");
-    const branch = searchParams.get("branch");
     const year = searchParams.get("year");
     const skill = searchParams.get("skill");
     const cofounder = searchParams.get("cofounder");
@@ -20,7 +19,6 @@ export async function GET(req: NextRequest) {
     );
 
     type UserQuery = {
-      branch?: string;
       year?: number;
       college?: string;
       skills?: { $regex: string; $options: string };
@@ -28,7 +26,6 @@ export async function GET(req: NextRequest) {
       "collaborationStatus.level"?: number;
     };
     const query: UserQuery = {};
-    if (branch) query.branch = branch;
     if (year) query.year = parseInt(year, 10);
     if (skill) query.skills = { $regex: skill, $options: "i" };
     if (college) query.college = college;
@@ -37,7 +34,6 @@ export async function GET(req: NextRequest) {
       query.$or = [
         { name: { $regex: search, $options: "i" } },
         { email: { $regex: search, $options: "i" } },
-        { branch: { $regex: search, $options: "i" } },
         { interests: { $regex: search, $options: "i" } },
         { skills: { $regex: search, $options: "i" } },
       ];
@@ -50,7 +46,7 @@ export async function GET(req: NextRequest) {
         .skip(skip)
         .limit(limit)
         .select(
-          "publicId name email branch year college city verified skills interests bio role collaborationStatus verified"
+          "publicId name email year college city verified skills interests bio role collaborationStatus verified"
         ),
       User.countDocuments(query),
     ]);
@@ -86,10 +82,9 @@ export async function POST(req: NextRequest) {
 
     let user = await User.findOne({ firebaseUid });
 
-    // Calculate year, role, and branch from Name (RegNo) or Email
+    // Calculate year and role from Name (RegNo) or Email
     let yearOfStudy = 1;
     let calculatedRole = "student";
-    let extractedBranch: string | undefined = undefined;
 
     // 1. Try to parse Registration Number from Name (e.g., "Tanush Bhootra 24BRS1282")
     // Pattern: 2 digits (Year), optional space, 3 letters (Branch), optional space, 4 digits (Serial)
@@ -98,7 +93,6 @@ export async function POST(req: NextRequest) {
 
     if (regNoMatch) {
       const shortYear = parseInt(regNoMatch[1], 10); // e.g., 24
-      const branchCode = regNoMatch[2].toUpperCase(); // e.g., BRS
       const joiningYear = 2000 + shortYear; // 2024
 
       const now = new Date();
@@ -110,9 +104,6 @@ export async function POST(req: NextRequest) {
         // July or later
         yearOfStudy += 1;
       }
-
-      // Use the branch code directly as requested
-      extractedBranch = branchCode;
     } else {
       // 2. Fallback: Extract from Email (some colleges use 2021@college.edu or 21@college.edu format)
       const match = email.match(/(\d{2,4})@.*$/);
@@ -140,8 +131,7 @@ export async function POST(req: NextRequest) {
         name,
         role: calculatedRole,
         year: yearOfStudy,
-        branch: extractedBranch, // Set branch if found
-        profileLocked: !!extractedBranch, // Lock profile if branch is auto-detected
+        profileLocked: false,
         skills: [],
         interests: [],
       });
@@ -159,17 +149,7 @@ export async function POST(req: NextRequest) {
         updates.role = calculatedRole;
       }
 
-      // Update Branch if found in name and not set or different
-      // We prioritize the RegNo branch if available
-      if (extractedBranch) {
-        if (user.branch !== extractedBranch) {
-          updates.branch = extractedBranch;
-        }
-        // If branch is auto-detected, ensure profile is locked
-        if (!user.profileLocked) {
-          updates.profileLocked = true;
-        }
-      }
+
 
       if (Object.keys(updates).length > 0) {
         Object.assign(user, updates);

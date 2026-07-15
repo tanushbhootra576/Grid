@@ -7,7 +7,6 @@ export interface IUser extends Document {
   email: string;
   name: string;
   role: "student" | "admin" | "alumni";
-  branch?: string;
   year?: number;
   college?: string;
   city?: string;
@@ -90,7 +89,6 @@ const UserSchema: Schema<IUser> = new Schema({
     enum: ["student", "admin", "alumni"],
     default: "student",
   },
-  branch: { type: String },
   year: { type: Number },
   college: { type: String, index: true },
   city: { type: String },

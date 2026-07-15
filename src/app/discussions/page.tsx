@@ -34,7 +34,7 @@ interface Thread {
 
 const CATEGORIES = [
     { value: 'GENERAL', label: 'General', icon: IconMessage },
-    { value: 'BRANCH', label: 'Branch', icon: IconDeviceDesktop },
+
     { value: 'YEAR', label: 'Year', icon: IconDeviceDesktop },
     { value: 'PLACEMENT', label: 'Placement', icon: IconDeviceDesktop },
     { value: 'SWE', label: 'Software Engineering', icon: IconCode },

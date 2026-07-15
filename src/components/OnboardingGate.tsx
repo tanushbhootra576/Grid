@@ -364,7 +364,7 @@ function Step5({ formData, verifyState, verifyReason, onVerify }: Step5Props) {
 const STEPS = [
   { id: 1, label: "Name",    required: (d: any) => !!d.name?.trim() },
   { id: 2, label: "College", required: (d: any) => !!d.college },
-  { id: 3, label: "Branch",  required: (d: any) => !!d.branch && !!d.year },
+  { id: 3, label: "Year",    required: (d: any) => !!d.year },
   { id: 4, label: "Links",   required: () => true },
   { id: 5, label: "Verify",  required: () => true },
 ];
@@ -377,7 +377,7 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
-    name: "", college: "", city: "", state: "", branch: "", year: 0,
+    name: "", college: "", city: "", state: "", year: 0,
     linkedin: "", github: "",
   });
 
@@ -392,7 +392,6 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
   const isComplete = !!(
     profile?.name?.trim() &&
     (profile as any)?.college?.trim() &&
-    profile?.branch?.trim() &&
     profile?.year &&
     profile?.acceptedGuidelines &&
     profile?.verified
@@ -412,7 +411,6 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
         college: p.college || "",
         city: p.city || "",
         state: p.state || "",
-        branch: profile.branch || "",
         year: profile.year || 0,
         linkedin: profile.socialLinks?.linkedin || "",
         github: profile.socialLinks?.github || "",
@@ -428,7 +426,7 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
     }
   // Re-evaluate when profile data or pathname changes
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid, profile?.name, (profile as any)?.college, profile?.branch, profile?.year, profile?.acceptedGuidelines, profile?.verified, pathname]);
+  }, [user?.uid, profile?.name, (profile as any)?.college, profile?.year, profile?.acceptedGuidelines, profile?.verified, pathname]);
 
   const canContinue = STEPS[step - 1]?.required(formData) ?? true;
 
@@ -445,7 +443,6 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
           college: formData.college,
           city: formData.city,
           state: formData.state,
-          branch: formData.branch,
           year: formData.year,
           socialLinks: { linkedin: formData.linkedin, github: formData.github },
         }),
@@ -625,7 +622,25 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
             <div style={{ minHeight: 300 }}>
               {step === 1 && <Step1 formData={formData} setFormData={setFormData} />}
               {step === 2 && <Step2 formData={formData} setFormData={setFormData} />}
-              {step === 3 && <Step3 formData={formData} setFormData={setFormData} />}
+              {step === 3 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  <div>
+                    <label className={g.label}>Year of Study</label>
+                    <select
+                      className={g.input}
+                      value={formData.year}
+                      onChange={e => setFormData({ ...formData, year: Number(e.target.value) })}
+                    >
+                      <option value={0} disabled>Select Year</option>
+                      <option value={1}>1st Year</option>
+                      <option value={2}>2nd Year</option>
+                      <option value={3}>3rd Year</option>
+                      <option value={4}>4th Year</option>
+                      <option value={5}>5th Year / Super Senior</option>
+                    </select>
+                  </div>
+                </div>
+              )}
               {step === 4 && <Step4 formData={formData} setFormData={setFormData} />}
               {step === 5 && (
                 <Step5

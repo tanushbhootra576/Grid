@@ -42,12 +42,14 @@ The verification system ensures a high trust environment by algorithmically conf
 * Users upload institutional ID cards which are compressed client-side via HTML5 Canvas.
 * Images are processed instantly on the server via a cached tesseract.js worker.
 * Extracted text is cross-referenced against user profile data (Name, College).
+* Includes a robust **Campus Anti-Spoofing algorithm** that rejects mismatching regional sub-campuses (e.g., trying to verify as "VIT Vellore" using a "VIT Chennai" ID card).
 * Successful validation modifies the user schema verified boolean, unlocking protected application tiers.
 
 ### 2. Community Routing System
 Users are dynamically partitioned into micro-communities based on their institutional affiliation.
 * Centralized dataset of 200+ Indian academic institutions.
-* Dedicated database indexing on the college field for O(1) query performance on community feeds.
+* Dedicated database indexing on the college and year fields for fast query performance.
+* Communities are strictly partitioned by College and Year, eliminating arbitrary branch-based fragmentation and fostering stronger cohort networking.
 * Segregated project boards and discussion forums per institution.
 
 ### 3. Proof of Work (PoW) Infrastructure

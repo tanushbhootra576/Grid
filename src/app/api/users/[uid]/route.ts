@@ -71,11 +71,10 @@ export async function PUT(
     if (user) {
       // Update existing user
       if (user.profileLocked) {
-        // Prevent updating branch and year if locked
-        delete body.branch;
+        // Prevent updating year if locked
         delete body.year;
-      } else if (body.branch && body.year) {
-        // Lock profile if branch and year are being set
+      } else if (body.year) {
+        // Lock profile if year is being set
         body.profileLocked = true;
       }
 
@@ -96,8 +95,8 @@ export async function PUT(
         );
       }
 
-      // Lock profile if branch and year are provided on creation
-      if (body.branch && body.year) {
+      // Lock profile if year is provided on creation
+      if (body.year) {
         body.profileLocked = true;
       }
 

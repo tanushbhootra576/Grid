@@ -27,7 +27,6 @@ interface ListedUser {
   publicId?: string;
   name: string;
   email: string;
-  branch?: string;
   year?: number;
   skills: string[];
   interests: string[];
@@ -51,7 +50,7 @@ export const dynamic = "force-dynamic";
 
 export default function UsersDirectoryPage() {
   const [search, setSearch] = useState("");
-  const [branch, setBranch] = useState<string>("");
+
   const [skill, setSkill] = useState("");
   const [cofounder, setCofounder] = useState(false);
   const [page, setPage] = useState(1);
@@ -68,7 +67,7 @@ export default function UsersDirectoryPage() {
       params.append("page", String(page));
       params.append("limit", "18");
       if (search) params.append("search", search);
-      if (branch) params.append("branch", branch);
+
       if (skill) params.append("skill", skill);
       if (cofounder) params.append("cofounder", "true");
       const res = await fetch(`/api/users?${params.toString()}`, {
@@ -87,11 +86,11 @@ export default function UsersDirectoryPage() {
     if (typeof window !== "undefined") {
       const sp = new URLSearchParams(window.location.search);
       const initialSearch = sp.get("search");
-      const initialBranch = sp.get("branch");
+
       const initialSkill = sp.get("skill");
       const initialCofounder = sp.get("cofounder");
       if (initialSearch) setSearch(initialSearch);
-      if (initialBranch) setBranch(initialBranch);
+
       if (initialSkill) setSkill(initialSkill);
       if (initialCofounder === "true") setCofounder(true);
       const initialPage = sp.get("page");
@@ -102,14 +101,14 @@ export default function UsersDirectoryPage() {
   useEffect(() => {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
-    if (branch) params.set("branch", branch);
+
     if (skill) params.set("skill", skill);
     if (cofounder) params.set("cofounder", "true");
     params.set("page", String(page));
     router.replace(`/users?${params.toString()}`);
     fetchUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, branch, skill, cofounder, page]);
+  }, [search, skill, cofounder, page]);
 
   return (
     <>
@@ -148,19 +147,7 @@ export default function UsersDirectoryPage() {
                   setPage(1);
                 }}
               />
-              <select
-                className={g.select}
-                value={branch}
-                onChange={(e) => {
-                  setBranch(e.target.value);
-                  setPage(1);
-                }}
-              >
-                <option value="">All Branches</option>
-                {["CSE", "ECE", "EEE", "MECH", "CIVIL", "IT", "AIML", "BIO"].map(b => (
-                  <option key={b} value={b}>{b}</option>
-                ))}
-              </select>
+
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontFamily: 'var(--font-space)', fontSize: '0.9rem', color: 'var(--text)' }}>
                 <input 
                   type="checkbox" 
@@ -205,7 +192,7 @@ export default function UsersDirectoryPage() {
                           <span className={g.badge} style={{ borderColor: 'var(--text-muted)', color: 'var(--text)', flexShrink: 0, marginLeft: 8 }}>{u.role}</span>
                         </div>
                         <p className={g.cardDesc} style={{ marginBottom: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {u.branch ? `${u.branch}${u.year ? " • Year " + u.year : ""}` : "Branch not set"}
+                          {u.year ? `Year ${u.year}` : "Year not set"}
                         </p>
                         {u.collaborationStatus?.visible && (
                           <div style={{ marginTop: 8 }}>

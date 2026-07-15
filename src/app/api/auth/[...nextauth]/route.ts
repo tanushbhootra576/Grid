@@ -29,34 +29,17 @@ const authOptions = {
         // Re-use the same detection logic as /api/users POST route
         let yearOfStudy = 1;
         let calculatedRole: any = "student";
-        let extractedBranch: string | undefined = undefined;
 
-        const regNoMatch = name.match(/\b(\d{2})\s*([a-zA-Z]{3})\s*(\d{4})\b/);
-        if (regNoMatch) {
-          const shortYear = parseInt(regNoMatch[1], 10);
-          const branchCode = regNoMatch[2].toUpperCase();
-          const joiningYear = 2000 + shortYear;
-
+        const emailMatch = email.match(/(\d{2,4})@.*$/);
+        if (emailMatch) {
+          let joiningYear = parseInt(emailMatch[1], 10);
+          if (joiningYear < 100) joiningYear += 2000;
           const now = new Date();
           const currentCalendarYear = now.getFullYear();
           const currentMonth = now.getMonth();
 
           yearOfStudy = currentCalendarYear - joiningYear;
           if (currentMonth >= 6) yearOfStudy += 1;
-
-          extractedBranch = branchCode;
-        } else {
-          const emailMatch = email.match(/(\d{2,4})@.*$/);
-          if (emailMatch) {
-            let joiningYear = parseInt(emailMatch[1], 10);
-            if (joiningYear < 100) joiningYear += 2000;
-            const now = new Date();
-            const currentCalendarYear = now.getFullYear();
-            const currentMonth = now.getMonth();
-
-            yearOfStudy = currentCalendarYear - joiningYear;
-            if (currentMonth >= 6) yearOfStudy += 1;
-          }
         }
 
         if (yearOfStudy < 1) yearOfStudy = 1;
@@ -71,8 +54,7 @@ const authOptions = {
             name,
             role: calculatedRole,
             year: yearOfStudy,
-            branch: extractedBranch,
-            profileLocked: !!extractedBranch,
+            profileLocked: false,
             skills: [],
             interests: [],
           });
@@ -80,10 +62,7 @@ const authOptions = {
           const updates: any = {};
           if (!existing.year || existing.year !== yearOfStudy) updates.year = yearOfStudy;
           if (existing.role !== 'admin' && existing.role !== calculatedRole) updates.role = calculatedRole;
-          if (extractedBranch && existing.branch !== extractedBranch) {
-            updates.branch = extractedBranch;
-            if (!existing.profileLocked) updates.profileLocked = true;
-          }
+          if (existing.role !== 'admin' && existing.role !== calculatedRole) updates.role = calculatedRole;
 
           if (Object.keys(updates).length > 0) {
             Object.assign(existing, updates);

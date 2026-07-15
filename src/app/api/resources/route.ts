@@ -9,7 +9,6 @@ export async function GET(req: NextRequest) {
         await dbConnect();
         const { searchParams } = new URL(req.url);
         const type = searchParams.get('type');
-        const branch = searchParams.get('branch');
         const search = searchParams.get('search');
         const uploaderId = searchParams.get('uploaderId');
         const year = searchParams.get('year');
@@ -20,7 +19,6 @@ export async function GET(req: NextRequest) {
         if (type) {
             // Type filtering is complex in new schema, ignoring for now or implementing basic check
         }
-        if (branch) query.branch = branch;
         if (year) {
             if (year.includes(',')) {
                 const years = year.split(',').map(y => parseInt(y.trim())).filter(n => !isNaN(n));
@@ -81,7 +79,7 @@ export async function POST(req: NextRequest) {
     try {
         await dbConnect();
         const body = await req.json();
-        const { courseCode, courseName, year, branch, category, item, userId } = body;
+        const { courseCode, courseName, year, category, item, userId } = body;
 
         if (!courseCode || !category || !item) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -111,7 +109,6 @@ export async function POST(req: NextRequest) {
                 courseCode: courseCode.toUpperCase(),
                 courseName,
                 year,
-                branch: branch || 'Common',
                 uploaderId: userId,
                 modules: [],
                 pyqs: [],

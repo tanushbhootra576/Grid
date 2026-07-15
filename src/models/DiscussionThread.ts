@@ -10,7 +10,7 @@ export interface IDiscussionThread extends Document {
     authorId: mongoose.Types.ObjectId;
     title: string;
     content: string;
-    category: 'BRANCH' | 'YEAR' | 'PLACEMENT' | 'GENERAL' | 'SWE' | 'AI' | 'ML' | 'DATASCIENCE' | 'WEBDEV' | 'APPDEV' | 'CYBERSECURITY' | 'BLOCKCHAIN' | 'CLOUD' | 'DEVOPS';
+    category: 'YEAR' | 'PLACEMENT' | 'GENERAL' | 'SWE' | 'AI' | 'ML' | 'DATASCIENCE' | 'WEBDEV' | 'APPDEV' | 'CYBERSECURITY' | 'BLOCKCHAIN' | 'CLOUD' | 'DEVOPS';
     tags: string[];
     upvotes: mongoose.Types.ObjectId[];
     comments: IComment[];
@@ -27,7 +27,7 @@ const DiscussionThreadSchema: Schema = new Schema({
     authorId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     title: { type: String, required: true },
     content: { type: String, required: true },
-    category: { type: String, enum: ['BRANCH', 'YEAR', 'PLACEMENT', 'GENERAL', 'SWE', 'AI', 'ML', 'DATASCIENCE', 'WEBDEV', 'APPDEV', 'CYBERSECURITY', 'BLOCKCHAIN', 'CLOUD', 'DEVOPS'], required: true },
+    category: { type: String, enum: ['YEAR', 'PLACEMENT', 'GENERAL', 'SWE', 'AI', 'ML', 'DATASCIENCE', 'WEBDEV', 'APPDEV', 'CYBERSECURITY', 'BLOCKCHAIN', 'CLOUD', 'DEVOPS'], required: true },
     tags: [{ type: String }],
     upvotes: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     comments: [CommentSchema],

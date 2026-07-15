@@ -353,21 +353,21 @@ export default function Home() {
     { type: "chat",     title: "Real-time Chat",     desc: "DMs, group rooms, skill-session scheduling. Everything you need to coordinate in one thread.",       href: "/chat",        tag: "HOT" },
     { type: "roast", title: "Resume Roast", desc: "Get constructive, brutal feedback on your resume from peers and alumni to land that internship.", href: "/roast", tag: "TRENDING" },
     { type: "pow", title: "Cryptographic PoW", desc: "Resumes are dead. Grid connects to your GitHub & Figma, analyzing raw commits to generate an unfakeable, verified skill graph.", href: "/pow", tag: "NEXT-GEN" },
-    { type: "community", title: "Communities", desc: "Join dedicated groups for your batch, branch, or niche interests to network.", href: "/community", tag: "TRENDING" },
+    { type: "community", title: "Communities", desc: "Join dedicated groups, or niche interests to network.", href: "/community", tag: "TRENDING" },
   ];
 
   const swapData = [
     [
-      { name: "Priya Patel",  year: 2, branch: "CSE",    offers: "React.js",      wants: "Python",         av: "PP", col: "ember" },
-      { name: "Rohan Mehta",  year: 3, branch: "IT",     offers: "Django API",    wants: "Kotlin",         av: "RM", col: "spark" },
+      { name: "Priya Patel",  year: 2, offers: "React.js",      wants: "Python",         av: "PP", col: "ember" },
+      { name: "Rohan Mehta",  year: 3, offers: "Django API",    wants: "Kotlin",         av: "RM", col: "spark" },
     ],
     [
-      { name: "Sneha Sen",    year: 1, branch: "Design", offers: "Figma / UI",    wants: "3D Blender",     av: "SS", col: "ember" },
-      { name: "Arjun Rao",    year: 4, branch: "Mech.",  offers: "CAD / SolidWorks", wants: "Web Dev",    av: "AR", col: "spark" },
+      { name: "Sneha Sen",    year: 1, offers: "Figma / UI",    wants: "3D Blender",     av: "SS", col: "ember" },
+      { name: "Arjun Rao",    year: 4, offers: "CAD / SolidWorks", wants: "Web Dev",    av: "AR", col: "spark" },
     ],
     [
-      { name: "Kabir Singh",  year: 3, branch: "Maths",  offers: "Calculus II",   wants: "Linear Algebra", av: "KS", col: "ember" },
-      { name: "Diya Shah",    year: 2, branch: "Chem.",  offers: "Physics",       wants: "Python Basics",  av: "DS", col: "spark" },
+      { name: "Kabir Singh",  year: 3, offers: "Calculus II",   wants: "Linear Algebra", av: "KS", col: "ember" },
+      { name: "Diya Shah",    year: 2, offers: "Physics",       wants: "Python Basics",  av: "DS", col: "spark" },
     ],
   ];
 
@@ -503,7 +503,7 @@ export default function Home() {
 
             <div className={s.stepsGrid}>
               {[
-                { n: "01", t: "Build your Grid profile", d: "Skills you teach. Skills you want. Your year, branch, projects. Your professional campus identity.", col: "ember" },
+                { n: "01", t: "Build your Grid profile", d: "Skills you teach. Skills you want. Your year, projects. Your professional campus identity.", col: "ember" },
                 { n: "02", t: "Find your skill match",    d: "Browse the Skill Marketplace. Request a swap. Schedule a session with someone who has what you need.", col: "spark" },
                 { n: "03", t: "Ship a real project",       d: "Post your idea. Recruit by skill. Coordinate in a dedicated project room. Build something real.",        col: "ember" },
                 { n: "04", t: "Earn your reputation",     d: "Every contribution earns XP and badges. Your profile becomes proof of what you can actually do.",         col: "spark" },
@@ -597,7 +597,7 @@ export default function Home() {
                       </div>
                       <div className={s.swapInfo}>
                         <strong>{c.name}</strong>
-                        <span>Year {c.year} · {c.branch}</span>
+                        <span>Year {c.year}</span>
                         <div className={s.swapBadges}>
                           <span className={s.bRed}>Teaches: {c.offers}</span>
                           <span className={s.bYellow}>Wants: {c.wants}</span>

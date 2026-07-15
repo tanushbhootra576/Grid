@@ -4,7 +4,6 @@ export interface IResource extends Document {
     courseCode: string;
     courseName: string;
     year: number;
-    branch: string;
     uploaderId: mongoose.Types.ObjectId;
     isApproved: boolean;
     
@@ -46,7 +45,6 @@ const ResourceSchema: Schema = new Schema({
     courseCode: { type: String, required: true, unique: true },
     courseName: { type: String, required: true },
     year: { type: Number, required: true },
-    branch: { type: String },
     uploaderId: { type: Schema.Types.ObjectId, ref: 'User' },
     isApproved: { type: Boolean, default: false },
     

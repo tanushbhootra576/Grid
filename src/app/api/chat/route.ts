@@ -10,7 +10,6 @@ export async function GET(req: NextRequest) {
     await dbConnect();
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type");
-    const branch = searchParams.get("branch");
     const year = searchParams.get("year");
     const userId = searchParams.get("userId");
 
@@ -168,11 +167,7 @@ export async function GET(req: NextRequest) {
     }
 
     let query: any = { type };
-    if (type === "branch") {
-      if (!branch)
-        return NextResponse.json({ error: "Branch required" }, { status: 400 });
-      query.branch = branch;
-    } else if (type === "year") {
+    if (type === "year") {
       if (!year)
         return NextResponse.json({ error: "Year required" }, { status: 400 });
       query.year = Number(year);
@@ -230,7 +225,6 @@ export async function POST(req: NextRequest) {
       content,
       senderId,
       type,
-      branch,
       year,
       replyTo,
       sticker,
@@ -283,19 +277,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Verify branch/year match
-    if (sender.role !== "admin") {
-      if (type === "branch") {
-        if (!branch)
-          return NextResponse.json(
-            { error: "Branch is required" },
-            { status: 400 }
-          );
-        // Allow if sender.branch is missing (legacy users) or matches
-        if (sender.branch && sender.branch !== branch) {
-          return NextResponse.json({ error: "Wrong branch" }, { status: 403 });
-        }
-      }
+    // Verify year match
+    if (sender.role === "student") {
       if (type === "year") {
         if (!year)
           return NextResponse.json(
@@ -327,7 +310,6 @@ export async function POST(req: NextRequest) {
       senderName: type === 'blind' ? 'Anonymous' : sender.name,
       senderVerified: sender.verified || false,
       type,
-      branch: type === "branch" ? branch : undefined,
       year: type === "year" ? year : undefined,
       recipientId: type === "dm" ? recipientId : undefined,
       sticker,

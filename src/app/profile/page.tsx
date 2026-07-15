@@ -45,7 +45,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: "", branch: "", year: 1, bio: "", college: "", city: "", state: "",
+    name: "", year: 1, bio: "", college: "", city: "", state: "",
     skills: [] as string[], interests: [] as string[],
     github: "", linkedin: "", portfolio: "",
     collaborationLevel: 1 as CollaborationLevel,
@@ -84,7 +84,6 @@ export default function ProfilePage() {
       const p = profile as any;
       setFormData({
         name: profile.name || "",
-        branch: profile.branch || "",
         year: profile.year || 1,
         bio: profile.bio || "",
         college: p.college || "",
@@ -147,7 +146,7 @@ export default function ProfilePage() {
 
   const handleSubmit = async () => {
     if (!user) return;
-    if (!profile?.profileLocked && formData.branch && formData.year) {
+    if (!profile?.profileLocked && formData.year) {
       if (!window.confirm("Setting Branch and Year will lock your profile permanently. Continue?")) return;
     }
     setLoading(true);
@@ -156,7 +155,7 @@ export default function ProfilePage() {
         method: "PUT", headers: getAuthHeaders(),
         body: JSON.stringify({
           name: formData.name, email: user.email || undefined,
-          branch: formData.branch, year: formData.year, bio: formData.bio,
+          year: formData.year, bio: formData.bio,
           college: formData.college, city: formData.city, state: formData.state,
           skills: formData.skills, interests: formData.interests,
           socialLinks: { github: formData.github, linkedin: formData.linkedin, portfolio: formData.portfolio },
@@ -266,7 +265,7 @@ export default function ProfilePage() {
   const completionItems = [
     { label: "Name set", done: !!formData.name },
     { label: "College set", done: !!formData.college },
-    { label: "Branch & Year", done: !!formData.branch && !!formData.year },
+    { label: "Year", done: !!formData.year },
     { label: "Bio written", done: formData.bio.length > 10 },
     { label: "Skills added", done: formData.skills.length > 0 },
     { label: "GitHub linked", done: !!formData.github },
@@ -309,7 +308,7 @@ export default function ProfilePage() {
                 </span>
               )}
             </div>
-            <div style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginTop: 4 }}>{user.email} {formData.branch && `· ${formData.branch}`} {formData.year && `· Year ${formData.year}`}</div>
+            <div style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginTop: 4 }}>{user.email} {formData.year && `· Year ${formData.year}`}</div>
           </div>
           {/* Completion Bar */}
           <div style={{ minWidth: 200 }}>
@@ -358,13 +357,7 @@ export default function ProfilePage() {
                     <label className={g.label}>Bio</label>
                     <input className={g.input} style={{ border: "1px solid var(--border)" }} placeholder="One-liner about yourself" value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} />
                   </div>
-                  <div className={g.formGroup}>
-                    <label className={g.label}>Branch {profile?.profileLocked && <span style={{ color: "var(--text-muted)", fontSize: "0.75rem" }}>(locked)</span>}</label>
-                    <select className={g.select} style={{ border: "1px solid var(--border)", width: "100%" }} value={formData.branch} onChange={e => setFormData({ ...formData, branch: e.target.value })} disabled={!!profile?.profileLocked}>
-                      <option value="">Select Branch</option>
-                      {["CSE", "ECE", "EEE", "MECH", "CIVIL", "IT", "CPS", "AIML", "Ai-R", "BDS", "BPS", "CHEMICAL", "FASHION"].map(b => <option key={b} value={b}>{b}</option>)}
-                    </select>
-                  </div>
+
                   <div className={g.formGroup}>
                     <label className={g.label}>Year {profile?.profileLocked && <span style={{ color: "var(--text-muted)", fontSize: "0.75rem" }}>(locked)</span>}</label>
                     <input type="number" className={g.input} style={{ border: "1px solid var(--border)" }} min={1} max={5} value={formData.year} onChange={e => setFormData({ ...formData, year: Number(e.target.value) })} disabled={!!profile?.profileLocked} />

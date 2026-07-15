@@ -14,7 +14,6 @@ interface UserDetail {
   firebaseUid: string;
   name: string;
   email: string;
-  branch?: string;
   year?: number;
   bio?: string;
   skills: string[];
@@ -95,7 +94,7 @@ export default function UserProfileView() {
                     </div>
                     <p style={{ color: 'var(--text-muted)', marginBottom: 4 }}>{user.email}</p>
                     <p style={{ fontWeight: 'bold', color: 'var(--text-muted)' }}>
-                      {user.branch ? `${user.branch}${user.year ? " • Year " + user.year : ""}` : "Branch not set"}
+                      {user.year ? `Year ${user.year}` : "Year not set"}
                     </p>
                   </div>
                 </div>

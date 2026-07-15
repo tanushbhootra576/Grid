@@ -16,7 +16,6 @@ export function isProfileComplete(profile: IUser | null): boolean {
     return !!(
         profile.name?.trim() &&
         p.college?.trim() &&
-        profile.branch?.trim() &&
         profile.year &&
         profile.acceptedGuidelines &&
         profile.verified

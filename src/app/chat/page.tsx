@@ -21,7 +21,7 @@ import c from "./chat.module.css";
 interface Reaction { userId: string; emoji: string; }
 interface Message {
   _id: string; content: string; senderId: string; senderName: string;
-  type: "universal" | "branch" | "year" | "dm" | "blind"; branch?: string; year?: number;
+  type: "universal" | "year" | "dm" | "blind"; year?: number;
   createdAt: string; replyTo?: { _id: string; content: string; senderName: string; };
   reactions: Reaction[]; sticker?: string;
   senderVerified?: boolean;
@@ -78,15 +78,13 @@ function ChatPageContent() {
   
   const pinnedCount = useMemo(() => recentDms.filter((dm) => dm.isPinned).length, [recentDms]);
 
-  const [adminBranch, setAdminBranch] = useState<string>("");
   const [adminYear, setAdminYear] = useState<string | null>(null);
 
   useEffect(() => {
     if (profile?.role === "admin") {
-      setAdminBranch(profile.branch || "");
       setAdminYear(profile.year ? String(profile.year) : null);
     }
-  }, [profile?.role, profile?.branch, profile?.year]);
+  }, [profile?.role, profile?.year]);
 
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [userSearchQuery, setUserSearchQuery] = useState("");
@@ -297,10 +295,8 @@ function ChatPageContent() {
   const fetchMessages = useCallback(async (options?: { showSpinner?: boolean }) => {
     if (!activeTab) return;
     const type = activeTab;
-    const branch = profile?.role === "admin" ? adminBranch : profile?.branch;
     const year = profile?.role === "admin" ? adminYear : profile?.year;
 
-    if (type === "branch" && !branch) return;
     if (type === "year" && !year) return;
     if (type === "dm" && !dmRecipientId) return;
 
@@ -309,7 +305,6 @@ function ChatPageContent() {
 
     try {
       const query = new URLSearchParams({ type });
-      if (type === "branch") if (branch) query.append("branch", branch);
       if (type === "year") if (year) query.append("year", String(year));
       if (type === "dm" && dmRecipientId) query.append("recipientId", dmRecipientId);
       if (profile?._id) query.append("userId", String(profile._id));
@@ -340,7 +335,7 @@ function ChatPageContent() {
     } catch (error) {} finally {
       if (shouldShowSpinner) setIsMessagesLoading(false);
     }
-  }, [activeTab, profile?.branch, profile?.year, dmRecipientId, profile?._id, profile?.role, adminBranch, adminYear, sendBrowserNotification, windowInFocus]);
+  }, [activeTab, profile?.year, dmRecipientId, profile?._id, profile?.role, adminYear, sendBrowserNotification, windowInFocus]);
 
   const scrollToBottom = () => {
     if (viewport.current) {
@@ -402,7 +397,6 @@ function ChatPageContent() {
   const handleSendMessage = async (stickerUrl?: string) => {
     if ((!newMessage.trim() && !stickerUrl) || !user || !profile) return;
     const type = activeTab;
-    const branch = profile.role === "admin" ? adminBranch : profile.branch;
     const year = profile.role === "admin" ? adminYear : profile.year;
     
     setStickerPanelOpen(false);
@@ -413,7 +407,6 @@ function ChatPageContent() {
         headers: getAuthHeaders(),
         body: JSON.stringify({
           content: newMessage, senderId: profile._id, type,
-          branch: type === "branch" ? branch : undefined,
           year: type === "year" ? Number(year) : undefined,
           recipientId: type === "dm" ? dmRecipientId : undefined,
           replyTo: replyingTo ? { _id: replyingTo._id, content: replyingTo.content, senderName: replyingTo.senderName } : undefined,
@@ -482,15 +475,6 @@ function ChatPageContent() {
             <div className={c.channelList}>
               <button className={`${c.channelBtn} ${activeTab === 'universal' ? c.channelBtnActive : ''}`} onClick={() => setActiveTab('universal')}>
                 <IconHash size={18} className={c.channelIcon} /> Universal
-              </button>
-              <button 
-                className={`${c.channelBtn} ${activeTab === 'branch' ? c.channelBtnActive : ''}`} 
-                onClick={() => setActiveTab('branch')} 
-                disabled={!profile?.branch && profile?.role !== 'admin'}
-                style={{ opacity: (!profile?.branch && profile?.role !== 'admin') ? 0.5 : 1 }}
-              >
-                <IconBuilding size={18} className={c.channelIcon} /> 
-                {profile?.role === 'admin' ? adminBranch || 'Branch (Admin)' : profile?.branch || 'Branch'}
               </button>
               <button 
                 className={`${c.channelBtn} ${activeTab === 'year' ? c.channelBtnActive : ''}`} 
@@ -571,7 +555,6 @@ function ChatPageContent() {
               )}
               <h2 className={c.headerTitle}>
                 {activeTab === 'universal' && '# Universal'}
-                {activeTab === 'branch' && `# ${profile?.branch || adminBranch}`}
                 {activeTab === 'year' && `# Year ${profile?.year || adminYear}`}
                 {activeTab === 'blind' && '# Blind Insights'}
                 {activeTab === 'dm' && `@ ${dmUser?.name || 'User'}`}
@@ -832,7 +815,7 @@ function ChatPageContent() {
                     <div>
                       <div className={c.userResultName}>{u.name}</div>
                       <div className={c.userResultMeta}>
-                        {u.branch} • Year {u.year}
+                        Year {u.year}
                       </div>
                     </div>
                   </div>
